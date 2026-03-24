@@ -93,7 +93,8 @@ nav.scrolled-up{box-shadow:0 1px 6px rgba(0,0,0,.04)}
   border-bottom:1px solid var(--border);
 }
 .home-avatar{
-  width:56px;height:56px;border-radius:50%;
+  width:56px;height:56px;min-width:56px;max-width:56px;
+  border-radius:50%;
   object-fit:cover;border:2px solid var(--border);
   flex-shrink:0;
 }
@@ -189,7 +190,7 @@ nav.scrolled-up{box-shadow:0 1px 6px rgba(0,0,0,.04)}
 .all-articles{margin-top:8px}
 
 /* ============ Article Page ============ */
-.article-page{padding:0 20px}
+.article-page{max-width:var(--max-w);margin:0 auto;padding:0 20px}
 .article-header{
   max-width:720px;margin:0 auto;
   padding-top:calc(var(--nav-h)+40px);padding-bottom:24px;
