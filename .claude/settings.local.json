@@ -1,0 +1,13 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(git config:*)",
+      "Bash(git log:*)",
+      "WebFetch(domain:github.com)",
+      "Bash(head:*)",
+      "Bash(git ls-tree:*)",
+      "Bash(git:*)",
+      "Bash(grep:*)"
+    ]
+  }
+}
