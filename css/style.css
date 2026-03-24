@@ -140,7 +140,7 @@ nav.scrolled-up{box-shadow:0 1px 6px rgba(0,0,0,.04)}
 .post-card .post-tags span{font-size:11px;color:var(--text-muted);padding:1px 8px;border:1px solid var(--border);border-radius:12px}
 
 /* ============ Knowledge Graph ============ */
-.graph-section{padding-top:10px}
+.graph-section{padding-top:10px;margin-bottom:40px}
 .section-title{
   font-size:18px;font-weight:600;color:var(--text);
   margin-bottom:16px;padding-bottom:10px;border-bottom:1px solid var(--border);
@@ -275,20 +275,20 @@ nav.scrolled-up{box-shadow:0 1px 6px rgba(0,0,0,.04)}
 
 /* Code */
 .article-body code{font-family:var(--font-mono);font-size:.85em;padding:2px 6px;background:var(--bg-sec);border-radius:4px;border:1px solid var(--border);color:#c7254e;word-break:break-word}
-.article-body pre{position:relative;margin:18px 0;padding:16px 18px;background:#282c34;border:none;border-radius:8px;overflow-x:auto}
-.article-body pre code{padding:0;background:none;border:none;font-size:13px;line-height:1.6;color:#abb2bf;word-break:normal}
-.article-body pre code.hljs{background:#282c34!important;color:#abb2bf!important;padding:0!important}
-.hljs{background:#282c34!important}
+.article-body pre{position:relative;margin:18px 0;padding:16px 18px;background:var(--bg-sec);border:1px solid var(--border);border-radius:8px;overflow-x:auto}
+.article-body pre code{padding:0;background:none;border:none;font-size:13px;line-height:1.6;color:var(--text);word-break:normal}
+.article-body pre code.hljs{background:var(--bg-sec)!important;color:var(--text)!important;padding:0!important}
+.hljs{background:var(--bg-sec)!important}
 /* Copy button */
 .code-copy-btn{
   position:absolute;top:8px;right:8px;
   padding:4px 8px;font-size:12px;
-  color:#999;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.12);
+  color:var(--text-muted);background:var(--bg);border:1px solid var(--border);
   border-radius:4px;cursor:pointer;opacity:0;transition:opacity .2s;
   font-family:var(--font-sans);
 }
 .article-body pre:hover .code-copy-btn{opacity:1}
-.code-copy-btn:hover{color:#fff;background:rgba(255,255,255,.16)}
+.code-copy-btn:hover{color:var(--text);background:var(--bg-sec)}
 .code-copy-btn.copied{color:#27ae60}
 
 /* Table */
