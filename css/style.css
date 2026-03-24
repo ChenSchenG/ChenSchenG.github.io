@@ -145,6 +145,19 @@ nav.scrolled-up{box-shadow:0 1px 6px rgba(0,0,0,.04)}
   font-size:18px;font-weight:600;color:var(--text);
   margin-bottom:16px;padding-bottom:10px;border-bottom:1px solid var(--border);
 }
+.section-title-fancy{
+  font-family:'Georgia','Times New Roman',serif;
+  font-size:28px;font-weight:400;font-style:italic;
+  letter-spacing:1px;
+  color:var(--text);
+  border-bottom:none;padding-bottom:0;margin-bottom:20px;
+  position:relative;display:flex;align-items:center;gap:16px;
+}
+.section-title-fancy::before,.section-title-fancy::after{
+  content:"";flex:1;height:1px;background:var(--border);
+}
+.section-title-fancy::before{max-width:40px}
+.section-title-fancy::after{max-width:none}
 .graph-legend{
   display:flex;flex-wrap:wrap;gap:14px;margin-bottom:12px;
 }
