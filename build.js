@@ -359,37 +359,24 @@ function buildArticlePage(opts) {
     '  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github.min.css">\n' +
     '</head>\n' +
     '<body>\n' +
-    '  <!-- Navigation -->\n' +
     '  <nav id="nav">\n' +
-    '    <div class="nav-logo">\n' +
-    '      <a href="/">CSG</a>\n' +
-    '    </div>\n' +
+    '    <div class="nav-logo"><a href="/">ChenSchenG</a></div>\n' +
     '    <div class="nav-links-wrapper">\n' +
-    '      <ol class="nav-links">\n' +
-    '        <li><a href="/#graph"><span class="nav-number">01.</span>Graph</a></li>\n' +
-    '        <li><a href="/#articles"><span class="nav-number">02.</span>Articles</a></li>\n' +
-    '        <li><a href="/about.html"><span class="nav-number">03.</span>About</a></li>\n' +
-    '      </ol>\n' +
-    '      <div class="nav-resume">\n' +
-    '        <a href="/about.html">More About Me</a>\n' +
-    '      </div>\n' +
+    '      <ul class="nav-links">\n' +
+    '        <li><a href="/">Home</a></li>\n' +
+    '        <li><a href="/#graph">Graph</a></li>\n' +
+    '        <li><a href="/about.html">About</a></li>\n' +
+    '      </ul>\n' +
     '    </div>\n' +
-    '    <button class="hamburger" id="hamburger" aria-label="Menu">\n' +
-    '      <span class="hamburger-inner"></span>\n' +
-    '    </button>\n' +
+    '    <button class="hamburger" id="hamburger" aria-label="Menu"><span class="hamburger-inner"></span></button>\n' +
     '  </nav>\n' +
-    '\n' +
-    '  <!-- Mobile Menu -->\n' +
     '  <div class="mobile-menu-overlay" id="mobile-overlay"></div>\n' +
     '  <aside class="mobile-menu" id="mobile-menu">\n' +
-    '    <ol>\n' +
+    '    <ul>\n' +
+    '      <li><a href="/">Home</a></li>\n' +
     '      <li><a href="/#graph">Graph</a></li>\n' +
-    '      <li><a href="/#articles">Articles</a></li>\n' +
     '      <li><a href="/about.html">About</a></li>\n' +
-    '    </ol>\n' +
-    '    <div class="mobile-resume">\n' +
-    '      <a href="/about.html">More About Me</a>\n' +
-    '    </div>\n' +
+    '    </ul>\n' +
     '  </aside>\n' +
     '\n' +
     '  <main class="article-page">\n' +
@@ -397,8 +384,6 @@ function buildArticlePage(opts) {
     '      <header class="article-header">\n' +
     '        <div class="article-breadcrumb">\n' +
     '          <a href="/">Home</a>\n' +
-    '          <span class="separator">/</span>\n' +
-    '          <a href="/knowledge/">Knowledge</a>\n' +
     '          <span class="separator">/</span>\n' +
     '          <span>' + opts.category + '</span>\n' +
     '        </div>\n' +

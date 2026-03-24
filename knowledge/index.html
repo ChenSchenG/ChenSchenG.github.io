@@ -12,37 +12,24 @@
   <link rel="stylesheet" href="../css/style.css">
 </head>
 <body>
-  <!-- Navigation -->
   <nav id="nav">
-    <div class="nav-logo">
-      <a href="/">CSG</a>
-    </div>
+    <div class="nav-logo"><a href="/">ChenSchenG</a></div>
     <div class="nav-links-wrapper">
-      <ol class="nav-links">
-        <li><a href="/#graph"><span class="nav-number">01.</span>Graph</a></li>
-        <li><a href="/#articles"><span class="nav-number">02.</span>Articles</a></li>
-        <li><a href="/about.html"><span class="nav-number">03.</span>About</a></li>
-      </ol>
-      <div class="nav-resume">
-        <a href="/about.html">More About Me</a>
-      </div>
+      <ul class="nav-links">
+        <li><a href="/">Home</a></li>
+        <li><a href="/#graph">Graph</a></li>
+        <li><a href="/about.html">About</a></li>
+      </ul>
     </div>
-    <button class="hamburger" id="hamburger" aria-label="Menu">
-      <span class="hamburger-inner"></span>
-    </button>
+    <button class="hamburger" id="hamburger" aria-label="Menu"><span class="hamburger-inner"></span></button>
   </nav>
-
-  <!-- Mobile Menu -->
   <div class="mobile-menu-overlay" id="mobile-overlay"></div>
   <aside class="mobile-menu" id="mobile-menu">
-    <ol>
+    <ul>
+      <li><a href="/">Home</a></li>
       <li><a href="/#graph">Graph</a></li>
-      <li><a href="/#articles">Articles</a></li>
       <li><a href="/about.html">About</a></li>
-    </ol>
-    <div class="mobile-resume">
-      <a href="/about.html">More About Me</a>
-    </div>
+    </ul>
   </aside>
 
   <main class="article-page">
@@ -52,28 +39,12 @@
       <p>An interconnected map of concepts spanning security, networking, frontend development, and AI. Click nodes to explore.</p>
     </div>
 
-    <!-- Graph Legend -->
     <div class="graph-legend fade-in">
-      <div class="graph-legend-item">
-        <span class="legend-dot" style="background-color: #e74c3c;"></span>
-        <span>Security</span>
-      </div>
-      <div class="graph-legend-item">
-        <span class="legend-dot" style="background-color: #27ae60;"></span>
-        <span>Network</span>
-      </div>
-      <div class="graph-legend-item">
-        <span class="legend-dot" style="background-color: #2980b9;"></span>
-        <span>Frontend</span>
-      </div>
-      <div class="graph-legend-item">
-        <span class="legend-dot" style="background-color: #8e44ad;"></span>
-        <span>AI</span>
-      </div>
-      <div class="graph-legend-item">
-        <span class="legend-dot" style="background-color: #778ca3;"></span>
-        <span>Other</span>
-      </div>
+      <span class="legend-item"><i style="background:#e74c3c"></i>Security</span>
+      <span class="legend-item"><i style="background:#27ae60"></i>Network</span>
+      <span class="legend-item"><i style="background:#2980b9"></i>Frontend</span>
+      <span class="legend-item"><i style="background:#8e44ad"></i>AI</span>
+      <span class="legend-item"><i style="background:#7f8c8d"></i>Other</span>
     </div>
 
     <!-- Force Graph -->
@@ -106,7 +77,7 @@
 
   <!-- Footer -->
   <footer>
-    <p>Designed &amp; Built by <a href="https://github.com/ChenSchenG">ChenSchenG</a></p>
+    <p>Copyright &copy; ChenSchenG 2025 &ndash; 2026</p>
   </footer>
 
   <script src="https://d3js.org/d3.v7.min.js"></script>

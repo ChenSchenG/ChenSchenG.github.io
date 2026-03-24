@@ -1,125 +1,206 @@
 /**
- * graph.js — D3.js Knowledge Graph + Article Table
- * White theme, works from both root (/) and /knowledge/
+ * graph.js — Post list (huangxuan-style) + D3 knowledge graph + sidebar tags
  */
-
 (function () {
   'use strict';
 
-  var CATEGORY_COLORS = {
-    Security: '#e74c3c',
-    Network: '#27ae60',
-    Frontend: '#2980b9',
-    AI: '#8e44ad',
-    Other: '#7f8c8d',
+  var COLORS = {
+    Security: '#e74c3c', Network: '#27ae60',
+    Frontend: '#2980b9', AI: '#8e44ad', Other: '#7f8c8d'
   };
 
-  var CATEGORY_ICONS = {
-    Security: '🔐',
-    Network: '🌐',
-    Frontend: '⚛️',
-    AI: '🤖',
-    Other: '📦',
-  };
-
-  // Detect path context
-  var isSubdir = window.location.pathname.indexOf('/knowledge/') !== -1;
+  var isSubdir = location.pathname.indexOf('/knowledge/') !== -1;
   var dataPath = isSubdir ? '../data/graph-data.json' : 'data/graph-data.json';
-  var articlePrefix = isSubdir ? '' : 'knowledge/';
+  var prefix = isSubdir ? '' : 'knowledge/';
 
-  fetch(dataPath)
-    .then(function (res) {
-      if (!res.ok) throw new Error('Failed to load graph data');
-      return res.json();
-    })
-    .then(function (data) {
-      renderGraph(data);
-      renderCategoryChips(data);
-      renderArticleTable(data);
-    })
-    .catch(function (err) {
-      console.error('Graph data load error:', err);
-      var c = document.getElementById('graph-container');
-      if (c) c.innerHTML = '<p style="text-align:center;padding:40px;color:#8b8da3;">Run <code>node build.js</code> to generate graph data.</p>';
+  fetch(dataPath).then(function (r) { return r.json(); }).then(function (data) {
+    renderPostList(data);
+    renderSidebarTags(data);
+    renderGraph(data);
+    renderCategoryChips(data);
+  }).catch(function () {
+    var c = document.getElementById('graph-container');
+    if (c) c.innerHTML = '<p style="text-align:center;padding:40px;color:#999">Run <code>node build.js</code> to generate.</p>';
+  });
+
+  /* ==================== Post List (huangxuan) ==================== */
+  function renderPostList(data) {
+    var el = document.getElementById('post-list');
+    if (!el) return;
+    var sorted = data.nodes.slice().sort(function (a, b) { return (b.date || '').localeCompare(a.date || ''); });
+    sorted.forEach(function (n) {
+      var item = document.createElement('div');
+      item.className = 'post-item';
+      var link = document.createElement('a');
+      link.href = prefix + n.slug + '.html';
+
+      var h2 = document.createElement('h2');
+      h2.className = 'post-title';
+      h2.textContent = n.title;
+      link.appendChild(h2);
+
+      if (n.excerpt) {
+        var p = document.createElement('p');
+        p.className = 'post-excerpt';
+        p.textContent = n.excerpt;
+        link.appendChild(p);
+      }
+
+      item.appendChild(link);
+
+      var meta = document.createElement('div');
+      meta.className = 'post-meta';
+      var parts = [];
+      if (n.date) parts.push('<span class="post-date">' + n.date + '</span>');
+      if (n.category) parts.push('<span>' + n.category + '</span>');
+      meta.innerHTML = parts.join(' · ');
+      item.appendChild(meta);
+
+      el.appendChild(item);
     });
+  }
 
-  /* ===================== Force Graph ===================== */
+  /* ==================== Sidebar Tags ==================== */
+  function renderSidebarTags(data) {
+    var el = document.getElementById('side-tags');
+    if (!el) return;
+    var tagCount = {};
+    data.nodes.forEach(function (n) {
+      (n.tags || []).slice(2, 6).forEach(function (t) { tagCount[t] = (tagCount[t] || 0) + 1; });
+    });
+    var tags = Object.keys(tagCount).sort(function (a, b) { return tagCount[b] - tagCount[a]; }).slice(0, 14);
+    var list = document.createElement('div');
+    list.className = 'tag-list';
+    tags.forEach(function (t) {
+      var a = document.createElement('a');
+      a.href = '#';
+      a.textContent = t;
+      a.addEventListener('click', function (e) { e.preventDefault(); });
+      list.appendChild(a);
+    });
+    el.appendChild(list);
+  }
+
+  /* ==================== Category chips (knowledge/ page) ==================== */
+  function renderCategoryChips(data) {
+    var grid = document.getElementById('category-grid');
+    var container = document.getElementById('category-articles-container');
+    if (!grid || !container) return;
+    var cats = {};
+    data.nodes.forEach(function (n) { var c = n.category || 'Other'; if (!cats[c]) cats[c] = []; cats[c].push(n); });
+
+    var allChip = document.createElement('div');
+    allChip.className = 'category-card active';
+    allChip.setAttribute('data-category', '__all__');
+    allChip.innerHTML = '<h3>All</h3>';
+    allChip.onclick = function () { toggleCat('__all__'); };
+    grid.appendChild(allChip);
+
+    Object.keys(cats).forEach(function (cat) {
+      var chip = document.createElement('div');
+      chip.className = 'category-card';
+      chip.setAttribute('data-category', cat);
+      chip.innerHTML = '<h3>' + cat + '</h3> <span class="category-count">' + cats[cat].length + '</span>';
+      chip.onclick = function () { toggleCat(cat); };
+      grid.appendChild(chip);
+
+      var sec = document.createElement('div');
+      sec.className = 'category-articles';
+      sec.id = 'articles-' + cat;
+      var list = document.createElement('div');
+      list.className = 'article-list';
+      cats[cat].forEach(function (n) {
+        var a = document.createElement('a');
+        a.className = 'article-list-item';
+        a.href = prefix + n.slug + '.html';
+        a.innerHTML = '<span class="article-title">' + n.title + '</span><span class="article-date">' + (n.date || '') + '</span>';
+        list.appendChild(a);
+      });
+      sec.appendChild(list);
+      container.appendChild(sec);
+    });
+  }
+
+  var activeCat = '__all__';
+  function toggleCat(cat) {
+    var chips = document.querySelectorAll('.category-card');
+    var arts = document.querySelectorAll('.category-articles');
+    var all = document.getElementById('all-articles');
+    if (cat === '__all__' || activeCat === cat) {
+      chips.forEach(function (c) { c.classList.toggle('active', c.getAttribute('data-category') === '__all__'); });
+      arts.forEach(function (a) { a.classList.remove('open'); });
+      if (all) all.style.display = '';
+      activeCat = '__all__';
+    } else {
+      chips.forEach(function (c) { c.classList.toggle('active', c.getAttribute('data-category') === cat); });
+      arts.forEach(function (a) { a.classList.toggle('open', a.id === 'articles-' + cat); });
+      if (all) all.style.display = 'none';
+      activeCat = cat;
+    }
+  }
+
+  /* ==================== D3 Graph ==================== */
   function renderGraph(data) {
-    var container = document.getElementById('graph-container');
+    var box = document.getElementById('graph-container');
     var svg = d3.select('#graph-svg');
-    var tooltip = document.getElementById('graph-tooltip');
-    if (!container || !svg.node()) return;
+    var tip = document.getElementById('graph-tooltip');
+    if (!box || !svg.node()) return;
+    var W = box.clientWidth, H = box.clientHeight;
+    svg.attr('viewBox', [0, 0, W, H]);
 
-    var width = container.clientWidth;
-    var height = container.clientHeight;
-    svg.attr('viewBox', [0, 0, width, height]);
-
-    var adjacency = {};
-    data.nodes.forEach(function (n) { adjacency[n.id] = new Set(); });
+    var adj = {};
+    data.nodes.forEach(function (n) { adj[n.id] = new Set(); });
     data.edges.forEach(function (e) {
-      adjacency[e.source] = adjacency[e.source] || new Set();
-      adjacency[e.target] = adjacency[e.target] || new Set();
-      adjacency[e.source].add(e.target);
-      adjacency[e.target].add(e.source);
+      (adj[e.source] = adj[e.source] || new Set()).add(e.target);
+      (adj[e.target] = adj[e.target] || new Set()).add(e.source);
     });
 
-    var simulation = d3.forceSimulation(data.nodes)
+    var sim = d3.forceSimulation(data.nodes)
       .force('link', d3.forceLink(data.edges).id(function (d) { return d.id; }).distance(80))
-      .force('charge', d3.forceManyBody().strength(-300))
-      .force('center', d3.forceCenter(width / 2, height / 2))
-      .force('collision', d3.forceCollide().radius(20));
+      .force('charge', d3.forceManyBody().strength(-280))
+      .force('center', d3.forceCenter(W / 2, H / 2))
+      .force('collision', d3.forceCollide().radius(18));
 
     var g = svg.append('g');
-    svg.call(d3.zoom().scaleExtent([0.3, 4]).on('zoom', function (event) { g.attr('transform', event.transform); }));
+    svg.call(d3.zoom().scaleExtent([.3, 4]).on('zoom', function (e) { g.attr('transform', e.transform); }));
 
     var link = g.append('g').selectAll('line').data(data.edges).enter().append('line')
-      .attr('stroke', '#ddd').attr('stroke-width', 1.2).attr('stroke-opacity', 0.7);
+      .attr('stroke', '#ddd').attr('stroke-width', 1.2);
 
+    var R = function (d) { return 6 + (d.connections || 0) * 2; };
     var node = g.append('g').selectAll('circle').data(data.nodes).enter().append('circle')
-      .attr('r', function (d) { return 7 + (d.connections || 0) * 2.5; })
-      .attr('fill', function (d) { return CATEGORY_COLORS[d.category] || CATEGORY_COLORS.Other; })
-      .attr('stroke', '#fff').attr('stroke-width', 2)
-      .style('cursor', 'pointer');
+      .attr('r', R).attr('fill', function (d) { return COLORS[d.category] || COLORS.Other; })
+      .attr('stroke', '#fff').attr('stroke-width', 1.5).style('cursor', 'pointer');
 
     var label = g.append('g').selectAll('text').data(data.nodes).enter().append('text')
       .text(function (d) { return d.title; })
-      .attr('font-size', 11).attr('font-family', "'Inter', sans-serif").attr('fill', '#555770')
-      .attr('text-anchor', 'middle')
-      .attr('dy', function (d) { return -(11 + (d.connections || 0) * 2.5); })
+      .attr('font-size', 10).attr('font-family', "'Inter',sans-serif").attr('fill', '#888')
+      .attr('text-anchor', 'middle').attr('dy', function (d) { return -(R(d) + 4); })
       .style('pointer-events', 'none');
 
-    var drag = d3.drag()
-      .on('start', function (event, d) { if (!event.active) simulation.alphaTarget(0.3).restart(); d.fx = d.x; d.fy = d.y; })
-      .on('drag', function (event, d) { d.fx = event.x; d.fy = event.y; })
-      .on('end', function (event, d) { if (!event.active) simulation.alphaTarget(0); d.fx = null; d.fy = null; });
-    node.call(drag);
+    node.call(d3.drag()
+      .on('start', function (e, d) { if (!e.active) sim.alphaTarget(.3).restart(); d.fx = d.x; d.fy = d.y; })
+      .on('drag', function (e, d) { d.fx = e.x; d.fy = e.y; })
+      .on('end', function (e, d) { if (!e.active) sim.alphaTarget(0); d.fx = null; d.fy = null; }));
 
-    node
-      .on('mouseenter', function (event, d) {
-        var connected = adjacency[d.id] || new Set();
-        node.attr('opacity', function (n) { return n.id === d.id || connected.has(n.id) ? 1 : 0.15; })
-          .attr('r', function (n) { var b = 7 + (n.connections || 0) * 2.5; return n.id === d.id ? b * 1.4 : b; });
-        link.attr('stroke-opacity', function (l) { return l.source.id === d.id || l.target.id === d.id ? 1 : 0.05; })
-          .attr('stroke', function (l) { return l.source.id === d.id || l.target.id === d.id ? '#1a1a2e' : '#ddd'; })
-          .attr('stroke-width', function (l) { return l.source.id === d.id || l.target.id === d.id ? 2 : 1.2; });
-        label.attr('opacity', function (n) { return n.id === d.id || connected.has(n.id) ? 1 : 0.1; });
-        tooltip.textContent = d.title;
-        tooltip.style.opacity = '1';
-        var rect = container.getBoundingClientRect();
-        tooltip.style.left = (event.clientX - rect.left + 14) + 'px';
-        tooltip.style.top = (event.clientY - rect.top - 10) + 'px';
-      })
-      .on('mouseleave', function () {
-        node.attr('opacity', 1).attr('r', function (d) { return 7 + (d.connections || 0) * 2.5; });
-        link.attr('stroke-opacity', 0.7).attr('stroke', '#ddd').attr('stroke-width', 1.2);
-        label.attr('opacity', 1);
-        tooltip.style.opacity = '0';
-      });
+    node.on('mouseenter', function (e, d) {
+      var cn = adj[d.id] || new Set();
+      node.attr('opacity', function (n) { return n.id === d.id || cn.has(n.id) ? 1 : .12; });
+      link.attr('stroke', function (l) { return l.source.id === d.id || l.target.id === d.id ? '#555' : '#eee'; })
+        .attr('stroke-width', function (l) { return l.source.id === d.id || l.target.id === d.id ? 2 : 1; });
+      label.attr('opacity', function (n) { return n.id === d.id || cn.has(n.id) ? 1 : .08; });
+      tip.textContent = d.title; tip.style.opacity = '1';
+      var r = box.getBoundingClientRect();
+      tip.style.left = (e.clientX - r.left + 12) + 'px';
+      tip.style.top = (e.clientY - r.top - 8) + 'px';
+    }).on('mouseleave', function () {
+      node.attr('opacity', 1); link.attr('stroke', '#ddd').attr('stroke-width', 1.2); label.attr('opacity', 1); tip.style.opacity = '0';
+    });
 
-    node.on('click', function (event, d) { event.stopPropagation(); openDetailPanel(d); });
-    svg.on('click', function () { closeDetailPanel(); });
+    node.on('click', function (e, d) { e.stopPropagation(); openPanel(d); });
+    svg.on('click', closePanel);
 
-    simulation.on('tick', function () {
+    sim.on('tick', function () {
       link.attr('x1', function (d) { return d.source.x; }).attr('y1', function (d) { return d.source.y; })
         .attr('x2', function (d) { return d.target.x; }).attr('y2', function (d) { return d.target.y; });
       node.attr('cx', function (d) { return d.x; }).attr('cy', function (d) { return d.y; });
@@ -127,158 +208,17 @@
     });
   }
 
-  /* ===================== Detail Panel ===================== */
-  function openDetailPanel(d) {
-    var panel = document.getElementById('detail-panel');
-    if (!panel) return;
+  function openPanel(d) {
+    var p = document.getElementById('detail-panel'); if (!p) return;
     document.getElementById('detail-title').textContent = d.title;
     document.getElementById('detail-category').textContent = d.category;
     document.getElementById('detail-excerpt').textContent = d.excerpt || '';
-    var tags = document.getElementById('detail-tags');
-    tags.innerHTML = '';
-    (d.tags || []).slice(0, 5).forEach(function (t) { var s = document.createElement('span'); s.textContent = t; tags.appendChild(s); });
-    document.getElementById('detail-link').href = articlePrefix + d.slug + '.html';
-    panel.classList.add('open');
+    var t = document.getElementById('detail-tags'); t.innerHTML = '';
+    (d.tags || []).slice(0, 4).forEach(function (x) { var s = document.createElement('span'); s.textContent = x; t.appendChild(s); });
+    document.getElementById('detail-link').href = prefix + d.slug + '.html';
+    p.classList.add('open');
   }
-  function closeDetailPanel() { var p = document.getElementById('detail-panel'); if (p) p.classList.remove('open'); }
+  function closePanel() { var p = document.getElementById('detail-panel'); if (p) p.classList.remove('open'); }
   var cb = document.getElementById('detail-close');
-  if (cb) cb.addEventListener('click', function (e) { e.stopPropagation(); closeDetailPanel(); });
-
-  /* ===================== Category Chips ===================== */
-  function renderCategoryChips(data) {
-    var grid = document.getElementById('category-grid');
-    var articlesContainer = document.getElementById('category-articles-container');
-    if (!grid || !articlesContainer) return;
-
-    var categories = {};
-    data.nodes.forEach(function (n) { var c = n.category || 'Other'; if (!categories[c]) categories[c] = []; categories[c].push(n); });
-
-    // "All" chip
-    var allChip = document.createElement('div');
-    allChip.className = 'category-card active';
-    allChip.setAttribute('data-category', '__all__');
-    allChip.innerHTML = '<h3>All</h3> <span class="category-count">' + data.nodes.length + '</span>';
-    allChip.addEventListener('click', function () { toggleCategory('__all__'); });
-    grid.appendChild(allChip);
-
-    Object.keys(categories).forEach(function (cat) {
-      var nodes = categories[cat];
-      var chip = document.createElement('div');
-      chip.className = 'category-card';
-      chip.setAttribute('data-category', cat);
-      chip.innerHTML = '<span class="category-icon">' + (CATEGORY_ICONS[cat] || '📦') + '</span><h3>' + cat + '</h3> <span class="category-count">' + nodes.length + '</span>';
-      chip.addEventListener('click', function () { toggleCategory(cat); });
-      grid.appendChild(chip);
-
-      // article list for this category
-      var section = document.createElement('div');
-      section.className = 'category-articles';
-      section.id = 'articles-' + cat;
-      var list = document.createElement('div');
-      list.className = 'article-list';
-      nodes.forEach(function (n) {
-        var item = document.createElement('a');
-        item.className = 'article-list-item';
-        item.href = articlePrefix + n.slug + '.html';
-        item.innerHTML = '<span class="article-title">' + n.title + '</span><span class="article-date">' + (n.date || '') + '</span>';
-        list.appendChild(item);
-      });
-      section.appendChild(list);
-      articlesContainer.appendChild(section);
-    });
-  }
-
-  var activeCategory = '__all__';
-  function toggleCategory(cat) {
-    var chips = document.querySelectorAll('.category-card');
-    var catArticles = document.querySelectorAll('.category-articles');
-    var allArticles = document.getElementById('all-articles');
-
-    if (cat === '__all__') {
-      chips.forEach(function (c) { c.classList.toggle('active', c.getAttribute('data-category') === '__all__'); });
-      catArticles.forEach(function (a) { a.classList.remove('open'); });
-      if (allArticles) allArticles.style.display = '';
-      activeCategory = '__all__';
-    } else if (activeCategory === cat) {
-      // clicking same = go back to all
-      toggleCategory('__all__');
-      return;
-    } else {
-      chips.forEach(function (c) { c.classList.toggle('active', c.getAttribute('data-category') === cat); });
-      catArticles.forEach(function (a) { a.classList.toggle('open', a.id === 'articles-' + cat); });
-      if (allArticles) allArticles.style.display = 'none';
-      activeCategory = cat;
-    }
-  }
-
-  /* ===================== Article Table (bchiang7 style) ===================== */
-  function renderArticleTable(data) {
-    var container = document.getElementById('all-articles');
-    if (!container) return;
-
-    var sorted = data.nodes.slice().sort(function (a, b) { return (b.date || '').localeCompare(a.date || ''); });
-
-    var table = document.createElement('table');
-    table.className = 'article-table';
-
-    // thead
-    var thead = document.createElement('thead');
-    var headRow = document.createElement('tr');
-    ['Year', 'Title', 'Category', 'Tags'].forEach(function (h) {
-      var th = document.createElement('th');
-      th.textContent = h;
-      th.className = 'col-' + h.toLowerCase();
-      headRow.appendChild(th);
-    });
-    thead.appendChild(headRow);
-    table.appendChild(thead);
-
-    // tbody
-    var tbody = document.createElement('tbody');
-    var lastYear = '';
-
-    sorted.forEach(function (n) {
-      var year = (n.date || '').substring(0, 4);
-      var tr = document.createElement('tr');
-      tr.addEventListener('click', function () { window.location.href = articlePrefix + n.slug + '.html'; });
-
-      // year
-      var tdYear = document.createElement('td');
-      tdYear.className = 'col-year';
-      tdYear.textContent = year !== lastYear ? year : '';
-      lastYear = year;
-      tr.appendChild(tdYear);
-
-      // title
-      var tdTitle = document.createElement('td');
-      tdTitle.className = 'col-title';
-      var a = document.createElement('a');
-      a.href = articlePrefix + n.slug + '.html';
-      a.textContent = n.title;
-      a.addEventListener('click', function (e) { e.stopPropagation(); });
-      tdTitle.appendChild(a);
-      tr.appendChild(tdTitle);
-
-      // category
-      var tdCat = document.createElement('td');
-      tdCat.className = 'col-category';
-      tdCat.textContent = n.category;
-      tr.appendChild(tdCat);
-
-      // tags (first 3)
-      var tdTags = document.createElement('td');
-      tdTags.className = 'col-tags';
-      (n.tags || []).slice(2, 5).forEach(function (t) {
-        var s = document.createElement('span');
-        s.textContent = t;
-        tdTags.appendChild(s);
-      });
-      tr.appendChild(tdTags);
-
-      tbody.appendChild(tr);
-    });
-
-    table.appendChild(tbody);
-    container.appendChild(table);
-  }
+  if (cb) cb.addEventListener('click', function (e) { e.stopPropagation(); closePanel(); });
 })();
