@@ -366,10 +366,9 @@ function buildArticlePage(opts) {
     '    </div>\n' +
     '    <div class="nav-links-wrapper">\n' +
     '      <ol class="nav-links">\n' +
-    '        <li><a href="/#about"><span class="nav-number">01.</span>About</a></li>\n' +
-    '        <li><a href="/#projects"><span class="nav-number">02.</span>Projects</a></li>\n' +
-    '        <li><a href="/knowledge/"><span class="nav-number">03.</span>Knowledge</a></li>\n' +
-    '        <li><a href="/#contact"><span class="nav-number">04.</span>Contact</a></li>\n' +
+    '        <li><a href="/#graph"><span class="nav-number">01.</span>Graph</a></li>\n' +
+    '        <li><a href="/#articles"><span class="nav-number">02.</span>Articles</a></li>\n' +
+    '        <li><a href="/about.html"><span class="nav-number">03.</span>About</a></li>\n' +
     '      </ol>\n' +
     '      <div class="nav-resume">\n' +
     '        <a href="/about.html">More About Me</a>\n' +
@@ -384,10 +383,9 @@ function buildArticlePage(opts) {
     '  <div class="mobile-menu-overlay" id="mobile-overlay"></div>\n' +
     '  <aside class="mobile-menu" id="mobile-menu">\n' +
     '    <ol>\n' +
-    '      <li><a href="/#about">About</a></li>\n' +
-    '      <li><a href="/#projects">Projects</a></li>\n' +
-    '      <li><a href="/knowledge/">Knowledge</a></li>\n' +
-    '      <li><a href="/#contact">Contact</a></li>\n' +
+    '      <li><a href="/#graph">Graph</a></li>\n' +
+    '      <li><a href="/#articles">Articles</a></li>\n' +
+    '      <li><a href="/about.html">About</a></li>\n' +
     '    </ol>\n' +
     '    <div class="mobile-resume">\n' +
     '      <a href="/about.html">More About Me</a>\n' +

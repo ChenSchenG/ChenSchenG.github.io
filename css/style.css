@@ -506,6 +506,96 @@ nav.scrolled-up {
   background-color: var(--green-tint);
 }
 
+/* --- Home Page (Graph + Articles) --- */
+.home-main {
+  counter-reset: section;
+  padding: 0 150px;
+  min-height: 100vh;
+}
+
+.home-hero {
+  padding-top: calc(var(--nav-height) + 60px);
+  padding-bottom: 20px;
+  max-width: var(--max-width);
+  margin: 0 auto;
+}
+
+.home-hero-title {
+  font-size: clamp(2.2rem, 5vw, 3.5rem);
+  color: var(--lightest-slate);
+  font-weight: 700;
+  margin-bottom: 10px;
+}
+
+.home-hero-sub {
+  font-size: clamp(15px, 2vw, 18px);
+  color: var(--slate);
+  max-width: 600px;
+  line-height: 1.5;
+}
+
+.home-main section {
+  max-width: var(--max-width);
+  margin: 0 auto;
+  padding: 50px 0;
+}
+
+.home-main .graph-container {
+  height: 520px;
+}
+
+/* All-articles flat list (default view on home) */
+.all-articles {
+  display: grid;
+  gap: 12px;
+  margin-top: 20px;
+}
+
+.all-articles .article-list-item {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 18px 24px;
+  background-color: var(--light-navy);
+  border-radius: var(--border-radius);
+  transition: var(--transition);
+}
+
+.all-articles .article-list-item:hover {
+  background-color: var(--lightest-navy);
+  transform: translateX(5px);
+}
+
+.all-articles .article-list-item .article-category-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.all-articles .article-list-item .article-title {
+  font-size: 15px;
+  color: var(--lightest-slate);
+  flex-grow: 1;
+}
+
+.all-articles .article-list-item .article-category-label {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--slate);
+  flex-shrink: 0;
+  padding: 2px 8px;
+  border: 1px solid var(--lightest-navy);
+  border-radius: 20px;
+}
+
+.all-articles .article-list-item .article-date {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: var(--slate);
+  flex-shrink: 0;
+}
+
 /* --- About Section --- */
 .about-grid {
   display: grid;
@@ -1493,6 +1583,10 @@ footer a {
     padding: 0 100px;
   }
 
+  .home-main {
+    padding: 0 100px;
+  }
+
   .numbered-heading::after {
     width: 200px;
   }
@@ -1500,6 +1594,10 @@ footer a {
 
 @media screen and (max-width: 768px) {
   main {
+    padding: 0 50px;
+  }
+
+  .home-main {
     padding: 0 50px;
   }
 
@@ -1575,8 +1673,21 @@ footer a {
     padding: 0 25px;
   }
 
+  .home-main {
+    padding: 0 25px;
+  }
+
   section {
     padding: 60px 0;
+  }
+
+  .all-articles .article-list-item {
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .all-articles .article-list-item .article-category-label {
+    display: none;
   }
 
   .hero .hero-title,

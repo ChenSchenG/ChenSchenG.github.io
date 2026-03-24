@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>ChenSchenG — Developer</title>
-  <meta name="description" content="ChenSchenG's personal portfolio — security, full-stack development, and knowledge engineering.">
+  <title>ChenSchenG — Knowledge Base</title>
+  <meta name="description" content="ChenSchenG's knowledge base — interactive graph and deep-dive articles on security, networking, frontend, and AI.">
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⚡</text></svg>">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -19,14 +19,10 @@
     </div>
     <div class="nav-links-wrapper">
       <ol class="nav-links">
-        <li><a href="#about"><span class="nav-number">01.</span>About</a></li>
-        <li><a href="#projects"><span class="nav-number">02.</span>Projects</a></li>
-        <li><a href="knowledge/"><span class="nav-number">03.</span>Knowledge</a></li>
-        <li><a href="#contact"><span class="nav-number">04.</span>Contact</a></li>
+        <li><a href="#graph"><span class="nav-number">01.</span>Graph</a></li>
+        <li><a href="#articles"><span class="nav-number">02.</span>Articles</a></li>
+        <li><a href="about.html"><span class="nav-number">03.</span>About</a></li>
       </ol>
-      <div class="nav-resume">
-        <a href="about.html">More About Me</a>
-      </div>
     </div>
     <button class="hamburger" id="hamburger" aria-label="Menu">
       <span class="hamburger-inner"></span>
@@ -37,14 +33,10 @@
   <div class="mobile-menu-overlay" id="mobile-overlay"></div>
   <aside class="mobile-menu" id="mobile-menu">
     <ol>
-      <li><a href="#about">About</a></li>
-      <li><a href="#projects">Projects</a></li>
-      <li><a href="knowledge/">Knowledge</a></li>
-      <li><a href="#contact">Contact</a></li>
+      <li><a href="#graph">Graph</a></li>
+      <li><a href="#articles">Articles</a></li>
+      <li><a href="about.html">About</a></li>
     </ol>
-    <div class="mobile-resume">
-      <a href="about.html">More About Me</a>
-    </div>
   </aside>
 
   <!-- Side Elements -->
@@ -61,178 +53,73 @@
           <path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"></path>
         </svg>
       </a>
-      <a href="/atom.xml" aria-label="RSS" target="_blank" rel="noopener">
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M4 11a9 9 0 0 1 9 9"></path>
-          <path d="M4 4a16 16 0 0 1 16 16"></path>
-          <circle cx="5" cy="19" r="1"></circle>
-        </svg>
-      </a>
     </div>
   </div>
 
   <!-- Main Content -->
-  <main>
-    <!-- Hero -->
-    <section class="hero" id="hero">
+  <main class="home-main">
+    <!-- Compact Hero -->
+    <section class="home-hero" id="hero">
       <div class="fade-in fade-in-delay-1">
-        <p class="hero-overline mono">Hi, my name is</p>
+        <h1 class="home-hero-title">ChenSchenG<span class="green">.</span></h1>
       </div>
       <div class="fade-in fade-in-delay-2">
-        <h1 class="hero-title">ChenSchenG.</h1>
+        <p class="home-hero-sub">A knowledge base of deep-dive articles on security, networking, frontend&nbsp;&amp;&nbsp;AI.</p>
       </div>
-      <div class="fade-in fade-in-delay-3">
-        <h2 class="hero-subtitle">I build things for the web & explore security.</h2>
+    </section>
+
+    <!-- Knowledge Graph -->
+    <section id="graph" class="fade-in">
+      <h2 class="numbered-heading">Knowledge Graph</h2>
+
+      <div class="graph-legend" style="margin-bottom:16px;">
+        <div class="graph-legend-item">
+          <span class="legend-dot" style="background-color:#ff6b6b;"></span><span>Security</span>
+        </div>
+        <div class="graph-legend-item">
+          <span class="legend-dot" style="background-color:#4ecdc4;"></span><span>Network</span>
+        </div>
+        <div class="graph-legend-item">
+          <span class="legend-dot" style="background-color:#45b7d1;"></span><span>Frontend</span>
+        </div>
+        <div class="graph-legend-item">
+          <span class="legend-dot" style="background-color:#a55eea;"></span><span>AI</span>
+        </div>
+        <div class="graph-legend-item">
+          <span class="legend-dot" style="background-color:#778ca3;"></span><span>Other</span>
+        </div>
       </div>
-      <div class="fade-in fade-in-delay-4">
-        <p class="hero-description">
-          I'm a developer passionate about web security, full-stack development, and knowledge engineering.
-          Currently focused on building secure applications and curating deep technical knowledge through an interconnected vault.
-        </p>
-      </div>
-      <div class="fade-in fade-in-delay-5">
-        <div class="hero-cta">
-          <a href="knowledge/">Explore My Knowledge Graph</a>
+
+      <div class="graph-container" id="graph-container">
+        <svg id="graph-svg"></svg>
+        <div class="graph-tooltip" id="graph-tooltip"></div>
+        <div class="detail-panel" id="detail-panel">
+          <button class="detail-panel-close" id="detail-close">&times;</button>
+          <h3 id="detail-title"></h3>
+          <div class="detail-category" id="detail-category"></div>
+          <p class="detail-excerpt" id="detail-excerpt"></p>
+          <div class="detail-tags" id="detail-tags"></div>
+          <a href="#" class="detail-link" id="detail-link">Read Full Article →</a>
         </div>
       </div>
     </section>
 
-    <!-- About -->
-    <section id="about" class="fade-in">
-      <h2 class="numbered-heading">About Me</h2>
-      <div class="about-grid">
-        <div class="about-text">
-          <p>
-            Hello! I'm ChenSchenG, a developer who enjoys building things that live on the internet.
-            My interest spans across <a href="knowledge/">web security</a>, full-stack development,
-            and the intersection of AI with software engineering.
-          </p>
-          <p>
-            I believe in deep understanding over shallow knowledge — which is why I maintain an
-            <a href="knowledge/">interconnected knowledge vault</a> that maps concepts from security protocols
-            to frontend frameworks. Every note is a node in a larger web of understanding.
-          </p>
-          <p>Here are some technologies I've been working with recently:</p>
-          <ul class="skill-list">
-            <li>JavaScript / TypeScript</li>
-            <li>React & Next.js</li>
-            <li>Node.js</li>
-            <li>OAuth 2.0 / OIDC</li>
-            <li>Network Security</li>
-            <li>Python</li>
-          </ul>
-        </div>
-        <div class="about-photo">
-          <div class="about-photo-wrapper">
-            <img src="images/xigong.jpg" alt="ChenSchenG avatar" width="300" height="300">
-          </div>
-        </div>
+    <!-- Articles -->
+    <section id="articles" class="fade-in">
+      <h2 class="numbered-heading">Articles</h2>
+
+      <!-- Category filter tabs -->
+      <div class="category-grid" id="category-grid">
+        <!-- Populated by JS -->
       </div>
-    </section>
 
-    <!-- Projects -->
-    <section id="projects" class="fade-in">
-      <h2 class="numbered-heading">Some Things I've Built</h2>
-      <div class="projects-grid">
-        <!-- Project 1: Knowledge Repository -->
-        <div class="project-card">
-          <div class="project-card-top">
-            <div class="folder-icon">
-              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path>
-              </svg>
-            </div>
-            <div class="project-links">
-              <a href="knowledge/" aria-label="View project">
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                  <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path>
-                  <polyline points="15 3 21 3 21 9"></polyline>
-                  <line x1="10" y1="14" x2="21" y2="3"></line>
-                </svg>
-              </a>
-            </div>
-          </div>
-          <h3><a href="knowledge/">Knowledge Repository</a></h3>
-          <p>
-            An interconnected knowledge graph built from Obsidian notes covering security protocols,
-            networking, frontend frameworks, and AI concepts. Features an interactive D3.js visualization.
-          </p>
-          <div class="project-card-tags">
-            <span>Obsidian</span>
-            <span>D3.js</span>
-            <span>Knowledge Graph</span>
-          </div>
-        </div>
+      <!-- Article lists per category -->
+      <div id="category-articles-container"></div>
 
-        <!-- Project 2: FS Robot -->
-        <div class="project-card">
-          <div class="project-card-top">
-            <div class="folder-icon">
-              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path>
-              </svg>
-            </div>
-            <div class="project-links">
-              <a href="https://github.com/ChenSchenG" aria-label="GitHub" target="_blank" rel="noopener">
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                  <path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"></path>
-                </svg>
-              </a>
-            </div>
-          </div>
-          <h3><a href="https://github.com/ChenSchenG">FS Robot</a></h3>
-          <p>
-            An autonomous formula student robot system for trajectory planning in university-level
-            driverless racing competitions, implementing path optimization algorithms.
-          </p>
-          <div class="project-card-tags">
-            <span>Python</span>
-            <span>Robotics</span>
-            <span>Path Planning</span>
-          </div>
-        </div>
-
-        <!-- Project 3: NetSec Tools -->
-        <div class="project-card">
-          <div class="project-card-top">
-            <div class="folder-icon">
-              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path>
-              </svg>
-            </div>
-            <div class="project-links">
-              <a href="https://github.com/ChenSchenG" aria-label="GitHub" target="_blank" rel="noopener">
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                  <path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"></path>
-                </svg>
-              </a>
-            </div>
-          </div>
-          <h3><a href="https://github.com/ChenSchenG">Network Security Toolkit</a></h3>
-          <p>
-            A collection of security analysis and penetration testing utilities covering SSRF detection,
-            port scanning, and authentication protocol testing tools.
-          </p>
-          <div class="project-card-tags">
-            <span>Security</span>
-            <span>Node.js</span>
-            <span>SSRF</span>
-            <span>OAuth</span>
-          </div>
-        </div>
+      <!-- Full article list (all, shown by default) -->
+      <div class="all-articles" id="all-articles">
+        <!-- Populated by JS -->
       </div>
-    </section>
-
-    <!-- Contact -->
-    <section id="contact" class="contact fade-in">
-      <span class="contact-overline mono">What's Next?</span>
-      <h2>Get In Touch</h2>
-      <p>
-        I'm currently looking for new opportunities and my inbox is always open.
-        Whether you have a question, a project idea, or just want to say hi —
-        I'll try my best to get back to you!
-      </p>
-      <a href="mailto:chenscheng@example.com" class="email-button mono">Say Hello</a>
     </section>
   </main>
 
@@ -241,6 +128,8 @@
     <p>Designed &amp; Built by <a href="https://github.com/ChenSchenG">ChenSchenG</a></p>
   </footer>
 
+  <script src="https://d3js.org/d3.v7.min.js"></script>
   <script src="js/main.js"></script>
+  <script src="js/graph.js"></script>
 </body>
 </html>
