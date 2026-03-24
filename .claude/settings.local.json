@@ -7,7 +7,17 @@
       "Bash(head:*)",
       "Bash(git ls-tree:*)",
       "Bash(git:*)",
-      "Bash(grep:*)"
+      "Bash(grep:*)",
+      "Bash(gh auth:*)",
+      "WebFetch(domain:chenscheng.github.io)",
+      "WebFetch(domain:butterfly.js.org)",
+      "WebFetch(domain:tzy1997.com)",
+      "WebFetch(domain:zhheo.com)",
+      "WebFetch(domain:anzhiy.cn)",
+      "WebFetch(domain:blog.zhheo.com)",
+      "WebFetch(domain:akilar.top)",
+      "WebFetch(domain:blog.anheyu.com)",
+      "WebSearch"
     ]
   }
 }
