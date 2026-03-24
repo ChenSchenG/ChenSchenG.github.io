@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>ChenSchenG — Knowledge Base</title>
-  <meta name="description" content="ChenSchenG's knowledge base — interactive graph and deep-dive articles on security, networking, frontend, and AI.">
+  <meta name="description" content="ChenSchenG's knowledge base — deep-dive articles on security, networking, frontend, and AI.">
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⚡</text></svg>">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -15,7 +15,7 @@
   <!-- Navigation -->
   <nav id="nav">
     <div class="nav-logo">
-      <a href="/">CSG</a>
+      <a href="/">ChenSchenG</a>
     </div>
     <div class="nav-links-wrapper">
       <ol class="nav-links">
@@ -45,7 +45,6 @@
       <a href="mailto:chenscheng@example.com">chenscheng@example.com</a>
     </div>
   </div>
-
   <div class="side-element side-right">
     <div class="social-links">
       <a href="https://github.com/ChenSchenG" aria-label="GitHub" target="_blank" rel="noopener">
@@ -58,13 +57,36 @@
 
   <!-- Main Content -->
   <main class="home-main">
-    <!-- Compact Hero -->
-    <section class="home-hero" id="hero">
-      <div class="fade-in fade-in-delay-1">
-        <h1 class="home-hero-title">ChenSchenG<span class="green">.</span></h1>
-      </div>
-      <div class="fade-in fade-in-delay-2">
-        <p class="home-hero-sub">A knowledge base of deep-dive articles on security, networking, frontend&nbsp;&amp;&nbsp;AI.</p>
+    <!-- Intro / About -->
+    <section class="home-intro fade-in" id="intro">
+      <div class="home-intro-grid">
+        <div class="home-intro-text">
+          <h1>ChenSchenG</h1>
+          <p class="intro-tagline">Developer · Security Enthusiast · Knowledge Engineer</p>
+          <p class="intro-bio">
+            I build things for the web and dig deep into how they break.
+            Passionate about authentication protocols, network security, and the modern JavaScript ecosystem.
+            This site is my knowledge base — a collection of deep-dive articles distilled from an Obsidian vault,
+            visualised as an interactive knowledge graph.
+          </p>
+          <div class="intro-links">
+            <a href="https://github.com/ChenSchenG" target="_blank" rel="noopener">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"/></svg>
+              GitHub
+            </a>
+            <a href="mailto:chenscheng@example.com">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+              Email
+            </a>
+            <a href="about.html">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+              More About Me
+            </a>
+          </div>
+        </div>
+        <div class="home-intro-photo">
+          <img src="images/xigong.jpg" alt="ChenSchenG" />
+        </div>
       </div>
     </section>
 
@@ -72,22 +94,12 @@
     <section id="graph" class="fade-in">
       <h2 class="numbered-heading">Knowledge Graph</h2>
 
-      <div class="graph-legend" style="margin-bottom:16px;">
-        <div class="graph-legend-item">
-          <span class="legend-dot" style="background-color:#ff6b6b;"></span><span>Security</span>
-        </div>
-        <div class="graph-legend-item">
-          <span class="legend-dot" style="background-color:#4ecdc4;"></span><span>Network</span>
-        </div>
-        <div class="graph-legend-item">
-          <span class="legend-dot" style="background-color:#45b7d1;"></span><span>Frontend</span>
-        </div>
-        <div class="graph-legend-item">
-          <span class="legend-dot" style="background-color:#a55eea;"></span><span>AI</span>
-        </div>
-        <div class="graph-legend-item">
-          <span class="legend-dot" style="background-color:#778ca3;"></span><span>Other</span>
-        </div>
+      <div class="graph-legend">
+        <div class="graph-legend-item"><span class="legend-dot" style="background:#e74c3c;"></span><span>Security</span></div>
+        <div class="graph-legend-item"><span class="legend-dot" style="background:#27ae60;"></span><span>Network</span></div>
+        <div class="graph-legend-item"><span class="legend-dot" style="background:#2980b9;"></span><span>Frontend</span></div>
+        <div class="graph-legend-item"><span class="legend-dot" style="background:#8e44ad;"></span><span>AI</span></div>
+        <div class="graph-legend-item"><span class="legend-dot" style="background:#7f8c8d;"></span><span>Other</span></div>
       </div>
 
       <div class="graph-container" id="graph-container">
@@ -99,7 +111,7 @@
           <div class="detail-category" id="detail-category"></div>
           <p class="detail-excerpt" id="detail-excerpt"></p>
           <div class="detail-tags" id="detail-tags"></div>
-          <a href="#" class="detail-link" id="detail-link">Read Full Article →</a>
+          <a href="#" class="detail-link" id="detail-link">Read Full Article &rarr;</a>
         </div>
       </div>
     </section>
@@ -108,24 +120,20 @@
     <section id="articles" class="fade-in">
       <h2 class="numbered-heading">Articles</h2>
 
-      <!-- Category filter tabs -->
-      <div class="category-grid" id="category-grid">
-        <!-- Populated by JS -->
-      </div>
+      <!-- Category filter chips -->
+      <div class="category-grid" id="category-grid"></div>
 
-      <!-- Article lists per category -->
+      <!-- Category sub-lists (hidden by default) -->
       <div id="category-articles-container"></div>
 
-      <!-- Full article list (all, shown by default) -->
-      <div class="all-articles" id="all-articles">
-        <!-- Populated by JS -->
-      </div>
+      <!-- Full article table (bchiang7 style) — populated by JS -->
+      <div class="all-articles" id="all-articles"></div>
     </section>
   </main>
 
   <!-- Footer -->
   <footer>
-    <p>Designed &amp; Built by <a href="https://github.com/ChenSchenG">ChenSchenG</a></p>
+    <p>Built by <a href="https://github.com/ChenSchenG">ChenSchenG</a></p>
   </footer>
 
   <script src="https://d3js.org/d3.v7.min.js"></script>
