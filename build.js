@@ -357,6 +357,7 @@ function buildArticlePage(opts) {
     '  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">\n' +
     '  <link rel="stylesheet" href="../css/style.css">\n' +
     '  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github.min.css">\n' +
+    '  <style>.hljs{background:var(--bg-sec)!important}</style>\n' +
     '</head>\n' +
     '<body>\n' +
     '  <nav id="nav">\n' +
