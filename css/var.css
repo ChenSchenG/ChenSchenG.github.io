@@ -1,0 +1,75 @@
+/* ============================================
+   ChenSchenG's Blog - Deep Tech CSS Variables
+   ============================================ */
+
+:root {
+  /* --- Primary Palette --- */
+  --tech-primary: #00d4ff;
+  --tech-primary-rgb: 0, 212, 255;
+  --tech-secondary: #7c4dff;
+  --tech-secondary-rgb: 124, 77, 255;
+  --tech-accent: #00e5a0;
+  --tech-accent-rgb: 0, 229, 160;
+  --tech-warning: #ffab40;
+
+  /* --- Background & Surface (Light) --- */
+  --tech-bg-deep: #f0f4f8;
+  --tech-surface: rgba(255, 255, 255, 0.85);
+  --tech-surface-hover: rgba(255, 255, 255, 0.95);
+  --tech-glass: rgba(255, 255, 255, 0.6);
+  --tech-glass-border: rgba(0, 212, 255, 0.15);
+
+  /* --- Text (Light) --- */
+  --tech-text-primary: #1a1a2e;
+  --tech-text-secondary: #4a4a6a;
+  --tech-text-muted: #8888aa;
+
+  /* --- Gradients --- */
+  --tech-gradient-primary: linear-gradient(135deg, #00d4ff, #7c4dff);
+  --tech-gradient-accent: linear-gradient(135deg, #00e5a0, #00d4ff);
+  --tech-gradient-surface: linear-gradient(135deg, rgba(0, 212, 255, 0.05), rgba(124, 77, 255, 0.05));
+  --tech-gradient-border: linear-gradient(135deg, rgba(0, 212, 255, 0.3), rgba(124, 77, 255, 0.3));
+
+  /* --- Shadows --- */
+  --tech-shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.06);
+  --tech-shadow-md: 0 4px 16px rgba(0, 0, 0, 0.08);
+  --tech-shadow-lg: 0 8px 32px rgba(0, 0, 0, 0.12);
+  --tech-shadow-glow: 0 0 20px rgba(0, 212, 255, 0.15);
+
+  /* --- Border Radius --- */
+  --tech-radius-sm: 8px;
+  --tech-radius-md: 12px;
+  --tech-radius-lg: 16px;
+  --tech-radius-xl: 24px;
+
+  /* --- Transitions --- */
+  --tech-transition-fast: 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  --tech-transition-normal: 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+  --tech-transition-slow: 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+
+  /* --- Blur --- */
+  --tech-blur-sm: blur(8px);
+  --tech-blur-md: blur(16px);
+  --tech-blur-lg: blur(24px);
+}
+
+/* --- Dark Mode Variables --- */
+[data-theme="dark"] {
+  --tech-bg-deep: #0a0e17;
+  --tech-surface: rgba(16, 22, 36, 0.9);
+  --tech-surface-hover: rgba(22, 30, 48, 0.95);
+  --tech-glass: rgba(16, 22, 36, 0.7);
+  --tech-glass-border: rgba(0, 212, 255, 0.2);
+
+  --tech-text-primary: #e8eaf6;
+  --tech-text-secondary: #b0b8d0;
+  --tech-text-muted: #6a7090;
+
+  --tech-gradient-surface: linear-gradient(135deg, rgba(0, 212, 255, 0.08), rgba(124, 77, 255, 0.08));
+  --tech-gradient-border: linear-gradient(135deg, rgba(0, 212, 255, 0.4), rgba(124, 77, 255, 0.4));
+
+  --tech-shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.3);
+  --tech-shadow-md: 0 4px 16px rgba(0, 0, 0, 0.4);
+  --tech-shadow-lg: 0 8px 32px rgba(0, 0, 0, 0.5);
+  --tech-shadow-glow: 0 0 30px rgba(0, 212, 255, 0.2);
+}
