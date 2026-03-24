@@ -324,14 +324,31 @@ function build() {
       tagsHtml += '</div>\n';
     }
 
+    // Calculate reading time (Chinese: ~400 chars/min, English: ~200 words/min)
+    var plainText = note.content.replace(/[#>*`\[\]()!_\-|]/g, '');
+    var charCount = plainText.length;
+    var readingTime = Math.max(1, Math.round(charCount / 400));
+
+    // Find prev/next notes (sorted by date)
+    var sortedNotes = notes.slice().sort(function (a, b) { return (a.date || '').localeCompare(b.date || ''); });
+    var currentIdx = -1;
+    for (var si = 0; si < sortedNotes.length; si++) {
+      if (sortedNotes[si].slug === note.slug) { currentIdx = si; break; }
+    }
+    var prevNote = currentIdx > 0 ? sortedNotes[currentIdx - 1] : null;
+    var nextNote = currentIdx < sortedNotes.length - 1 ? sortedNotes[currentIdx + 1] : null;
+
     // Build full page HTML
     var pageHtml = buildArticlePage({
       title: note.title,
       date: note.date,
       category: note.category,
+      readingTime: readingTime,
       tagsHtml: tagsHtml,
       bodyHtml: bodyHtml,
       relatedHtml: relatedHtml,
+      prevNote: prevNote,
+      nextNote: nextNote,
     });
 
     var outputPath = path.join(OUTPUT_DIR, note.slug + '.html');
@@ -345,6 +362,29 @@ function build() {
 // ---- Article Page Template ----
 
 function buildArticlePage(opts) {
+  // Build prev/next nav
+  var postNavHtml = '';
+  if (opts.prevNote || opts.nextNote) {
+    postNavHtml = '<div class="post-nav">\n';
+    if (opts.prevNote) {
+      postNavHtml += '  <a href="' + opts.prevNote.slug + '.html">\n' +
+        '    <div class="post-nav-label"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg> Previous</div>\n' +
+        '    <div class="post-nav-title">' + opts.prevNote.title + '</div>\n' +
+        '  </a>\n';
+    } else {
+      postNavHtml += '  <span></span>\n';
+    }
+    if (opts.nextNote) {
+      postNavHtml += '  <a href="' + opts.nextNote.slug + '.html">\n' +
+        '    <div class="post-nav-label">Next <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg></div>\n' +
+        '    <div class="post-nav-title">' + opts.nextNote.title + '</div>\n' +
+        '  </a>\n';
+    } else {
+      postNavHtml += '  <span></span>\n';
+    }
+    postNavHtml += '</div>\n';
+  }
+
   return '<!DOCTYPE html>\n' +
     '<html lang="zh-CN">\n' +
     '<head>\n' +
@@ -356,8 +396,7 @@ function buildArticlePage(opts) {
     '  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>\n' +
     '  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">\n' +
     '  <link rel="stylesheet" href="../css/style.css">\n' +
-    '  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github.min.css">\n' +
-    '  <style>.hljs{background:var(--bg-sec)!important}</style>\n' +
+    '  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css">\n' +
     '</head>\n' +
     '<body>\n' +
     '  <nav id="nav">\n' +
@@ -381,41 +420,118 @@ function buildArticlePage(opts) {
     '  </aside>\n' +
     '\n' +
     '  <main class="article-page">\n' +
-    '    <article>\n' +
-    '      <header class="article-header">\n' +
-    '        <div class="article-breadcrumb">\n' +
-    '          <a href="/">Home</a>\n' +
-    '          <span class="separator">/</span>\n' +
-    '          <span>' + opts.category + '</span>\n' +
-    '        </div>\n' +
-    '        <h1>' + opts.title + '</h1>\n' +
-    '        <div class="article-meta">\n' +
-    '          <span>' + opts.date + '</span>\n' +
-    '          <span>' + opts.category + '</span>\n' +
-    '        </div>\n' +
-    '        ' + opts.tagsHtml + '\n' +
-    '      </header>\n' +
+    '    <!-- Main content column -->\n' +
+    '    <div class="article-main">\n' +
+    '      <article>\n' +
+    '        <header class="article-header">\n' +
+    '          <div class="article-breadcrumb">\n' +
+    '            <a href="/">Home</a>\n' +
+    '            <span class="separator">/</span>\n' +
+    '            <span>' + opts.category + '</span>\n' +
+    '          </div>\n' +
+    '          <h1>' + opts.title + '</h1>\n' +
+    '          <div class="article-meta">\n' +
+    '            <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>Posted ' + opts.date + '</span>\n' +
+    '            <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 19a2 2 0 01-2 2H4a2 2 0 01-2-2V5a2 2 0 012-2h5l2 3h9a2 2 0 012 2z"/></svg>' + opts.category + '</span>\n' +
+    '            <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>' + opts.readingTime + ' min read</span>\n' +
+    '          </div>\n' +
+    '          ' + opts.tagsHtml + '\n' +
+    '        </header>\n' +
     '\n' +
-    '      <div class="article-body">\n' +
-    '        ' + opts.bodyHtml + '\n' +
+    '        <div class="article-body">\n' +
+    '          ' + opts.bodyHtml + '\n' +
+    '        </div>\n' +
+    '      </article>\n' +
+    '\n' +
+    '      ' + opts.relatedHtml + '\n' +
+    '      ' + postNavHtml + '\n' +
+    '\n' +
+    '      <div style="padding-bottom:40px;">\n' +
+    '        <a href="/" class="back-link">Back to Home</a>\n' +
     '      </div>\n' +
-    '    </article>\n' +
-    '\n' +
-    '    ' + opts.relatedHtml + '\n' +
-    '\n' +
-    '    <div style="max-width:800px;margin:0 auto;padding-bottom:60px;">\n' +
-    '      <a href="/knowledge/" class="back-link">Back to Knowledge Graph</a>\n' +
     '    </div>\n' +
+    '\n' +
+    '    <!-- TOC sidebar (right) -->\n' +
+    '    <aside class="toc-sidebar" id="toc-sidebar">\n' +
+    '      <div class="toc-title">On This Page</div>\n' +
+    '      <ul class="toc-list" id="toc-list"></ul>\n' +
+    '    </aside>\n' +
     '  </main>\n' +
     '\n' +
-    '  <!-- Footer -->\n' +
+    '  <!-- Back to top -->\n' +
+    '  <button class="back-to-top" id="back-to-top" aria-label="Back to top">\n' +
+    '    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="18 15 12 9 6 15"/></svg>\n' +
+    '  </button>\n' +
+    '\n' +
     '  <footer>\n' +
     '    <p>Designed &amp; Built by <a href="https://github.com/ChenSchenG">ChenSchenG</a></p>\n' +
     '  </footer>\n' +
     '\n' +
     '  <script src="../js/main.js"></script>\n' +
     '  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>\n' +
-    '  <script>hljs.highlightAll();</script>\n' +
+    '  <script>\n' +
+    '    hljs.highlightAll();\n' +
+    '\n' +
+    '    // --- Generate TOC from headings ---\n' +
+    '    (function(){\n' +
+    '      var body = document.querySelector(".article-body");\n' +
+    '      var tocList = document.getElementById("toc-list");\n' +
+    '      if(!body || !tocList) return;\n' +
+    '      var headings = body.querySelectorAll("h1, h2, h3");\n' +
+    '      if(headings.length < 2){ document.getElementById("toc-sidebar").style.display="none"; return; }\n' +
+    '      headings.forEach(function(h, i){\n' +
+    '        if(!h.id) h.id = "heading-" + i;\n' +
+    '        var li = document.createElement("li");\n' +
+    '        var tag = h.tagName.toLowerCase();\n' +
+    '        li.className = "toc-" + tag;\n' +
+    '        var a = document.createElement("a");\n' +
+    '        a.href = "#" + h.id;\n' +
+    '        a.textContent = h.textContent;\n' +
+    '        li.appendChild(a);\n' +
+    '        tocList.appendChild(li);\n' +
+    '      });\n' +
+    '\n' +
+    '      // Scroll-spy: highlight active TOC item\n' +
+    '      var tocLinks = tocList.querySelectorAll("a");\n' +
+    '      var observer = new IntersectionObserver(function(entries){\n' +
+    '        entries.forEach(function(entry){\n' +
+    '          if(entry.isIntersecting){\n' +
+    '            tocLinks.forEach(function(l){ l.classList.remove("active"); });\n' +
+    '            var active = tocList.querySelector(\'a[href="#\' + entry.target.id + \'"]\');\n' +
+    '            if(active) active.classList.add("active");\n' +
+    '          }\n' +
+    '        });\n' +
+    '      }, { rootMargin: "-80px 0px -70% 0px", threshold: 0 });\n' +
+    '      headings.forEach(function(h){ observer.observe(h); });\n' +
+    '    })();\n' +
+    '\n' +
+    '    // --- Code copy buttons ---\n' +
+    '    document.querySelectorAll(".article-body pre").forEach(function(pre){\n' +
+    '      var btn = document.createElement("button");\n' +
+    '      btn.className = "code-copy-btn";\n' +
+    '      btn.textContent = "Copy";\n' +
+    '      btn.addEventListener("click", function(){\n' +
+    '        var code = pre.querySelector("code");\n' +
+    '        navigator.clipboard.writeText(code.textContent).then(function(){\n' +
+    '          btn.textContent = "Copied!"; btn.classList.add("copied");\n' +
+    '          setTimeout(function(){ btn.textContent = "Copy"; btn.classList.remove("copied"); }, 2000);\n' +
+    '        });\n' +
+    '      });\n' +
+    '      pre.appendChild(btn);\n' +
+    '    });\n' +
+    '\n' +
+    '    // --- Back to top ---\n' +
+    '    (function(){\n' +
+    '      var btn = document.getElementById("back-to-top");\n' +
+    '      if(!btn) return;\n' +
+    '      window.addEventListener("scroll", function(){\n' +
+    '        btn.classList.toggle("visible", window.scrollY > 400);\n' +
+    '      });\n' +
+    '      btn.addEventListener("click", function(){\n' +
+    '        window.scrollTo({ top: 0, behavior: "smooth" });\n' +
+    '      });\n' +
+    '    })();\n' +
+    '  </script>\n' +
     '</body>\n' +
     '</html>';
 }

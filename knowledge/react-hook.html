@@ -9,8 +9,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="../css/style.css">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github.min.css">
-  <style>.hljs{background:var(--bg-sec)!important}</style>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css">
 </head>
 <body>
   <nav id="nav">
@@ -34,19 +33,22 @@
   </aside>
 
   <main class="article-page">
-    <article>
-      <header class="article-header">
-        <div class="article-breadcrumb">
-          <a href="/">Home</a>
-          <span class="separator">/</span>
-          <span>Frontend</span>
-        </div>
-        <h1>React Hook</h1>
-        <div class="article-meta">
-          <span>2026-03-17</span>
-          <span>Frontend</span>
-        </div>
-        <div class="article-tags">
+    <!-- Main content column -->
+    <div class="article-main">
+      <article>
+        <header class="article-header">
+          <div class="article-breadcrumb">
+            <a href="/">Home</a>
+            <span class="separator">/</span>
+            <span>Frontend</span>
+          </div>
+          <h1>React Hook</h1>
+          <div class="article-meta">
+            <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>Posted 2026-03-17</span>
+            <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 19a2 2 0 01-2 2H4a2 2 0 01-2-2V5a2 2 0 012-2h5l2 3h9a2 2 0 012 2z"/></svg>Frontend</span>
+            <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>21 min read</span>
+          </div>
+          <div class="article-tags">
   <span class="tag">前端开发</span>
   <span class="tag">概念</span>
   <span class="tag">React</span>
@@ -57,10 +59,10 @@
   <span class="tag">副作用</span>
 </div>
 
-      </header>
+        </header>
 
-      <div class="article-body">
-        <h1>React Hook</h1>
+        <div class="article-body">
+          <h1>React Hook</h1>
 <blockquote>
 <p><strong>一句话本质</strong><br>把函数组件需要&quot;记住&quot;和&quot;感知&quot;的能力，从函数体外面托管给 React，通过约定好的接口借用</p>
 </blockquote>
@@ -349,23 +351,107 @@
 <p><strong>相关原子概念</strong><br>当前知识库暂无相关前端笔记，待后续归档 JavaScript、组件化、状态管理等笔记后补充关联。</p>
 </blockquote>
 
+        </div>
+      </article>
+
+      
+      <div class="post-nav">
+  <a href="sdk.html">
+    <div class="post-nav-label"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg> Previous</div>
+    <div class="post-nav-title">SDK</div>
+  </a>
+  <a href="aksk.html">
+    <div class="post-nav-label">Next <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg></div>
+    <div class="post-nav-title">AKSK</div>
+  </a>
+</div>
+
+
+      <div style="padding-bottom:40px;">
+        <a href="/" class="back-link">Back to Home</a>
       </div>
-    </article>
-
-    
-
-    <div style="max-width:800px;margin:0 auto;padding-bottom:60px;">
-      <a href="/knowledge/" class="back-link">Back to Knowledge Graph</a>
     </div>
+
+    <!-- TOC sidebar (right) -->
+    <aside class="toc-sidebar" id="toc-sidebar">
+      <div class="toc-title">On This Page</div>
+      <ul class="toc-list" id="toc-list"></ul>
+    </aside>
   </main>
 
-  <!-- Footer -->
+  <!-- Back to top -->
+  <button class="back-to-top" id="back-to-top" aria-label="Back to top">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="18 15 12 9 6 15"/></svg>
+  </button>
+
   <footer>
     <p>Designed &amp; Built by <a href="https://github.com/ChenSchenG">ChenSchenG</a></p>
   </footer>
 
   <script src="../js/main.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
-  <script>hljs.highlightAll();</script>
+  <script>
+    hljs.highlightAll();
+
+    // --- Generate TOC from headings ---
+    (function(){
+      var body = document.querySelector(".article-body");
+      var tocList = document.getElementById("toc-list");
+      if(!body || !tocList) return;
+      var headings = body.querySelectorAll("h1, h2, h3");
+      if(headings.length < 2){ document.getElementById("toc-sidebar").style.display="none"; return; }
+      headings.forEach(function(h, i){
+        if(!h.id) h.id = "heading-" + i;
+        var li = document.createElement("li");
+        var tag = h.tagName.toLowerCase();
+        li.className = "toc-" + tag;
+        var a = document.createElement("a");
+        a.href = "#" + h.id;
+        a.textContent = h.textContent;
+        li.appendChild(a);
+        tocList.appendChild(li);
+      });
+
+      // Scroll-spy: highlight active TOC item
+      var tocLinks = tocList.querySelectorAll("a");
+      var observer = new IntersectionObserver(function(entries){
+        entries.forEach(function(entry){
+          if(entry.isIntersecting){
+            tocLinks.forEach(function(l){ l.classList.remove("active"); });
+            var active = tocList.querySelector('a[href="#' + entry.target.id + '"]');
+            if(active) active.classList.add("active");
+          }
+        });
+      }, { rootMargin: "-80px 0px -70% 0px", threshold: 0 });
+      headings.forEach(function(h){ observer.observe(h); });
+    })();
+
+    // --- Code copy buttons ---
+    document.querySelectorAll(".article-body pre").forEach(function(pre){
+      var btn = document.createElement("button");
+      btn.className = "code-copy-btn";
+      btn.textContent = "Copy";
+      btn.addEventListener("click", function(){
+        var code = pre.querySelector("code");
+        navigator.clipboard.writeText(code.textContent).then(function(){
+          btn.textContent = "Copied!"; btn.classList.add("copied");
+          setTimeout(function(){ btn.textContent = "Copy"; btn.classList.remove("copied"); }, 2000);
+        });
+      });
+      pre.appendChild(btn);
+    });
+
+    // --- Back to top ---
+    (function(){
+      var btn = document.getElementById("back-to-top");
+      if(!btn) return;
+      window.addEventListener("scroll", function(){
+        btn.classList.toggle("visible", window.scrollY > 400);
+      });
+      btn.addEventListener("click", function(){
+        window.scrollTo({ top: 0, behavior: "smooth" });
+      });
+    })();
+  </script>
 </body>
 </html>

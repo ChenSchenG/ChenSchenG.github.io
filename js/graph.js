@@ -22,16 +22,29 @@
     if (c) c.innerHTML = '<p style="text-align:center;padding:40px;color:#999">Run <code>node build.js</code> to generate.</p>';
   });
 
-  /* ==================== Post List (all articles, simple rows) ==================== */
+  /* ==================== Post List (Chirpy-style cards) ==================== */
   function renderPostList(data) {
     var el = document.getElementById('post-list');
     if (!el) return;
     var sorted = data.nodes.slice().sort(function (a, b) { return (b.date || '').localeCompare(a.date || ''); });
     sorted.forEach(function (n) {
       var a = document.createElement('a');
-      a.className = 'article-list-item';
+      a.className = 'post-card';
       a.href = prefix + n.slug + '.html';
-      a.innerHTML = '<span class="article-title">' + n.title + '</span><span class="article-date">' + (n.date || '') + '</span>';
+      var tagsHtml = '';
+      if (n.tags && n.tags.length) {
+        tagsHtml = '<div class="post-tags">';
+        n.tags.slice(0, 3).forEach(function (t) { tagsHtml += '<span>' + t + '</span>'; });
+        tagsHtml += '</div>';
+      }
+      a.innerHTML =
+        '<div class="post-title">' + n.title + '</div>' +
+        '<div class="post-meta">' +
+          '<span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>' + (n.date || '') + '</span>' +
+          '<span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 19a2 2 0 01-2 2H4a2 2 0 01-2-2V5a2 2 0 012-2h5l2 3h9a2 2 0 012 2z"/></svg>' + (n.category || '') + '</span>' +
+        '</div>' +
+        (n.excerpt ? '<div class="post-excerpt">' + n.excerpt + '</div>' : '') +
+        tagsHtml;
       el.appendChild(a);
     });
   }
@@ -68,7 +81,12 @@
         var a = document.createElement('a');
         a.className = 'article-list-item';
         a.href = prefix + n.slug + '.html';
-        a.innerHTML = '<span class="article-title">' + n.title + '</span><span class="article-date">' + (n.date || '') + '</span>';
+        a.innerHTML =
+          '<div class="article-title">' + n.title + '</div>' +
+          '<div class="article-meta">' +
+            '<span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>' + (n.date || '') + '</span>' +
+          '</div>' +
+          (n.excerpt ? '<div class="article-excerpt">' + n.excerpt + '</div>' : '');
         list.appendChild(a);
       });
       sec.appendChild(list);
