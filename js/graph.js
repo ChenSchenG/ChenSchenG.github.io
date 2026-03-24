@@ -129,8 +129,8 @@
     });
 
     var sim = d3.forceSimulation(data.nodes)
-      .force('link', d3.forceLink(data.edges).id(function (d) { return d.id; }).distance(75))
-      .force('charge', d3.forceManyBody().strength(-160))
+      .force('link', d3.forceLink(data.edges).id(function (d) { return d.id; }).distance(85))
+      .force('charge', d3.forceManyBody().strength(-200))
       .force('center', d3.forceCenter(W / 2, H / 2))
       .force('collision', d3.forceCollide().radius(16))
       .force('x', d3.forceX(W / 2).strength(0.08))
