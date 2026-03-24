@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>STS — ChenSchenG</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⚡</text></svg>">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../css/style.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css">
+</head>
+<body>
+  <!-- Navigation -->
+  <nav id="nav">
+    <div class="nav-logo">
+      <a href="/">CSG</a>
+    </div>
+    <div class="nav-links-wrapper">
+      <ol class="nav-links">
+        <li><a href="/#about"><span class="nav-number">01.</span>About</a></li>
+        <li><a href="/#projects"><span class="nav-number">02.</span>Projects</a></li>
+        <li><a href="/knowledge/"><span class="nav-number">03.</span>Knowledge</a></li>
+        <li><a href="/#contact"><span class="nav-number">04.</span>Contact</a></li>
+      </ol>
+      <div class="nav-resume">
+        <a href="/about.html">More About Me</a>
+      </div>
+    </div>
+    <button class="hamburger" id="hamburger" aria-label="Menu">
+      <span class="hamburger-inner"></span>
+    </button>
+  </nav>
+
+  <!-- Mobile Menu -->
+  <div class="mobile-menu-overlay" id="mobile-overlay"></div>
+  <aside class="mobile-menu" id="mobile-menu">
+    <ol>
+      <li><a href="/#about">About</a></li>
+      <li><a href="/#projects">Projects</a></li>
+      <li><a href="/knowledge/">Knowledge</a></li>
+      <li><a href="/#contact">Contact</a></li>
+    </ol>
+    <div class="mobile-resume">
+      <a href="/about.html">More About Me</a>
+    </div>
+  </aside>
+
+  <main class="article-page">
+    <article>
+      <header class="article-header">
+        <div class="article-breadcrumb">
+          <a href="/">Home</a>
+          <span class="separator">/</span>
+          <a href="/knowledge/">Knowledge</a>
+          <span class="separator">/</span>
+          <span>Security</span>
+        </div>
+        <h1>STS</h1>
+        <div class="article-meta">
+          <span>2026-03-17</span>
+          <span>Security</span>
+        </div>
+        <div class="article-tags">
+  <span class="tag">密码学与安全</span>
+  <span class="tag">协议</span>
+  <span class="tag">STS</span>
+  <span class="tag">临时凭证</span>
+  <span class="tag">SessionToken</span>
+  <span class="tag">AssumeRole</span>
+  <span class="tag">角色扮演</span>
+  <span class="tag">最小权限</span>
+</div>
+
+      </header>
+
+      <div class="article-body">
+        <h1>STS</h1>
+<blockquote>
+<p><strong>一句话本质</strong><br>把&quot;你能做什么&quot;和&quot;你能做多久&quot;封进一张有签名保证的临时通行证，让权限随任务诞生、随任务消亡</p>
+</blockquote>
+<h2>第一幕：问题感知</h2>
+<p>AKSK 解决了&quot;程序怎么证明身份&quot;的问题。但它留下了一颗定时炸弹。</p>
+<p>你的程序部署在服务器上，SK 存在配置文件里。这台服务器被入侵了——攻击者读到了 SK。</p>
+<p>SK 本身没有过期时间。它不会自动失效。</p>
+<p>你必须：发现泄漏 → 登录控制台 → 手动吊销这个 AK/SK → 生成新的 → 更新所有用这个 SK 的地方 → 重新部署。</p>
+<p>在你完成这一切之前，攻击者拿着这个 SK，可以以你的身份做任何事——分钟级、小时级，甚至几天。</p>
+<p>更棘手的场景：你需要让另一个服务（比如数据处理服务）临时访问你的存储桶里的一批文件，处理完就不需要再访问了。用 AKSK 的做法是给它创建一个专用的 AK/SK——但这对 AK/SK 一旦创建，除非手动删除，永远有效。任务完成了，你大概率忘了去删。</p>
+<p>有没有一种凭证：用完就自动作废，不需要你手动管理它的生命周期？</p>
+<p><strong>如何让访问权限自动到期？</strong></p>
+<hr>
+<blockquote>
+<p>想一想：如果你来设计，怎么让一个凭证带上&quot;过期时间&quot;，而且过期后服务器能拒绝它，不需要查黑名单？</p>
+</blockquote>
+<hr>
+<h2>第二幕：引导式构建</h2>
+<p>你想到的方案大概是：凭证里直接写上过期时间，服务器收到请求时检查一下。</p>
+<p>好思路。但有一个问题：凭证里的过期时间是谁写的？客户端写的？那我自己把时间改成 2099 年，岂不是永久有效了？</p>
+<p>凭证里的内容必须是<strong>被信任的一方签发的</strong>，且不可篡改。</p>
+<p>这个&quot;被信任的一方&quot;，就是 <strong>STS（Security Token Service，安全令牌服务）</strong>。</p>
+<hr>
+<p><strong>第一步：信任的根——用你的永久凭证换临时凭证</strong></p>
+<p>STS 的工作模式是这样的：你持有永久的 AK/SK（或者其他可信身份），拿它去向 STS 申请一组临时凭证。STS 验证你的身份，然后签发一组有时效的临时凭证。</p>
+<p>临时凭证包含三样东西：</p>
+<ul>
+<li><strong>临时 AK（Temp Access Key）</strong>：短期身份标识</li>
+<li><strong>临时 SK（Temp Secret Key）</strong>：用来签名请求，和永久 SK 用法一样</li>
+<li><strong>Session Token（会话令牌）</strong>：证明这组临时凭证是 STS 合法签发的，必须随每个请求一起发送</li>
+</ul>
+<p>这三样东西有一个固定的过期时间，比如 1 小时或 12 小时。过了这个时间，临时 AK/SK 自动失效，服务器拒绝任何用它签名的请求。</p>
+<blockquote>
+<p>想一想：为什么需要 Session Token？有了临时 AK 和临时 SK，不就够了吗？</p>
+</blockquote>
+<p>因为临时 AK/SK 本身和永久 AK/SK 的格式是一样的——服务器光看 AK 和签名，无法判断这是临时的还是永久的，也无法知道它是不是真的由 STS 签发的（而不是自己伪造的）。Session Token 就是 STS 的&quot;签发证明&quot;，里面加密了过期时间和权限范围，服务器通过验证 Session Token 确认这组临时凭证是合法的。</p>
+<hr>
+<p><strong>第二步：权限范围——不只是时间，还有边界</strong></p>
+<p>STS 不只能控制&quot;多久后失效&quot;，还能控制&quot;能做什么&quot;。</p>
+<p>申请临时凭证时，你可以传入一个<strong>权限策略（Policy）</strong>——临时凭证的权限是你自身权限的子集，不能超过你本身拥有的权限。</p>
+<p>比如你拥有整个存储桶的读写权限，但你申请临时凭证时只授予&quot;读取 <code>/tmp/task123/</code> 前缀下的文件&quot;——拿到这组临时凭证的人，就算泄漏出去，攻击者也只能读那个特定目录，什么都改不了，删不了。</p>
+<p>这叫<strong>最小权限原则（Least Privilege）</strong>：每个操作只拿恰好够用的权限，不多一分。</p>
+<blockquote>
+<p>想一想：如果你给别人签发了临时凭证，但你自己的权限后来被管理员缩减了，这组临时凭证的权限会跟着缩减吗？</p>
+</blockquote>
+<p>取决于实现。大多数云服务的设计是：STS 在签发时会检查申请者当时的权限，临时凭证的权限在签发时就固定了。但有些实现会在每次请求时重新校验——具体行为要看服务商文档。这是一个值得关注的边界情况。</p>
+<hr>
+<p><strong>第三步：角色扮演——跨服务、跨账号授权</strong></p>
+<p>STS 还有一个更强大的用法：<strong>角色扮演（AssumeRole）</strong>。</p>
+<p>场景：你的服务 A 需要访问另一个团队的服务 B 的资源。过去的做法是服务 B 给服务 A 创建 AK/SK，通过某种安全渠道传给 A。麻烦、不安全、难管理。</p>
+<p>用 AssumeRole 的做法：</p>
+<p>服务 B 创建一个<strong>角色（Role）</strong>，定义这个角色有哪些权限（比如&quot;可以读取 B 的存储桶&quot;），并指定服务 A 可以&quot;扮演&quot;这个角色。</p>
+<p>服务 A 拿着自己的身份，向 STS 发起&quot;我想扮演角色 R&quot;的请求。STS 检查 A 是否有权扮演 R，确认后签发一组以角色 R 身份运行的临时凭证。</p>
+<p>服务 A 用这组临时凭证访问服务 B 的资源——整个过程没有传递任何 SK，权限随时可以通过修改角色定义来调整，临时凭证到期自动失效。</p>
+<pre><code>服务A的身份
+    |
+    | AssumeRole(角色R)
+    v
+   STS
+    | 检查: A 有权扮演 R?  -&gt; 是
+    | 签发临时凭证(以角色R的权限)
+    v
+临时 AK + 临时 SK + Session Token
+    |
+    | 访问服务B的资源
+    v
+服务B验证:  Session Token 有效? 权限匹配? -&gt; 放行
+</code></pre>
+<blockquote>
+<p>想一想：AssumeRole 的&quot;角色&quot;和&quot;用户&quot;有什么本质区别？</p>
+</blockquote>
+<p>用户是一个固定的身份，有自己的永久凭证。角色没有固定的持有者，没有自己的永久凭证——它是一套权限的定义，任何被允许的实体都可以临时&quot;穿上&quot;这套权限，用完就&quot;脱下&quot;。角色是权限的容器，不是身份。</p>
+<hr>
+<h2>第三幕：完整组装</h2>
+<h3>全景图</h3>
+<pre><code>+------------------+      1. AssumeRole / 申请临时凭证      +-------+
+|  调用方           | ------------------------------------&gt; |  STS  |
+|  (持永久AK/SK    |                                       |       |
+|   或可信身份)    | &lt;------------------------------------ |       |
++------------------+  2. 返回临时AK + 临时SK + SessionToken +-------+
+         |
+         | 3. 用临时AK/SK签名请求（附带SessionToken）
+         v
++------------------+
+|  目标服务         |
+|                  |  4. 验证流程:
+|                  |     a. 检查SessionToken是否由STS签发
+|                  |     b. 检查是否过期
+|                  |     c. 用临时SK验证请求签名
+|                  |     d. 检查权限策略是否允许此操作
+|                  |     -&gt; 全部通过: 放行
++------------------+
+
+临时凭证属性:
++------------------------------------------+
+|  临时AK:       ASIAIOSFODNN7EXAMPLE      |
+|  临时SK:       短期随机密钥               |
+|  SessionToken: STS签发的加密令牌          |
+|  过期时间:     签发时刻 + N小时            |
+|  权限范围:     &lt;= 申请者自身权限           |
++------------------------------------------+
+</code></pre>
+<h3>端到端示例：数据处理服务临时访问存储桶</h3>
+<p><strong>场景</strong>：数据处理服务需要读取 <code>bucket-A/raw/</code> 下的文件，处理完毕，权限失效。</p>
+<p><strong>Step 1：数据处理服务用自己的永久 AKSK 向 STS 申请</strong></p>
+<pre><code>请求:
+  Action: AssumeRole
+  RoleArn: arn:example:iam::123:role/DataProcessorRole
+  DurationSeconds: 3600   &lt;- 1小时后过期
+  Policy: {               &lt;- 进一步收窄权限
+    &quot;Effect&quot;: &quot;Allow&quot;,
+    &quot;Action&quot;: &quot;oss:GetObject&quot;,
+    &quot;Resource&quot;: &quot;arn:example:oss:bucket-A/raw/*&quot;
+  }
+</code></pre>
+<p><strong>Step 2：STS 验证后签发临时凭证</strong></p>
+<pre><code>返回:
+  TempAK:       &quot;ASIA3X7EXAMPLE&quot;
+  TempSK:       &quot;tmpSecret/7Fexample&quot;
+  SessionToken: &quot;AQoDYXdzEJr...&quot;   &lt;- 加密令牌
+  Expiration:   &quot;2026-03-17T11:00:00Z&quot;
+</code></pre>
+<p><strong>Step 3：用临时凭证签名请求</strong></p>
+<pre><code>GET /bucket-A/raw/data.csv HTTP/1.1
+Authorization: AKSK AK=ASIA3X7EXAMPLE, Sig=...
+X-Security-Token: AQoDYXdzEJr...   &lt;- Session Token 必须带上
+X-Date: 2026-03-17T10:30:00Z
+</code></pre>
+<p><strong>Step 4：存储服务验证</strong></p>
+<pre><code>1. 解密 SessionToken -&gt; 确认由 STS 合法签发
+2. 检查 Expiration: 10:30 &lt; 11:00 -&gt; 未过期 ✓
+3. 用 TempSK 验证请求签名 -&gt; 一致 ✓
+4. 检查权限: GetObject on bucket-A/raw/* -&gt; 允许 ✓
+5. 放行，返回文件内容
+</code></pre>
+<p><strong>Step 5：1小时后</strong></p>
+<pre><code>同样的请求，同样的凭证:
+检查 Expiration: 12:00 &gt; 11:00 -&gt; 已过期
+-&gt; 403 拒绝，无需任何手动操作
+</code></pre>
+<hr>
+<h2>第四幕：验证与压力测试</h2>
+<h3>反事实：去掉关键部分会怎样？</h3>
+<p><strong>去掉 Session Token，只用临时 AK/SK</strong>：服务器无法区分&quot;普通永久 AK/SK 请求&quot;和&quot;临时凭证请求&quot;，无法验证过期时间，也无法验证这组凭证是否真的由 STS 签发——时效机制完全失效。</p>
+<p><strong>去掉权限收窄（Policy）</strong>：临时凭证继承申请者的全部权限。临时凭证泄漏的代价和永久 SK 泄漏一样大——只是变成了有时间窗口的灾难，而不是永久灾难。</p>
+<p><strong>不用 AssumeRole，直接给跨服务访问发 AK/SK</strong>：权限在 AK/SK 删除前永久存在；权限调整需要重新生成凭证；不同团队之间需要传递 SK——每多一次传递，就多一次泄漏风险。</p>
+<h3>边界：STS 在哪些情况下有局限？</h3>
+<p><strong>临时凭证泄漏的窗口期</strong>：虽然有时效，但 1 小时的窗口内攻击者仍然可以做很多事。对高敏感操作，需要把 <code>DurationSeconds</code> 设得尽量短（最短可到 15 分钟）。</p>
+<p><strong>STS 本身的可用性</strong>：需要临时凭证时必须先调用 STS。如果 STS 服务短暂故障，整个认证链断掉——这是用临时凭证替代永久凭证时必须考虑的可用性代价。通常做法是提前申请好凭证并在过期前刷新，而不是每次请求前才去拿。</p>
+<p><strong>无法&quot;提前撤销&quot;已签发的临时凭证</strong>：凭证签发出去后，在过期时间到来之前，通常无法强制使其失效（不同服务商实现不同，有些支持通过特殊 API 强制撤销）。这意味着泄漏后只能等它自然过期，或者通过修改角色权限来间接限制损害。</p>
+<h3>连接：STS 和哪些东西有关？</h3>
+<p><strong>AKSK</strong>：STS 的基础。永久 AK/SK 是向 STS 证明身份的工具，临时凭证本质上是短期的 AK/SK + Session Token。</p>
+<p><strong>OIDC（OpenID Connect）</strong>：当调用方不是云账号内的服务，而是来自外部身份提供商（比如 GitHub Actions 的 CI 流水线、Kubernetes 的 Pod），就用 OIDC 来向 STS 证明身份，然后换取临时凭证——这叫 OIDC 联合认证，是 STS 与 OIDC 的结合点。</p>
+<p><strong>IAM Role</strong>：AssumeRole 里的&quot;角色&quot;是 IAM 的概念。STS 是&quot;签发临时凭证的服务&quot;，IAM 是&quot;定义谁有什么权限&quot;的系统，两者紧密配合。</p>
+<p><strong>最小权限原则</strong>：STS 的设计哲学就是最小权限的工程实践——不给长期的大权限，只给短期的刚好够用的权限。</p>
+<h3>终极挑战·空白重建</h3>
+<pre><code>[问题]
+  永久 AKSK 一旦泄漏，攻击窗口无限长
+  临时授权任务完成后权限不会自动消失
+
+[缺口1]
+  需要一种凭证，带着&quot;何时失效&quot;的信息
+  且这个信息不能被持有者篡改
+
+[工具1: STS签发的临时凭证]
+  临时AK + 临时SK + Session Token
+  Session Token 由 STS 加密签发，含过期时间
+  服务器验证 Session Token 确认合法性和时效
+
+[缺口2]
+  仅靠时效还不够，权限范围也需要收窄
+
+[工具2: Policy（权限策略）]
+  申请时指定权限子集
+  临时凭证权限 &lt;= 申请者自身权限
+  最小权限原则的工程实现
+
+[缺口3]
+  跨服务/跨账号授权需要传递 SK，麻烦且危险
+
+[工具3: AssumeRole（角色扮演）]
+  角色 = 权限的容器，没有固定持有者
+  被允许的实体临时&quot;穿上&quot;角色权限
+  STS 签发以角色身份运行的临时凭证
+  整个过程无需传递任何 SK
+
+[完整方案]
+  申请: 用可信身份向STS请求临时凭证（可指定角色+权限+时长）
+  使用: 临时AK/SK签名 + Session Token随请求发送
+  验证: 服务端验Session Token合法性 + 时效 + 签名 + 权限
+  到期: 自动失效，无需任何手动操作
+</code></pre>
+<p>STS 的本质就是这一句话：<strong>把&quot;你能做什么&quot;和&quot;你能做多久&quot;封进一张有签名保证的临时通行证，让权限随任务诞生、随任务消亡。</strong></p>
+<h2>关联笔记</h2>
+<blockquote>
+<p><strong>相关原子概念</strong><br><a href="/knowledge/aksk.html">AKSK</a> · 待关联检索后补充</p>
+</blockquote>
+<p><a href="/knowledge/aksk.html">AKSK</a></p>
+
+      </div>
+    </article>
+
+    <section class="related-notes">
+  <h3>Related Notes</h3>
+  <div class="related-notes-grid">
+    <a href="aksk.html" class="related-note-card">
+      <div class="related-title">AKSK</div>
+      <div class="related-category">Security</div>
+    </a>
+  </div>
+</section>
+
+
+    <div style="max-width:800px;margin:0 auto;padding-bottom:60px;">
+      <a href="/knowledge/" class="back-link">Back to Knowledge Graph</a>
+    </div>
+  </main>
+
+  <!-- Footer -->
+  <footer>
+    <p>Designed &amp; Built by <a href="https://github.com/ChenSchenG">ChenSchenG</a></p>
+  </footer>
+
+  <script src="../js/main.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+  <script>hljs.highlightAll();</script>
+</body>
+</html>

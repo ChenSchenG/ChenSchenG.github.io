@@ -1,0 +1,346 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>JWT — ChenSchenG</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⚡</text></svg>">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../css/style.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css">
+</head>
+<body>
+  <!-- Navigation -->
+  <nav id="nav">
+    <div class="nav-logo">
+      <a href="/">CSG</a>
+    </div>
+    <div class="nav-links-wrapper">
+      <ol class="nav-links">
+        <li><a href="/#about"><span class="nav-number">01.</span>About</a></li>
+        <li><a href="/#projects"><span class="nav-number">02.</span>Projects</a></li>
+        <li><a href="/knowledge/"><span class="nav-number">03.</span>Knowledge</a></li>
+        <li><a href="/#contact"><span class="nav-number">04.</span>Contact</a></li>
+      </ol>
+      <div class="nav-resume">
+        <a href="/about.html">More About Me</a>
+      </div>
+    </div>
+    <button class="hamburger" id="hamburger" aria-label="Menu">
+      <span class="hamburger-inner"></span>
+    </button>
+  </nav>
+
+  <!-- Mobile Menu -->
+  <div class="mobile-menu-overlay" id="mobile-overlay"></div>
+  <aside class="mobile-menu" id="mobile-menu">
+    <ol>
+      <li><a href="/#about">About</a></li>
+      <li><a href="/#projects">Projects</a></li>
+      <li><a href="/knowledge/">Knowledge</a></li>
+      <li><a href="/#contact">Contact</a></li>
+    </ol>
+    <div class="mobile-resume">
+      <a href="/about.html">More About Me</a>
+    </div>
+  </aside>
+
+  <main class="article-page">
+    <article>
+      <header class="article-header">
+        <div class="article-breadcrumb">
+          <a href="/">Home</a>
+          <span class="separator">/</span>
+          <a href="/knowledge/">Knowledge</a>
+          <span class="separator">/</span>
+          <span>Security</span>
+        </div>
+        <h1>JWT</h1>
+        <div class="article-meta">
+          <span>2026-03-17</span>
+          <span>Security</span>
+        </div>
+        <div class="article-tags">
+  <span class="tag">密码学与安全</span>
+  <span class="tag">概念</span>
+  <span class="tag">JWT</span>
+  <span class="tag">Header</span>
+  <span class="tag">Payload</span>
+  <span class="tag">Signature</span>
+  <span class="tag">HMAC</span>
+  <span class="tag">无状态认证</span>
+</div>
+
+      </header>
+
+      <div class="article-body">
+        <h1>JWT</h1>
+<blockquote>
+<p><strong>一句话本质</strong><br>把身份信息连同防伪签名一起交给客户端保管，让服务器凭本地验算而非数据库查询来信任每一次请求</p>
+</blockquote>
+<h2>第一幕：问题感知</h2>
+<p>用户登录了你的网站，服务器验证了用户名和密码——确认是真人。</p>
+<p>然后用户点击&quot;查看我的订单&quot;。</p>
+<p>这是第二个请求。服务器怎么知道发这个请求的，还是刚才那个登录过的人？</p>
+<p>HTTP 协议本身是无状态的——每个请求对服务器来说都是陌生人。服务器不记得你刚才登录过。</p>
+<p>最经典的解法：用 <strong>Session</strong>。用户登录后，服务器生成一个 Session ID，存进数据库，把这个 ID 发给浏览器存着。用户每次请求带上这个 ID，服务器去数据库查&quot;这个 ID 对应谁&quot;，确认身份。</p>
+<p>这个方案在单台服务器上好用。但你的网站现在有 100 台服务器，用户的请求被负载均衡器随机分配到任意一台。用户在服务器 A 登录，Session 存在 A 的数据库里——下一个请求打到服务器 B，B 去查，什么都没有。</p>
+<p>解法一：让所有服务器共享同一个数据库。每次请求都要查一次库——100 台服务器的所有请求全部打到这一个数据库，它成了瓶颈，也成了单点故障。</p>
+<p><strong>登录状态怎么在不查数据库的情况下验证？</strong></p>
+<hr>
+<blockquote>
+<p>想一想：有没有一种方式，让&quot;身份信息&quot;本身就随着请求带过来，不需要服务器去任何地方查？</p>
+</blockquote>
+<hr>
+<h2>第二幕：引导式构建</h2>
+<p>你想到了：把身份信息直接写在&quot;通行证&quot;里，用户每次请求都带着这张通行证，服务器看通行证就知道是谁——不需要查库。</p>
+<p>但有一个致命问题：谁能阻止用户自己伪造一张通行证，把&quot;普通用户&quot;改成&quot;管理员&quot;？</p>
+<p>通行证必须有防伪机制——看到它就能验真假，不需要问任何外部系统。</p>
+<hr>
+<p><strong>第一步：把信息打包——Payload</strong></p>
+<p>先解决&quot;装什么&quot;的问题。</p>
+<p>通行证里需要装的信息，比如：这是谁（用户 ID）、什么权限（角色）、什么时候过期。</p>
+<p>这些信息统称为<strong>声明（Claim）</strong>，打包成一个 JSON 对象，就是 JWT 的 <strong>载荷（Payload）</strong>。</p>
+<p>一个典型的 Payload 长这样：</p>
+<pre><code class="language-json">{
+  &quot;sub&quot;: &quot;user_123&quot;,
+  &quot;role&quot;: &quot;admin&quot;,
+  &quot;exp&quot;: 1742220000
+}
+</code></pre>
+<p><code>sub</code> 是&quot;subject&quot;，代表这个 Token 关于谁。<code>exp</code> 是&quot;expiration&quot;，是过期时间的 Unix 时间戳。</p>
+<blockquote>
+<p>想一想：Payload 是 JSON，直接把它发给用户，让用户每次请求带过来，可以吗？</p>
+</blockquote>
+<p>技术上可以，但用户可以随意修改——把 <code>role</code> 从 <code>user</code> 改成 <code>admin</code>，服务器看不出来。Payload 能装信息，但不能防伪。</p>
+<hr>
+<p><strong>第二步：防伪机制——签名</strong></p>
+<p>Payload 有了，现在需要让它&quot;不可篡改&quot;。</p>
+<p>思路和 AKSK 里一样：用一个只有服务器知道的密钥，对 Payload 做 HMAC，生成签名。Payload + 签名一起发给用户。</p>
+<p>用户下次带着这个东西回来，服务器用自己的密钥重新算一遍签名，比对——一致就是真的，不一致说明被篡改了。</p>
+<p>用户改了 Payload 里的任何一个字节，签名立刻失效，伪造不了。</p>
+<p>这个签名就是 JWT 的第三部分：<strong>Signature（签名）</strong>。</p>
+<blockquote>
+<p>想一想：签名用的密钥是什么？是用户知道的，还是只有服务器知道的？</p>
+</blockquote>
+<p>只有服务器知道。这个密钥叫 <strong>Secret</strong>（对称签名时）或<strong>私钥</strong>（非对称签名时）——它永远不离开服务器。用户拿到的是 Payload 和签名，但没有密钥，所以只能读、不能伪造有效签名。</p>
+<hr>
+<p><strong>第三步：元信息——Header</strong></p>
+<p>还差一样东西。服务器收到 JWT 时，需要知道&quot;这个签名用的是哪种算法&quot;，才能用正确的方式验证。</p>
+<p>JWT 在 Payload 之前还有一个 <strong>头部（Header）</strong>，也是一个 JSON，描述 Token 的元信息：</p>
+<pre><code class="language-json">{
+  &quot;alg&quot;: &quot;HS256&quot;,
+  &quot;typ&quot;: &quot;JWT&quot;
+}
+</code></pre>
+<p><code>alg</code> 是签名算法——<code>HS256</code> 表示 HMAC-SHA256（对称），<code>RS256</code> 表示 RSA-SHA256（非对称）。<code>typ</code> 固定是 <code>&quot;JWT&quot;</code>。</p>
+<blockquote>
+<p>想一想：Header 里的算法声明，如果被篡改了会怎样？比如攻击者把 <code>HS256</code> 改成 <code>none</code>（表示&quot;不需要签名&quot;）——如果服务器真的照做，会发生什么？</p>
+</blockquote>
+<p>这是一个真实的历史漏洞——<strong>Algorithm Confusion Attack（算法混淆攻击）</strong>。早期有些 JWT 库看到 <code>alg: none</code> 就真的跳过签名验证，攻击者可以伪造任意 Payload。正确做法是：服务器应该硬编码&quot;我只接受 HS256&quot;，完全忽略 Token 里的 <code>alg</code> 字段。Header 里的算法声明是&quot;给你看的&quot;，不是&quot;你听的&quot;。</p>
+<hr>
+<p><strong>第四步：编码——变成一个字符串</strong></p>
+<p>现在有了三块内容：Header、Payload、Signature。怎么把它们合并成一个可以放进 HTTP 请求的字符串？</p>
+<p>分三步：</p>
+<p>Header 和 Payload 各自做 <strong>Base64URL 编码</strong>（一种把任意二进制数据变成 URL 安全字符串的编码，不是加密）。</p>
+<p>用点 <code>.</code> 把三部分拼在一起：</p>
+<pre><code>Base64URL(Header) . Base64URL(Payload) . Signature
+</code></pre>
+<p>结果就是一个 JWT 字符串，长这样：</p>
+<pre><code>eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9
+.eyJzdWIiOiJ1c2VyXzEyMyIsInJvbGUiOiJhZG1pbiIsImV4cCI6MTc0MjIyMDAwMH0
+.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c
+</code></pre>
+<p>三段，两个点分隔。</p>
+<blockquote>
+<p>想一想：Base64URL 是编码，不是加密——也就是说，任何人都可以把第一段和第二段解码，直接看到里面的内容。这意味着什么？</p>
+</blockquote>
+<p>JWT 的 Payload <strong>默认是公开可读的</strong>——不要把密码、银行卡号这类敏感信息放进去。JWT 保证的是&quot;内容不可被篡改&quot;，不保证&quot;内容不可被看见&quot;。如果需要加密，需要用 JWE（JSON Web Encryption），那是另一个规范。</p>
+<hr>
+<p><strong>第五步：验证流程——服务器怎么用</strong></p>
+<p>现在服务器收到一个 JWT，验证流程是：</p>
+<p>把 JWT 按 <code>.</code> 拆成三段。把前两段（Header 和 Payload 的 Base64URL 编码）用密钥做 HMAC，重新算出签名，与第三段比对。比对一致，再检查 Payload 里的 <code>exp</code> 字段——是否已过期。两关都过，提取 Payload 里的 <code>sub</code> 和 <code>role</code>，知道这是谁、有什么权限，处理请求。</p>
+<p>注意：这整个过程<strong>没有任何数据库查询</strong>。服务器完全靠本地计算验证真伪。</p>
+<p>一句话类比：JWT 是一张印着防伪水印的身份证——证件本身就能自证真伪，不需要打电话回户籍局查档案。</p>
+<hr>
+<h2>第三幕：完整组装</h2>
+<h3>全景图</h3>
+<pre><code>JWT 的结构：
++------------------+---+--------------------+---+-------------+
+|  Header          | . |  Payload           | . |  Signature  |
+|  (算法、类型)     |   |  (身份信息、过期时间)|   |  (防伪水印) |
+|  Base64URL编码   |   |  Base64URL编码      |   |  HMAC结果   |
++------------------+---+--------------------+---+-------------+
+
+生命周期：
+
+  登录阶段（一次性）：
+  用户 --[账号密码]--&gt; 服务器
+                          |
+                          | 验证通过，生成JWT：
+                          | 1. 构造 Header + Payload
+                          | 2. HMAC(Secret, Header.Payload) = Signature
+                          | 3. 拼接 Header.Payload.Signature
+                          |
+  用户 &lt;--[JWT]---------- 服务器
+
+  使用阶段（每次请求）：
+  用户 --[请求 + JWT]--&gt; 任意服务器节点
+                              |
+                              | 验证JWT（纯本地计算，不查库）：
+                              | 1. 拆分三段
+                              | 2. 重算 HMAC(Secret, Header.Payload)
+                              | 3. 比对 Signature -&gt; 真/假
+                              | 4. 检查 exp -&gt; 未过期/已过期
+                              | 5. 读取 sub, role -&gt; 知道是谁
+                              |
+                         处理请求，返回数据
+</code></pre>
+<h3>端到端示例</h3>
+<p><strong>场景</strong>：用户 <code>user_123</code> 是管理员，登录后拿到 JWT，用它查询后台数据。</p>
+<p><strong>Step 1：登录，服务器生成 JWT</strong></p>
+<pre><code>Header:
+{
+  &quot;alg&quot;: &quot;HS256&quot;,
+  &quot;typ&quot;: &quot;JWT&quot;
+}
+-&gt; Base64URL: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9
+
+Payload:
+{
+  &quot;sub&quot;: &quot;user_123&quot;,
+  &quot;role&quot;: &quot;admin&quot;,
+  &quot;exp&quot;: 1742223600    &lt;- 1小时后过期
+}
+-&gt; Base64URL: eyJzdWIiOiJ1c2VyXzEyMyIsInJvbGUiOiJhZG1pbiIsImV4cCI6MTc0MjIyMzYwMH0
+
+待签名字符串:
+eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJ1c2VyXzEyMyIsInJvbGUiOiJhZG1pbiIsImV4cCI6MTc0MjIyMzYwMH0
+
+Secret = &quot;my-super-secret-key&quot;
+
+Signature = HMAC-SHA256(Secret, 待签名字符串)
+          = SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c  (示意)
+
+最终 JWT:
+eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJ1c2VyXzEyMyIsInJvbGUiOiJhZG1pbiIsImV4cCI6MTc0MjIyMzYwMH0.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c
+</code></pre>
+<p><strong>Step 2：用户请求后台接口，带着 JWT</strong></p>
+<pre><code>GET /admin/users HTTP/1.1
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ...
+</code></pre>
+<p><strong>Step 3：服务器验证（任意节点，无需查库）</strong></p>
+<pre><code>1. 拆分: Header + Payload + Signature
+2. 重算: HMAC-SHA256(&quot;my-super-secret-key&quot;, Header.Payload)
+         = SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c
+3. 比对: 一致 ✓
+4. 检查 exp: 当前时间 &lt; 1742223600 -&gt; 未过期 ✓
+5. 读取: sub=user_123, role=admin
+6. role=admin -&gt; 有权访问 /admin/users -&gt; 放行 ✓
+</code></pre>
+<p><strong>Step 4：如果攻击者篡改了 Payload</strong></p>
+<pre><code>攻击者把 role 从 &quot;admin&quot; 改成 &quot;superadmin&quot;
+-&gt; Payload 的 Base64URL 变了
+-&gt; 待签名字符串变了
+-&gt; 重算 HMAC 得到不同的签名
+-&gt; 与 Token 里的 Signature 不一致
+-&gt; 拒绝 ✗
+</code></pre>
+<hr>
+<h2>第四幕：验证与压力测试</h2>
+<h3>反事实：去掉关键组件会怎样？</h3>
+<p><strong>去掉 Signature</strong>：任何人都可以修改 Payload，伪造任意身份。JWT 失去防伪能力，变成一个普通的 Base64 编码字符串，毫无安全价值。</p>
+<p><strong>去掉 <code>exp</code> 字段</strong>：Token 永不过期。用户登出、账号被封禁、Token 被盗——都无法阻止这个 Token 被永久使用。这是 JWT 最常见的配置错误之一。</p>
+<p><strong>去掉 Header 中的算法声明校验</strong>（服务器盲目信任 Header 里写的算法）：算法混淆攻击——攻击者把算法改为 <code>none</code>，服务器跳过签名验证，接受任意伪造的 Token。</p>
+<h3>边界：JWT 在哪些情况下有问题？</h3>
+<p><strong>无法主动撤销</strong>：这是 JWT 最大的设计局限。用户登出，你能把客户端的 JWT 删掉，但服务器没有数据库记录，无法&quot;作废&quot;这个 Token——它在 <code>exp</code> 到来之前仍然有效。有人的 Token 被盗？账号被封禁？只能等过期。</p>
+<p>解决方案是引入一个&quot;Token 黑名单&quot;数据库——但这等于把 Session 的数据库查询找回来了，部分抵消了 JWT 无状态的优势。这是一个真实的工程取舍，没有完美答案。</p>
+<p><strong>Secret 泄漏是灾难</strong>：任何人拿到 Secret，就能伪造任意用户的合法 JWT。Secret 的保管和轮换是使用 JWT 的核心安全责任。</p>
+<p><strong>Payload 越大，Token 越大</strong>：JWT 的内容会出现在每个 HTTP 请求的 Header 里。塞太多字段会让请求变大，在移动网络上有性能代价。Payload 应该只放验证必需的最小信息。</p>
+<h3>连接：JWT 和哪些东西有关？</h3>
+<p><strong>OAuth 2.0</strong>：OAuth 2.0 的 Access Token 可以是任意格式。JWT 格式的 Access Token 是目前最主流的选择——资源服务器本地验证签名，无需查询授权服务器，完美契合分布式场景。</p>
+<p><strong>OIDC（OpenID Connect）</strong>：OIDC 在 OAuth 2.0 上加了一个 <strong>ID Token</strong>，这个 ID Token 就是一个 JWT，里面装着用户身份信息（姓名、邮箱等）。OIDC 规定了 ID Token 里必须有哪些 Claim（<code>iss</code>、<code>sub</code>、<code>aud</code>、<code>exp</code>、<code>iat</code>）。</p>
+<p><strong>AKSK</strong>：两者都用 HMAC 做防伪。AKSK 是对每个请求内容做签名（请求内容变签名就变）；JWT 是对身份信息做签名（签一次，多次请求复用）。一个是&quot;每次签&quot;，一个是&quot;签一次用很久&quot;。</p>
+<p><strong>Session vs JWT</strong>：Session 把状态存服务器，Token 有效但服务器可以随时撤销；JWT 把状态存客户端，无需查库但无法立即撤销。两者是可扩展性和可控性之间的经典取舍。</p>
+<h3>终极挑战·空白重建</h3>
+<pre><code>[问题]
+  多服务器环境下，Session 需要共享数据库
+  每次请求都要查库，成为瓶颈和单点故障
+
+[缺口1]
+  需要一种&quot;自带身份信息&quot;的通行证
+  服务器拿到就能知道是谁，不需要查任何地方
+
+[工具1: Payload]
+  把身份信息（用户ID、角色、过期时间）
+  打包成 JSON，随 Token 携带
+
+[缺口2]
+  Payload 可以被用户随意修改伪造
+
+[工具2: Signature（HMAC）]
+  用只有服务器知道的 Secret 对 Payload 签名
+  篡改任何内容签名立刻失效
+  服务器本地重算比对，无需外部查询
+
+[缺口3]
+  服务器需要知道用什么算法验签
+
+[工具3: Header]
+  在 Payload 前加元信息（算法类型）
+  Header 也纳入签名范围（防止算法被篡改）
+  注意：服务器应忽略 Header 里的算法，硬编码自己接受的算法
+
+[完整方案]
+  生成: Header.Payload 各自 Base64URL 编码
+        HMAC(Secret, Header.Payload) = Signature
+        拼接: Header.Payload.Signature
+
+  验证: 拆分 -&gt; 重算签名 -&gt; 比对 -&gt; 检查 exp
+        全部本地完成，零数据库查询
+
+  局限: 无法主动撤销（只能等 exp）
+        Secret 泄漏全盘皆输
+</code></pre>
+<p>JWT 的本质就是这一句话：<strong>把身份信息连同防伪签名一起交给客户端保管，让服务器凭本地验算而非数据库查询来信任每一次请求。</strong></p>
+<h2>关联笔记</h2>
+<blockquote>
+<p><strong>相关原子概念</strong><br><a href="/knowledge/aksk.html">AKSK</a> · <a href="/knowledge/oauth-2-0.html">OAuth 2.0</a></p>
+</blockquote>
+<p><a href="/knowledge/aksk.html">AKSK</a><br><a href="/knowledge/oauth-2-0.html">OAuth 2.0</a></p>
+
+      </div>
+    </article>
+
+    <section class="related-notes">
+  <h3>Related Notes</h3>
+  <div class="related-notes-grid">
+    <a href="aksk.html" class="related-note-card">
+      <div class="related-title">AKSK</div>
+      <div class="related-category">Security</div>
+    </a>
+    <a href="oauth-2-0.html" class="related-note-card">
+      <div class="related-title">OAuth 2.0</div>
+      <div class="related-category">Security</div>
+    </a>
+  </div>
+</section>
+
+
+    <div style="max-width:800px;margin:0 auto;padding-bottom:60px;">
+      <a href="/knowledge/" class="back-link">Back to Knowledge Graph</a>
+    </div>
+  </main>
+
+  <!-- Footer -->
+  <footer>
+    <p>Designed &amp; Built by <a href="https://github.com/ChenSchenG">ChenSchenG</a></p>
+  </footer>
+
+  <script src="../js/main.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+  <script>hljs.highlightAll();</script>
+</body>
+</html>

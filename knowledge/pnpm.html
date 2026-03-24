@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>pnpm — ChenSchenG</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⚡</text></svg>">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../css/style.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css">
+</head>
+<body>
+  <!-- Navigation -->
+  <nav id="nav">
+    <div class="nav-logo">
+      <a href="/">CSG</a>
+    </div>
+    <div class="nav-links-wrapper">
+      <ol class="nav-links">
+        <li><a href="/#about"><span class="nav-number">01.</span>About</a></li>
+        <li><a href="/#projects"><span class="nav-number">02.</span>Projects</a></li>
+        <li><a href="/knowledge/"><span class="nav-number">03.</span>Knowledge</a></li>
+        <li><a href="/#contact"><span class="nav-number">04.</span>Contact</a></li>
+      </ol>
+      <div class="nav-resume">
+        <a href="/about.html">More About Me</a>
+      </div>
+    </div>
+    <button class="hamburger" id="hamburger" aria-label="Menu">
+      <span class="hamburger-inner"></span>
+    </button>
+  </nav>
+
+  <!-- Mobile Menu -->
+  <div class="mobile-menu-overlay" id="mobile-overlay"></div>
+  <aside class="mobile-menu" id="mobile-menu">
+    <ol>
+      <li><a href="/#about">About</a></li>
+      <li><a href="/#projects">Projects</a></li>
+      <li><a href="/knowledge/">Knowledge</a></li>
+      <li><a href="/#contact">Contact</a></li>
+    </ol>
+    <div class="mobile-resume">
+      <a href="/about.html">More About Me</a>
+    </div>
+  </aside>
+
+  <main class="article-page">
+    <article>
+      <header class="article-header">
+        <div class="article-breadcrumb">
+          <a href="/">Home</a>
+          <span class="separator">/</span>
+          <a href="/knowledge/">Knowledge</a>
+          <span class="separator">/</span>
+          <span>Other</span>
+        </div>
+        <h1>pnpm</h1>
+        <div class="article-meta">
+          <span>2026-03-19</span>
+          <span>Other</span>
+        </div>
+        <div class="article-tags">
+  <span class="tag">软件工程</span>
+  <span class="tag">概念</span>
+  <span class="tag">pnpm</span>
+  <span class="tag">包管理</span>
+  <span class="tag">Node.js</span>
+  <span class="tag">硬链接</span>
+  <span class="tag">store</span>
+  <span class="tag">幽灵依赖</span>
+</div>
+
+      </header>
+
+      <div class="article-body">
+        <h1>pnpm（Performant npm）</h1>
+<blockquote>
+<p><strong>一句话本质</strong><br>pnpm 用全局 store + 硬链接解决 npm 的重复存储问题，用严格目录结构消灭幽灵依赖——相同内容只存一份，只暴露你声明的包。</p>
+</blockquote>
+<h2>第一幕：问题感知</h2>
+<p>你已经用 <a href="/knowledge/npm.html">npm</a> 工作了半年，一切都挺顺。</p>
+<p>某天，你的硬盘突然提示&quot;存储空间不足&quot;。你去查，发现有一个文件夹叫 <code>node_modules</code>，散落在你电脑上几十个项目文件夹里。光是这些 <code>node_modules</code>，加起来占了 <strong>18GB</strong>。</p>
+<p>你打开其中三个项目的 <code>node_modules</code>，发现一件让你抓狂的事：</p>
+<pre><code>项目A/node_modules/lodash/  &lt;- 532 KB
+项目B/node_modules/lodash/  &lt;- 532 KB  （一模一样）
+项目C/node_modules/lodash/  &lt;- 532 KB  （还是一模一样）
+</code></pre>
+<p>每一份都完全相同，每一份都独立占用硬盘。50 个项目，50 份 lodash。</p>
+<p><strong>同样的文件，为什么要在硬盘上存 50 次？</strong></p>
+<hr>
+<h2>第二幕：引导式构建</h2>
+<p>在你想解决&quot;同一份文件存了 50 次&quot;之前，先看看操作系统是怎么处理类似问题的。</p>
+<p>系统里不同的应用可能都需要同一套字体，但操作系统不会把字体复制成 100 份。它在一个地方存了字体，然后给每个需要它的应用一个<strong>指向那个位置的路径</strong>。</p>
+<p>这种&quot;我不复制文件，我只给你一个入口&quot;的机制，叫做<strong>硬链接（hard link）</strong>。</p>
+<p>硬链接不是快捷方式。快捷方式是&quot;这里有一张纸条，告诉你真正的文件在哪儿&quot;——删掉真正的文件，纸条就失效了。硬链接更像是&quot;同一份文件，有两个门牌号&quot;——通过任何一个门牌号访问，都到达同一块真实的数据；删掉一个门牌号，文件还在，另一个门牌号还能用。</p>
+<blockquote>
+<p>想一想：如果 lodash 在硬盘上只存一份，50 个项目都通过硬链接指向它，那 18GB 里关于 lodash 的那部分，是不是可以缩减到几百 KB？</p>
+</blockquote>
+<p>要让硬链接发挥作用，你需要一个&quot;总仓库&quot;——所有下载过的包，只在这里存一份真实文件。pnpm 把这个地方叫做 <strong>store</strong>，默认放在 <code>~/.pnpm-store</code>。</p>
+<p>每次安装一个包，pnpm 先检查 store 里有没有这个包的这个版本：有 → 不下载，直接从 store 建立硬链接；没有 → 下载到 store，再建立硬链接。</p>
+<p>你的 50 个项目，<code>node_modules/lodash</code> 各自都有一个&quot;入口&quot;，但背后指向的都是 store 里那同一块数据。</p>
+<blockquote>
+<p>想一想：硬盘占用降下来了。那速度呢？如果 store 里已经有了，根本不需要去网络下载——第二次安装同一个包，是不是瞬间完成？</p>
+</blockquote>
+<p>是的。这是 store 机制的&quot;意外收获&quot;：速度快不只是因为网络快，而是根本不走网络。</p>
+<p>pnpm 还顺手解决了 npm 的另一个问题：<strong>幽灵依赖</strong>（phantom dependency）。</p>
+<p>用 npm 工作一段时间，你可能碰到过一个诡异情况：<code>package.json</code> 里明明没写 <code>lodash</code>，但代码里 <code>import lodash from &#39;lodash&#39;</code> 却能跑。因为你装的某个工具库依赖了 lodash，npm 把 lodash 铺平放进了 <code>node_modules/</code>，Node.js 扫描时意外找到了它。</p>
+<p>你没有声明这个依赖，但你用上了——这叫幽灵依赖。危险在于：某天那个工具库升级了，不再依赖 lodash，lodash 从 <code>node_modules</code> 消失，你的代码在毫无预警的情况下崩溃。</p>
+<p>pnpm 用<strong>严格的目录结构</strong>消灭了这个问题：<code>node_modules/</code> 的第一层只放你<strong>亲手在 <code>package.json</code> 里写的包</strong>。那些包的依赖被放在隐藏的 <code>.pnpm/</code> 区域——包与包之间能互相找到彼此，但你的代码看不见没被声明的包。</p>
+<blockquote>
+<p>想一想：严格结构意味着——如果你的项目依赖了幽灵依赖，切换到 pnpm 会立刻报错暴露。这是一种&quot;把隐患提前引爆&quot;的策略，你怎么看？</p>
+</blockquote>
+<p>这正是 pnpm 的设计哲学：短期阵痛，换长期确定性。把隐患暴露在开发阶段，好过在生产环境某次升级后悄悄崩溃。</p>
+<hr>
+<h2>第三幕：完整组装</h2>
+<p><strong>npm vs pnpm 的 node_modules 结构</strong></p>
+<pre><code>npm 的 node_modules（铺平结构）：
+
+node_modules/
++-- chalk/          &lt;- 你声明的
++-- lodash/         &lt;- chalk 的依赖，但你也能直接用（幽灵）
++-- ansi-styles/    &lt;- 所有层级的依赖全部铺在第一层
++-- ...
+
+
+pnpm 的 node_modules（严格结构）：
+
+node_modules/
++-- chalk/          &lt;- 符号链接 --&gt; .pnpm/chalk@5.0.0/node_modules/chalk
+|                                   （硬链接 --&gt; ~/.pnpm-store 真实文件）
++-- .pnpm/          &lt;- 内部区域，你的代码访问不到
+    +-- chalk@5.0.0/
+        +-- node_modules/
+            +-- chalk/       &lt;- 硬链接 --&gt; store
+            +-- ansi-styles/ &lt;- 硬链接 --&gt; store（chalk 的依赖，隔离在此）
+</code></pre>
+<p><strong>全局 store 的作用</strong></p>
+<pre><code>你的电脑
+|
++-- ~/.pnpm-store/          &lt;- 全局仓库（真实文件只存一份）
+|   +-- lodash@4.17.21/
+|   +-- chalk@5.0.0/
+|
++-- 项目A/node_modules/chalk/ --+
++-- 项目B/node_modules/chalk/ --+--&gt; 同一块数据（硬链接）
++-- 项目C/node_modules/chalk/ --+
+              |
+              v
+    ~/.pnpm-store/chalk@5.0.0/
+</code></pre>
+<p><strong>端到端示例</strong></p>
+<pre><code class="language-bash"># 安装 pnpm（只需一次）
+npm install -g pnpm
+
+# 安装依赖
+pnpm add chalk
+# 1. 检查 store 里有没有 chalk 5.x
+# 2. 没有 → 下载到 store；有 → 跳过下载（瞬间完成）
+# 3. 在 .pnpm/ 建立严格结构
+# 4. 在 node_modules/chalk/ 建立符号链接
+# 5. 更新 package.json 和 pnpm-lock.yaml
+
+# 幽灵依赖会被立刻暴露：
+# package.json 只有 chalk，没有 ansi-styles
+import ansiStyles from &#39;ansi-styles&#39;;  // chalk 的依赖，你没声明
+# npm 下：能跑（危险但静默）
+# pnpm 下：Error: Cannot find module &#39;ansi-styles&#39;  &lt;- 立刻暴露！
+</code></pre>
+<p><strong>核心差异对比</strong></p>
+<table>
+<thead>
+<tr>
+<th>维度</th>
+<th>npm</th>
+<th>pnpm</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>存储方式</td>
+<td>每个项目独立复制</td>
+<td>全局 store + 硬链接</td>
+</tr>
+<tr>
+<td>硬盘占用</td>
+<td>高（N 个项目 × 包大小）</td>
+<td>低（每个版本只存一份）</td>
+</tr>
+<tr>
+<td>安装速度</td>
+<td>较慢（需复制文件+下载）</td>
+<td>快（store 命中则无需下载）</td>
+</tr>
+<tr>
+<td>node_modules 结构</td>
+<td>铺平（所有层级暴露）</td>
+<td>严格（只暴露声明的包）</td>
+</tr>
+<tr>
+<td>幽灵依赖</td>
+<td>允许存在</td>
+<td>直接报错</td>
+</tr>
+<tr>
+<td>lock 文件</td>
+<td>package-lock.json</td>
+<td>pnpm-lock.yaml</td>
+</tr>
+</tbody></table>
+<hr>
+<h2>第四幕：验证与压力测试</h2>
+<h3>反事实：如果 pnpm 的 store 机制不存在</h3>
+<p>硬盘依然被几十份相同的 lodash 占据；每次在新项目安装已用过的包依然要重新下载；CI/CD 流水线每次构建都要从头下载。</p>
+<p>pnpm 解决的不是 npm 解决的问题（依赖管理），而是 npm <strong>解决方式产生的副作用</strong>（重复存储、结构宽松）。</p>
+<h3>边界：pnpm 不是万能的</h3>
+<p><strong>硬链接有平台限制。</strong> 硬链接要求链接源和目标在同一个文件系统分区。如果 store 和项目在不同磁盘，pnpm 会退化为复制文件，节省空间的优势消失。</p>
+<p><strong>严格结构有迁移成本。</strong> 老项目大量依赖幽灵依赖时，迁移到 pnpm 会&quot;暴露债务&quot;——那些本该在 <code>package.json</code> 里声明的包，得一一补上。</p>
+<h3>连接：npm → pnpm → 更大的图景</h3>
+<pre><code>手动复制代码
+    |
+    v
+npm：自动化下载 + package.json 声明意图
+    |（副作用：重复存储 + 结构宽松）
+    v
+pnpm：store + 硬链接 + 严格结构
+    |
+    v
+workspace：一个仓库管理多个项目，依赖跨项目共享
+    |
+    v
+Turborepo / Nx：构建缓存 + 并行执行
+</code></pre>
+<p>pnpm 的 store 思想，其实和 Docker 镜像的分层缓存、Git 的内容寻址存储是同一个思想：<strong>相同的内容，只存一份，用引用代替复制。</strong></p>
+<h3>路线图重建</h3>
+<pre><code>[观察痛点：node_modules 太大，硬盘被吃光]
+    |
+    v
+[定位根因：npm 对每个项目独立复制文件]
+    |
+    v
+[借鉴已有方案：操作系统硬链接早就解决过同内容多入口]
+    |
+    v
+[设计1：全局 store，所有版本只存一份]
+    |
+    v
+[意外收获：store 命中时无需下载，安装速度也变快]
+    |
+    v
+[发现第二个痛点：npm 铺平结构导致幽灵依赖]
+    |
+    v
+[设计2：node_modules 严格化，只暴露声明的包]
+    |
+    v
+[完整方案：store + 硬链接 + 严格结构 = pnpm]
+</code></pre>
+<h2>关联笔记</h2>
+<blockquote>
+<p><strong>相关原子概念</strong><br><a href="/knowledge/npm.html">npm</a> · <a href="/knowledge/sdk.html">SDK</a></p>
+</blockquote>
+<p><a href="/knowledge/npm.html">npm</a> 是 pnpm 要改进的对象，pnpm 解决了 npm 的重复存储和幽灵依赖两大问题。pnpm 的 store 思想与 Docker 分层缓存、Git 内容寻址同源。</p>
+
+      </div>
+    </article>
+
+    <section class="related-notes">
+  <h3>Related Notes</h3>
+  <div class="related-notes-grid">
+    <a href="npm.html" class="related-note-card">
+      <div class="related-title">npm</div>
+      <div class="related-category">Other</div>
+    </a>
+    <a href="sdk.html" class="related-note-card">
+      <div class="related-title">SDK</div>
+      <div class="related-category">Other</div>
+    </a>
+  </div>
+</section>
+
+
+    <div style="max-width:800px;margin:0 auto;padding-bottom:60px;">
+      <a href="/knowledge/" class="back-link">Back to Knowledge Graph</a>
+    </div>
+  </main>
+
+  <!-- Footer -->
+  <footer>
+    <p>Designed &amp; Built by <a href="https://github.com/ChenSchenG">ChenSchenG</a></p>
+  </footer>
+
+  <script src="../js/main.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+  <script>hljs.highlightAll();</script>
+</body>
+</html>

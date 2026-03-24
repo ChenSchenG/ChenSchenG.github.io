@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>网关 — ChenSchenG</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⚡</text></svg>">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../css/style.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css">
+</head>
+<body>
+  <!-- Navigation -->
+  <nav id="nav">
+    <div class="nav-logo">
+      <a href="/">CSG</a>
+    </div>
+    <div class="nav-links-wrapper">
+      <ol class="nav-links">
+        <li><a href="/#about"><span class="nav-number">01.</span>About</a></li>
+        <li><a href="/#projects"><span class="nav-number">02.</span>Projects</a></li>
+        <li><a href="/knowledge/"><span class="nav-number">03.</span>Knowledge</a></li>
+        <li><a href="/#contact"><span class="nav-number">04.</span>Contact</a></li>
+      </ol>
+      <div class="nav-resume">
+        <a href="/about.html">More About Me</a>
+      </div>
+    </div>
+    <button class="hamburger" id="hamburger" aria-label="Menu">
+      <span class="hamburger-inner"></span>
+    </button>
+  </nav>
+
+  <!-- Mobile Menu -->
+  <div class="mobile-menu-overlay" id="mobile-overlay"></div>
+  <aside class="mobile-menu" id="mobile-menu">
+    <ol>
+      <li><a href="/#about">About</a></li>
+      <li><a href="/#projects">Projects</a></li>
+      <li><a href="/knowledge/">Knowledge</a></li>
+      <li><a href="/#contact">Contact</a></li>
+    </ol>
+    <div class="mobile-resume">
+      <a href="/about.html">More About Me</a>
+    </div>
+  </aside>
+
+  <main class="article-page">
+    <article>
+      <header class="article-header">
+        <div class="article-breadcrumb">
+          <a href="/">Home</a>
+          <span class="separator">/</span>
+          <a href="/knowledge/">Knowledge</a>
+          <span class="separator">/</span>
+          <span>Network</span>
+        </div>
+        <h1>网关</h1>
+        <div class="article-meta">
+          <span>2026-03-16</span>
+          <span>Network</span>
+        </div>
+        <div class="article-tags">
+  <span class="tag">计算机网络</span>
+  <span class="tag">概念</span>
+  <span class="tag">网关</span>
+  <span class="tag">Gateway</span>
+  <span class="tag">NAT</span>
+  <span class="tag">子网掩码</span>
+  <span class="tag">路由</span>
+  <span class="tag">私有地址</span>
+</div>
+
+      </header>
+
+      <div class="article-body">
+        <h1>网关</h1>
+<blockquote>
+<p><strong>一句话本质</strong><br>网关是本地网络的出口守卫，替不认识路的数据包开门，顺手把地址换成外界认识的样子</p>
+</blockquote>
+<h2>第一幕：问题感知</h2>
+<p>你家里有五台设备：手机、笔记本、平板、智能电视、台式机。它们通过 Wi-Fi 连在一起，互相传文件没问题。</p>
+<p>现在你想用手机刷 B 站。</p>
+<p>B 站的服务器在北京某个机房，IP 地址是 <code>119.3.70.188</code>。你的手机 IP 是 <code>192.168.1.5</code>。</p>
+<p>手机把请求数据包发出去——然后呢？数据包飞向哪里？</p>
+<p>你的路由器？对。但路由器凭什么知道这个包该往哪送？它认识 <code>119.3.70.188</code> 吗？</p>
+<p>你家里的网络只有五台设备。路由器的&quot;地图&quot;里，只有这五台设备的地址。<code>119.3.70.188</code> 不在这张地图上。路由器查了一圈，没找到——</p>
+<p>数据包该扔掉吗？</p>
+<p>生活中有没有这样一种情况：你不知道怎么去某个地方，但你知道去问谁？</p>
+<p><strong>不认识目的地，数据包怎么出门？</strong></p>
+<hr>
+<blockquote>
+<p>想一想：你会怎么设计这个&quot;出门&quot;机制？有没有一个最简单粗暴的方案？</p>
+</blockquote>
+<hr>
+<h2>第二幕：引导式构建</h2>
+<h3>最直觉的解法——指定一个&quot;出口&quot;</h3>
+<p>你大概已经想到了：既然路由器不认识目的地，就给它定一条规则——&quot;遇到不认识的地址，一律送去这里&quot;。</p>
+<p>这个&quot;这里&quot;，就是<strong>默认网关（Default Gateway）</strong>。</p>
+<p>网关这个词，字面意思就是&quot;网络的门&quot;。当你的设备想把数据包送往一个&quot;本地网络之外&quot;的地址，它不会傻傻地广播问&quot;谁是 <code>119.3.70.188</code>&quot;，而是直接把包扔给网关——让网关来操心后面的事。</p>
+<p>你家里的网关，通常就是你的路由器，IP 一般是 <code>192.168.1.1</code>。</p>
+<p>用一个日常类比：你住在小区里，想寄一封信到外地。你不需要知道收件人在哪条街、哪栋楼。你只需要找到小区门口的邮筒（网关），把信扔进去。邮局的人会接着处理。</p>
+<blockquote>
+<p>想一想：你的手机怎么知道网关的 IP 是多少？这个信息是怎么来的？</p>
+</blockquote>
+<p>答案是：自动告诉你的。你的手机连上 Wi-Fi 的瞬间，路由器通过一个叫 <strong>DHCP</strong> 的机制，把三样东西一起发给你：你的 IP 地址、子网掩码、还有网关地址。你的手机压根不需要手动填。</p>
+<hr>
+<h3>好，数据包到了网关，然后呢？</h3>
+<p>网关（路由器）收到了你手机发来的包，目标是 <code>119.3.70.188</code>。它认识这个地址吗？</p>
+<p>不一定认识。但它比你的手机更接近&quot;外面的世界&quot;——它连着运营商的网络。如果它也不认识，它会把包扔给它自己的上游网关，就是运营商的路由器。</p>
+<p>这是一个层层传递的过程。每一跳，数据包都被送给&quot;比我更靠近目标&quot;的人，直到最终到达目的地。</p>
+<p>这个逐跳转发的机制叫<strong>路由（Routing）</strong>。网关是路由链条的第一跳。</p>
+<blockquote>
+<p>想一想：如果每一跳都&quot;不认识目标就往上扔&quot;，这条链条会不会永远传递下去、没有终点？什么时候才能到达目的地？</p>
+</blockquote>
+<p>不会无限传递。互联网的骨干路由器维护着一张巨大的路由表，知道&quot;去某段 IP 地址，该往哪个方向走&quot;。越靠近核心，路由器知道的越多。最终总会有一台路由器认识目标地址，把包直接送达。</p>
+<hr>
+<h3>网关只是&quot;出口&quot;吗？还是做了更多事？</h3>
+<p>到这里，网关听起来只是个&quot;转发站&quot;——收到包，扔给上游。但家用路由器作为网关，其实还悄悄做了一件大事。</p>
+<p>你家五台设备的 IP 都是 <code>192.168.x.x</code>——这类地址叫<strong>私有地址（Private Address）</strong>，全世界有无数个家庭网络都在用完全相同的 <code>192.168.1.x</code> 段。这些地址在互联网上毫无意义，全球的路由器不认它。</p>
+<p>但你的数据包需要出门，包头上的源地址是 <code>192.168.1.5</code>——服务器收到后怎么把回包发给你？它根本不知道 <code>192.168.1.5</code> 在哪。</p>
+<p>网关在数据包出门的瞬间，把源地址从 <code>192.168.1.5</code> 悄悄改成了自己的公网 IP（比如 <code>101.88.32.7</code>），同时记下&quot;这个改动是替哪台设备做的&quot;。回包到来时，再把目标地址改回 <code>192.168.1.5</code>，送还给你的手机。</p>
+<p>这个操作叫<strong>NAT（Network Address Translation，网络地址转换）</strong>。</p>
+<blockquote>
+<p>想一想：路由器要&quot;记下替哪台设备做的&quot;——它记的是什么？只记 IP 地址够用吗？</p>
+</blockquote>
+<p>只记 IP 不够——四元组才能唯一标识一条连接。路由器记的是完整的映射：<code>(内网IP:内网端口) &lt;-&gt; 公网端口</code>。回包来了，看目标端口，查表，找到对应的内网设备，改地址，转发。</p>
+<hr>
+<h3>内网里的数据包，走网关吗？</h3>
+<p>有一个很自然的问题：你的手机给同一个 Wi-Fi 下的笔记本发文件，也要经过网关吗？</p>
+<p>不用。这正是网关只管&quot;出门流量&quot;的关键。</p>
+<p>你的设备在发出数据包之前，先做一个判断：目标地址是不是在我的本地网络里？判断的工具就是<strong>子网掩码（Subnet Mask）</strong>。</p>
+<p>用最直觉的方式理解：子网掩码划定了&quot;我家的范围&quot;。IP 地址 <code>192.168.1.5</code>，子网掩码 <code>255.255.255.0</code>，意味着 <code>192.168.1.0</code> 到 <code>192.168.1.255</code> 都是&quot;自己人&quot;——直接在本地网络内投递，不走网关。</p>
+<p>目标不在这个范围？走网关，出门。</p>
+<blockquote>
+<p>想一想：如果子网掩码配错了，把范围设得特别小，会发生什么？比如错误地认为连路由器都不是&quot;自己人&quot;——数据包还能出去吗？</p>
+</blockquote>
+<p>有趣的问题。如果设备认为网关 IP 也不在本地网络，它会尝试把发给网关的包再次转发……给网关。但网关 IP 本来应该是直接可达的，这种错误配置会导致连路由器都连不上，彻底断网。子网掩码配错是真实存在的经典故障场景。</p>
+<hr>
+<h2>第三幕：完整组装</h2>
+<h3>全景图</h3>
+<pre><code>你的设备 (192.168.1.5)
+    |
+    | 目标是本地地址?
+    |     是 --&gt; 直接在局域网内投递 (不走网关)
+    |     否 --&gt; 发给默认网关
+    |
+    v
+默认网关 / 家用路由器 (内网: 192.168.1.1 / 公网: 101.88.32.7)
+    |
+    | NAT: 源地址 192.168.1.5:54321 --&gt; 101.88.32.7:xxxxx
+    | 记录映射表
+    |
+    v
+运营商路由器 --&gt; 骨干网路由器 --&gt; ... --&gt; 目标服务器 (119.3.70.188)
+                  (逐跳路由, 每跳查路由表)
+
+回包路径:
+目标服务器 --&gt; ... --&gt; 家用路由器
+    |
+    | NAT 反查映射表
+    | 目标地址 101.88.32.7:xxxxx --&gt; 192.168.1.5:54321
+    |
+    v
+你的设备 (192.168.1.5)
+</code></pre>
+<h3>端到端示例：手机请求 B 站</h3>
+<p><strong>场景设定</strong></p>
+<pre><code>手机 IP:       192.168.1.5
+子网掩码:       255.255.255.0  (本地范围: 192.168.1.0 - 192.168.1.255)
+默认网关:       192.168.1.1
+路由器公网IP:   101.88.32.7
+B站服务器:      119.3.70.188:443
+</code></pre>
+<p><strong>第一步：判断目标是否在本地</strong></p>
+<p>手机检查：<code>119.3.70.188</code> 在 <code>192.168.1.x</code> 范围内吗？不在。走网关。</p>
+<p><strong>第二步：数据包发给网关</strong></p>
+<p>手机构造数据包，目标 MAC 地址填路由器，送出去：</p>
+<pre><code>源IP:  192.168.1.5 : 54321
+目标IP: 119.3.70.188 : 443
+</code></pre>
+<p><strong>第三步：网关做 NAT，记录映射</strong></p>
+<p>路由器把包改写，并记录：</p>
+<pre><code>改写后:
+源IP:  101.88.32.7 : 60001   &lt;-- 公网端口由路由器分配
+目标IP: 119.3.70.188 : 443
+
+映射表新增一条:
+60001 &lt;-&gt; 192.168.1.5:54321
+</code></pre>
+<p><strong>第四步：逐跳路由到 B 站</strong></p>
+<p>包在互联网上跳若干次，到达 <code>119.3.70.188</code>。B 站服务器看到的源地址是 <code>101.88.32.7:60001</code>，回包原路打回。</p>
+<p><strong>第五步：网关反向 NAT，送回手机</strong></p>
+<p>路由器收到回包，目标是 <code>101.88.32.7:60001</code>，查映射表：找到 <code>192.168.1.5:54321</code>，改写目标地址，转发给手机。</p>
+<p><strong>第六步：手机收到数据</strong></p>
+<p>手机看到目标端口 <code>54321</code>，交给浏览器，B 站页面渲染出来。</p>
+<hr>
+<h2>第四幕：验证与压力测试</h2>
+<h3>反事实：如果没有默认网关会怎样？</h3>
+<p>设备只能和本地网络内的设备通信。发给任何&quot;外部地址&quot;的包，都会因为&quot;不知道送给谁&quot;而被丢弃。你的电脑变成了一座孤岛——能在局域网里传文件，但上不了互联网。</p>
+<p>这不是假设场景。配置服务器时如果忘填默认网关，机器能被同机房其他机器 ping 通，但访问不了外网，这是常见的运维失误。</p>
+<h3>边界：网关在哪些情况下不够用、或会成为瓶颈？</h3>
+<p><strong>NAT 的单向性问题</strong>：NAT 只对&quot;由内向外发起&quot;的连接有效。外部设备主动连进来找你，路由器不知道该把包送给哪台内网设备——这就是为什么家里的电脑默认不能被外网直接访问。要绕过这个限制，需要端口转发（Port Forwarding）或者 NAT 穿透。</p>
+<p><strong>单点故障</strong>：一个局域网只有一个默认网关，网关挂掉，整个局域网断网。企业网络会配置双网关做冗余，家用网络通常没有。</p>
+<p><strong>多出口的困境</strong>：如果一个网络有两条出口线路（比如联通+电信），默认网关只能指向一个。去联通的流量走联通，去电信的流量也被迫走联通，绕了一大圈。解决这个问题需要<strong>策略路由（Policy Routing）</strong>，按目标地址或流量类型选择不同出口。</p>
+<h3>连接：网关跟哪些概念相关？</h3>
+<ul>
+<li><strong>端口</strong>：NAT 映射表里记的就是完整四元组，端口是 NAT 工作的基础。没有端口，NAT 无法区分同一台内网设备发出的不同连接</li>
+<li><strong>DNS</strong>：你访问 B 站，输入的是 <code>bilibili.com</code>，不是 IP。DNS 把域名解析成 IP——这个 DNS 查询本身也要经过网关出去。没有网关，DNS 也用不了</li>
+<li><strong>防火墙</strong>：企业网关通常同时兼任防火墙，在 NAT 的基础上加上规则过滤。&quot;网关&quot;在企业场景下是一个功能集合，不只是转发</li>
+<li><strong>VPN</strong>：VPN 的本质是在你和 VPN 服务器之间建一条加密隧道，然后把默认网关改成 VPN 的隧道出口——所有流量先走隧道，再从 VPN 服务器出去。理解网关，就理解了 VPN 改变流量路径的核心机制</li>
+</ul>
+<h3>终极挑战·空白重建</h3>
+<p>如果忘掉一切，只记得第一幕的问题，能重新发明网关吗？</p>
+<pre><code>[问题]
+  数据包要去本地网络以外的地址
+  设备不认识目标, 不知道该把包送给谁
+
+[缺口1]
+  需要一个&quot;兜底规则&quot;: 不认识就送去哪里
+
+[工具1: 默认网关]
+  指定一个出口设备
+  所有&quot;外部流量&quot;一律先送给它
+
+[缺口2]
+  设备怎么判断目标是&quot;内部&quot;还是&quot;外部&quot;?
+
+[工具2: 子网掩码]
+  划定本地网络范围
+  在范围内 -&gt; 直接投递
+  不在范围 -&gt; 走网关
+
+[缺口3]
+  内网私有地址在互联网上无效
+  服务器无法把回包送回来
+
+[工具3: NAT]
+  网关出门时替换源地址为公网IP
+  记录映射表
+  回包时反向翻译, 送回内网设备
+
+[完整方案]
+  子网掩码判断内外
+  -&gt; 外部流量走默认网关
+  -&gt; 网关 NAT 改写地址出门
+  -&gt; 逐跳路由到目标
+  -&gt; 回包经 NAT 反查送回
+</code></pre>
+<p>只凭这张地图，你能独自走完全程。网关就是这么一件事：<strong>本地网络的出口守卫，替不认识路的数据包开门，顺手把地址换成外界认识的样子。</strong></p>
+<h2>关联笔记</h2>
+<blockquote>
+<p><strong>相关原子概念</strong><br><a href="/knowledge/port.html">端口</a> · NAT 映射表依赖端口四元组工作，端口是网关做地址转换的基础粒度</p>
+</blockquote>
+<p><a href="/knowledge/port.html">端口</a></p>
+
+      </div>
+    </article>
+
+    <section class="related-notes">
+  <h3>Related Notes</h3>
+  <div class="related-notes-grid">
+    <a href="port.html" class="related-note-card">
+      <div class="related-title">端口</div>
+      <div class="related-category">Network</div>
+    </a>
+  </div>
+</section>
+
+
+    <div style="max-width:800px;margin:0 auto;padding-bottom:60px;">
+      <a href="/knowledge/" class="back-link">Back to Knowledge Graph</a>
+    </div>
+  </main>
+
+  <!-- Footer -->
+  <footer>
+    <p>Designed &amp; Built by <a href="https://github.com/ChenSchenG">ChenSchenG</a></p>
+  </footer>
+
+  <script src="../js/main.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+  <script>hljs.highlightAll();</script>
+</body>
+</html>

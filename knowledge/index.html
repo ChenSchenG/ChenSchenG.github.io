@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Knowledge Graph — ChenSchenG</title>
+  <meta name="description" content="Interactive knowledge graph mapping security, networking, frontend, and AI concepts.">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⚡</text></svg>">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../css/style.css">
+</head>
+<body>
+  <!-- Navigation -->
+  <nav id="nav">
+    <div class="nav-logo">
+      <a href="/">CSG</a>
+    </div>
+    <div class="nav-links-wrapper">
+      <ol class="nav-links">
+        <li><a href="/#about"><span class="nav-number">01.</span>About</a></li>
+        <li><a href="/#projects"><span class="nav-number">02.</span>Projects</a></li>
+        <li><a href="/knowledge/" class="active"><span class="nav-number">03.</span>Knowledge</a></li>
+        <li><a href="/#contact"><span class="nav-number">04.</span>Contact</a></li>
+      </ol>
+      <div class="nav-resume">
+        <a href="/about.html">More About Me</a>
+      </div>
+    </div>
+    <button class="hamburger" id="hamburger" aria-label="Menu">
+      <span class="hamburger-inner"></span>
+    </button>
+  </nav>
+
+  <!-- Mobile Menu -->
+  <div class="mobile-menu-overlay" id="mobile-overlay"></div>
+  <aside class="mobile-menu" id="mobile-menu">
+    <ol>
+      <li><a href="/#about">About</a></li>
+      <li><a href="/#projects">Projects</a></li>
+      <li><a href="/knowledge/">Knowledge</a></li>
+      <li><a href="/#contact">Contact</a></li>
+    </ol>
+    <div class="mobile-resume">
+      <a href="/about.html">More About Me</a>
+    </div>
+  </aside>
+
+  <main class="article-page">
+    <!-- Hero -->
+    <div class="knowledge-hero fade-in">
+      <h1>Knowledge Graph</h1>
+      <p>An interconnected map of concepts spanning security, networking, frontend development, and AI. Click nodes to explore.</p>
+    </div>
+
+    <!-- Graph Legend -->
+    <div class="graph-legend fade-in">
+      <div class="graph-legend-item">
+        <span class="legend-dot" style="background-color: #ff6b6b;"></span>
+        <span>Security</span>
+      </div>
+      <div class="graph-legend-item">
+        <span class="legend-dot" style="background-color: #4ecdc4;"></span>
+        <span>Network</span>
+      </div>
+      <div class="graph-legend-item">
+        <span class="legend-dot" style="background-color: #45b7d1;"></span>
+        <span>Frontend</span>
+      </div>
+      <div class="graph-legend-item">
+        <span class="legend-dot" style="background-color: #a55eea;"></span>
+        <span>AI</span>
+      </div>
+      <div class="graph-legend-item">
+        <span class="legend-dot" style="background-color: #778ca3;"></span>
+        <span>Other</span>
+      </div>
+    </div>
+
+    <!-- Force Graph -->
+    <div class="graph-container fade-in" id="graph-container">
+      <svg id="graph-svg"></svg>
+      <div class="graph-tooltip" id="graph-tooltip"></div>
+      <!-- Detail Panel -->
+      <div class="detail-panel" id="detail-panel">
+        <button class="detail-panel-close" id="detail-close">&times;</button>
+        <h3 id="detail-title"></h3>
+        <div class="detail-category" id="detail-category"></div>
+        <p class="detail-excerpt" id="detail-excerpt"></p>
+        <div class="detail-tags" id="detail-tags"></div>
+        <a href="#" class="detail-link" id="detail-link">Read Full Article →</a>
+      </div>
+    </div>
+
+    <!-- Category Directory -->
+    <section class="category-directory fade-in">
+      <h2>Browse by Category</h2>
+
+      <div class="category-grid" id="category-grid">
+        <!-- Category cards are populated by JS from graph-data.json -->
+      </div>
+
+      <!-- Article lists for each category (populated by JS) -->
+      <div id="category-articles-container"></div>
+    </section>
+  </main>
+
+  <!-- Footer -->
+  <footer>
+    <p>Designed &amp; Built by <a href="https://github.com/ChenSchenG">ChenSchenG</a></p>
+  </footer>
+
+  <script src="https://d3js.org/d3.v7.min.js"></script>
+  <script src="../js/main.js"></script>
+  <script src="../js/graph.js"></script>
+</body>
+</html>

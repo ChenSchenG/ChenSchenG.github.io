@@ -1,0 +1,349 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Node.js — ChenSchenG</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⚡</text></svg>">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../css/style.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css">
+</head>
+<body>
+  <!-- Navigation -->
+  <nav id="nav">
+    <div class="nav-logo">
+      <a href="/">CSG</a>
+    </div>
+    <div class="nav-links-wrapper">
+      <ol class="nav-links">
+        <li><a href="/#about"><span class="nav-number">01.</span>About</a></li>
+        <li><a href="/#projects"><span class="nav-number">02.</span>Projects</a></li>
+        <li><a href="/knowledge/"><span class="nav-number">03.</span>Knowledge</a></li>
+        <li><a href="/#contact"><span class="nav-number">04.</span>Contact</a></li>
+      </ol>
+      <div class="nav-resume">
+        <a href="/about.html">More About Me</a>
+      </div>
+    </div>
+    <button class="hamburger" id="hamburger" aria-label="Menu">
+      <span class="hamburger-inner"></span>
+    </button>
+  </nav>
+
+  <!-- Mobile Menu -->
+  <div class="mobile-menu-overlay" id="mobile-overlay"></div>
+  <aside class="mobile-menu" id="mobile-menu">
+    <ol>
+      <li><a href="/#about">About</a></li>
+      <li><a href="/#projects">Projects</a></li>
+      <li><a href="/knowledge/">Knowledge</a></li>
+      <li><a href="/#contact">Contact</a></li>
+    </ol>
+    <div class="mobile-resume">
+      <a href="/about.html">More About Me</a>
+    </div>
+  </aside>
+
+  <main class="article-page">
+    <article>
+      <header class="article-header">
+        <div class="article-breadcrumb">
+          <a href="/">Home</a>
+          <span class="separator">/</span>
+          <a href="/knowledge/">Knowledge</a>
+          <span class="separator">/</span>
+          <span>Other</span>
+        </div>
+        <h1>Node.js</h1>
+        <div class="article-meta">
+          <span>2026-03-20</span>
+          <span>Other</span>
+        </div>
+        <div class="article-tags">
+  <span class="tag">软件工程</span>
+  <span class="tag">概念</span>
+  <span class="tag">Node.js</span>
+  <span class="tag">事件循环</span>
+  <span class="tag">非阻塞IO</span>
+  <span class="tag">异步编程</span>
+  <span class="tag">Promise</span>
+  <span class="tag">async/await</span>
+</div>
+
+      </header>
+
+      <div class="article-body">
+        <h1>Node.js</h1>
+<blockquote>
+<p><strong>一句话本质</strong><br>Node.js 用单线程事件循环 + 非阻塞 I/O 实现高并发：把等待任务交给操作系统，自己继续转，用 Promise/async/await 优雅表达异步流程。</p>
+</blockquote>
+<h2>第一幕：问题感知</h2>
+<p>你写了一个网页，里面有个按钮，点击之后会发一条消息给服务器，服务器把消息存起来，然后告诉你&quot;存好了&quot;。</p>
+<p>很简单的事情。你开始写服务器端的代码。</p>
+<p>服务器跑起来了。第一个用户连进来，发了一条消息，服务器处理，回复，没问题。</p>
+<p>第二个用户同时连进来了。</p>
+<p>你的服务器在处理第一个用户的时候，需要去数据库里写一条记录。写数据库这个动作，要花几十毫秒。在这几十毫秒里，服务器在<strong>等</strong>——等数据库写完。</p>
+<p>第二个用户的请求，就在门口站着，进不来。</p>
+<p>你说：那我多开几个&quot;工人&quot;，每个用户来了，就派一个工人专门服务他。</p>
+<p>可以。但每个工人都要占内存，都要消耗系统资源。如果同时来了一万个用户，就要养一万个工人——光是这些工人站在那里喘气，内存就撑不住了。</p>
+<p>而且，大多数时候，这一万个工人其实都在<strong>等</strong>——等数据库、等文件读写、等网络响应。真正在干活的时刻少之又少。一万个工人，九千九百个在发呆。</p>
+<p><strong>一个工人，怎么同时服务一万个请求？</strong></p>
+<hr>
+<h2>第二幕：引导式构建</h2>
+<p>想象一个咖啡店的收银员。</p>
+<p>顾客 A 点了一杯需要等五分钟的手冲咖啡。收银员不会站在那里等五分钟——他接过订单，把它交给咖啡师，然后立刻转头去处理顾客 B。等咖啡师喊&quot;好了！&quot;，他再回来把咖啡端给顾客 A。</p>
+<p>这个收银员从来没有傻等。他一直在动，但他只有一个人。</p>
+<p>这就是 Node.js 的核心思路。</p>
+<p>Node.js 里有一个东西叫 <strong>事件循环</strong>（Event Loop）——它是 Node.js 唯一的&quot;工人&quot;，但它从不傻等。它的工作方式是：把所有&quot;需要等待的事&quot;（读文件、查数据库、发网络请求）交给操作系统去做，自己继续处理下一件事。</p>
+<blockquote>
+<p>想一想：操作系统做完了，怎么通知事件循环&quot;我好了，轮到你了&quot;？</p>
+</blockquote>
+<p>这个通知的载体，叫做 <strong>回调函数</strong>（Callback）——你在交出任务的时候，同时附上一张&quot;便条&quot;：等你做完，执行这段代码。操作系统做完之后，把这张便条放进待处理队列，事件循环空闲了就去取。</p>
+<pre><code>你的代码                事件循环               操作系统
+    |                      |                      |
+    | 读文件，附上便条 A     |                      |
+    |---------------------&gt;|                      |
+    |                      | 把读文件交给 OS        |
+    |                      |---------------------&gt;|
+    |                      |                      | 正在读...
+    | 处理请求 B             |                      |
+    |---------------------&gt;|                      |
+    |                      | 处理请求 B            |
+    |                      |                      | 读完了！
+    |                      |&lt;---------------------|
+    |                      | 取出便条 A，执行       |
+</code></pre>
+<p>这个模型有个专门的名字：<strong>非阻塞 I/O</strong>（Non-blocking I/O）——&quot;阻塞&quot;就是傻等，&quot;非阻塞&quot;就是把任务交出去，继续干别的，等通知。</p>
+<blockquote>
+<p>想一想：如果某个任务不是&quot;等待 I/O&quot;，而是需要大量计算的代码（比如对一百万个数字排序），会发生什么？</p>
+</blockquote>
+<p>这是事件循环的软肋。计算密集的任务没法&quot;交出去等&quot;——事件循环必须自己一行一行算，在这段时间里它被<strong>卡住</strong>了，所有其他请求只能排队。</p>
+<p>这就是 Node.js 最重要的设计边界：它非常擅长 <strong>I/O 密集型</strong>的任务（读写文件、网络请求、数据库），但对 <strong>CPU 密集型</strong>的任务（图像处理、复杂计算）不擅长。</p>
+<blockquote>
+<p>想一想：非阻塞 I/O 解决了&quot;等待&quot;的问题，但如果多个异步操作之间有先后依赖——比如先查用户，再用查到的 ID 去查订单——你会怎么写这段代码？</p>
+</blockquote>
+<p>最直接的写法，是在回调里再发起下一个请求，拿到结果再嵌套下一个：</p>
+<pre><code class="language-javascript">查用户(function(用户) {
+    查订单(用户.id, function(订单) {
+        查商品(订单.商品id, function(商品) {
+            // 终于到了
+        });
+    });
+});
+</code></pre>
+<p>代码越来越往右缩进，像一个直角三角形——这个形状，JavaScript 社区叫它 <strong>回调地狱</strong>（Callback Hell）。读起来痛苦，出了问题更难调试。</p>
+<blockquote>
+<p>想一想：嵌套的根本问题在哪儿？&quot;先做 A，再做 B，再做 C&quot;这个先后顺序，一定要用嵌套来表达吗？</p>
+</blockquote>
+<p>不一定。嵌套只是一种表达方式——把&quot;先后顺序&quot;和&quot;嵌套层级&quot;绑定在一起，是回调写法的局限，不是异步本身的限制。</p>
+<p>如果有一种方式，能把&quot;先后顺序&quot;表达成<strong>一条直线</strong>而不是嵌套，问题就解决了。</p>
+<p><strong>Promise</strong> 就是这个方案。</p>
+<p>Promise 是对&quot;将来会有结果&quot;这件事的一个<strong>包装对象</strong>——你不用马上得到结果，你先拿到一个&quot;承诺&quot;，然后用 <code>.then()</code> 告诉它&quot;等你有结果了，做这件事&quot;，<code>.then()</code> 本身也返回一个新的 Promise，于是可以继续串：</p>
+<pre><code class="language-javascript">查用户()
+    .then(用户 =&gt; 查订单(用户.id))
+    .then(订单 =&gt; 查商品(订单.商品id))
+    .then(商品 =&gt; {
+        // 同样的逻辑，直上直下
+    });
+</code></pre>
+<p>嵌套消失了，变成了一条链。逻辑顺序和代码顺序对齐了。</p>
+<blockquote>
+<p>想一想：这条链上如果某一步出错了，需要每一步都写错误处理吗？</p>
+</blockquote>
+<p>不用。在链的末尾加 <code>.catch()</code>——链上任何一步抛出的错误，都会跳过后续 <code>.then()</code>，直接落到 <code>.catch()</code>。一个兜底，管整条链。</p>
+<p>Promise 已经好很多了。但很多人觉得 <code>.then().then().then()</code> 读起来仍然不像正常人说话的方式。于是出现了 <strong>async/await</strong>。</p>
+<p>&quot;语法糖&quot;（Syntactic Sugar）是编程里的一个说法——用更甜、更好读的语法包裹了底层机制，让代码看起来更自然，但背后什么都没变。async/await 就是 Promise 的语法糖：背后还是 Promise，但写起来像同步代码：</p>
+<pre><code class="language-javascript">async function 处理请求() {
+    const 用户 = await 查用户();
+    const 订单 = await 查订单(用户.id);
+    const 商品 = await 查商品(订单.商品id);
+    // 直上直下，和同步代码一样读
+}
+</code></pre>
+<p><code>await</code> 的意思是：等这个 Promise 完成，把结果拿出来给我。<code>async</code> 标记这个函数里会用 <code>await</code>。</p>
+<blockquote>
+<p>想一想：<code>await</code> 会让事件循环停下来等吗？</p>
+</blockquote>
+<p>这是 async/await 最关键的一点：<strong>不会</strong>。</p>
+<p>当执行到 <code>await</code> 时，Node.js 把这个函数当前的执行位置&quot;存档&quot;（就像游戏存档一样），然后把控制权还给事件循环——让它继续处理其他请求。等 Promise 完成，Node.js 取出&quot;存档&quot;，从 <code>await</code> 的下一行继续执行。</p>
+<p>整个过程中，事件循环从未停止转动。<code>await</code> 只是让<strong>这个函数</strong>暂停，而不是让整个程序暂停。这是它看起来像同步、实际上是异步的秘密。</p>
+<hr>
+<h2>第三幕：完整组装</h2>
+<pre><code>+--------------------------------------------------------+
+|                     你写的代码                           |
+|  async/await  --&gt;  Promise  --&gt;  Callback              |
+|  (语法糖，最易读)    (包装对象)    (原始通知机制)           |
++--------------------------------------------------------+
+                          |
+                    交出 I/O 任务
+                          |
+                          v
++--------------------------------------------------------+
+|                    事件循环 (Event Loop)                 |
+|  &quot;我不等，我继续转。有结果了通知我。&quot;                        |
++--------------------------------------------------------+
+          |                              ^
+          | 交出任务                       | 完成通知（回调入队）
+          v                              |
++--------------------------------------------------------+
+|              操作系统 / 底层 I/O (libuv)                 |
+|   文件读写 / 网络请求 / 数据库 / DNS ...                   |
++--------------------------------------------------------+
+</code></pre>
+<p><strong>端到端示例：一个最小的 HTTP 服务器</strong></p>
+<pre><code class="language-javascript">// server.js
+const http = require(&#39;http&#39;);
+const fs = require(&#39;fs/promises&#39;);  // Promise 版本的文件操作
+
+const server = http.createServer(async (req, res) =&gt; {
+
+    // await 暂停这个函数，把控制权还给事件循环
+    // 事件循环继续处理其他请求
+    const content = await fs.readFile(&#39;./data.txt&#39;, &#39;utf-8&#39;);
+
+    // 文件读完了，从这里继续
+    res.writeHead(200, { &#39;Content-Type&#39;: &#39;text/plain&#39; });
+    res.end(content);
+});
+
+server.listen(3000, () =&gt; {
+    console.log(&#39;服务器跑起来了&#39;);
+});
+</code></pre>
+<p><strong>同时来了 3 个请求时，发生了什么：</strong></p>
+<pre><code>时间轴:
+t=0ms    请求A进来  -&gt; await 读文件A -&gt; 事件循环继续
+t=1ms    请求B进来  -&gt; await 读文件B -&gt; 事件循环继续
+t=2ms    请求C进来  -&gt; await 读文件C -&gt; 事件循环继续
+t=20ms   文件A读完  -&gt; 事件循环回来  -&gt; 回复请求A
+t=21ms   文件B读完  -&gt; 事件循环回来  -&gt; 回复请求B
+t=22ms   文件C读完  -&gt; 事件循环回来  -&gt; 回复请求C
+</code></pre>
+<p>一个事件循环，交错处理三个请求。没有任何一个请求需要等另一个处理完。</p>
+<p><strong>各组件对应位置：</strong></p>
+<table>
+<thead>
+<tr>
+<th>概念</th>
+<th>在示例中的位置</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>事件循环</td>
+<td>Node.js 运行时内部，隐式运转</td>
+</tr>
+<tr>
+<td>非阻塞 I/O</td>
+<td><code>fs.readFile</code> 交给操作系统，不卡住</td>
+</tr>
+<tr>
+<td>async/await</td>
+<td><code>async (req, res)</code> + <code>await fs.readFile</code></td>
+</tr>
+<tr>
+<td>Promise</td>
+<td><code>fs/promises</code> 返回的就是 Promise</td>
+</tr>
+<tr>
+<td>回调</td>
+<td><code>server.listen(3000, () =&gt; {...})</code> 里的箭头函数</td>
+</tr>
+</tbody></table>
+<hr>
+<h2>第四幕：验证与压力测试</h2>
+<h3>反事实：如果 Node.js 用传统的多工人模型</h3>
+<ul>
+<li>1 万个并发连接 = 1 万个工人</li>
+<li>每个工人约占 1-8MB 内存，1 万个工人 = 10GB+ 内存</li>
+<li>大量工人在 I/O 等待期间什么都不做，白占资源</li>
+<li>Node.js 的单线程事件循环在 I/O 密集场景下，用几十 MB 内存处理同样的并发量</li>
+</ul>
+<h3>反事实：如果没有 Promise，只有回调</h3>
+<ul>
+<li>嵌套地狱：5 个有依赖关系的异步操作 = 5 层缩进</li>
+<li>错误处理：每一层都要单独 <code>if (error) ...</code>，漏掉任何一层都是 bug</li>
+<li>代码流程难以追踪：逻辑被分散在多层回调里</li>
+</ul>
+<h3>边界：Node.js 在哪些情况下不适合</h3>
+<p><strong>CPU 密集型任务会卡死事件循环。</strong> 视频转码、大规模数据计算——这类任务一旦开始，事件循环被占用，所有其他请求全部阻塞。</p>
+<p>解决方案是 <strong>Worker Threads</strong>（工作线程）——Node.js 允许创建真正的额外线程处理计算密集型任务，把它们从事件循环里移出去。</p>
+<p><strong>单点故障风险。</strong> 单线程意味着如果代码有未捕获的异常，整个进程可能崩溃。生产环境通常用 PM2 这类进程管理工具来监控和自动重启。</p>
+<h3>连接：Node.js 与已学知识的关系</h3>
+<p><strong>Node.js 和 npm/pnpm 的关系</strong>：<a href="/knowledge/npm.html">npm</a> 是 Node.js 的包管理器，随 Node.js 一起安装。<code>package.json</code>、<code>node_modules</code>、<code>npm install</code>——这些都是 Node.js 生态的基础设施。没有 Node.js，npm 没有意义。<a href="/knowledge/pnpm.html">pnpm</a> 也运行在 Node.js 之上。</p>
+<p><strong>Node.js 和 SDK 的关系</strong>：几乎所有云厂商的 <a href="/knowledge/sdk.html">SDK</a>（腾讯云、AWS……）都提供 Node.js 版本。SDK 里的 Client / Signer / Retry——在 Node.js 版本里全部用事件循环 + async/await 实现异步调用。</p>
+<h3>终极挑战：路线图重建</h3>
+<pre><code>[问题：一个工人，怎么同时服务一万个请求？]
+    |
+    v
+[观察：大多数时间在等 I/O，不是在算]
+    |
+    v
+[工具1：事件循环 + 非阻塞 I/O]
+    把等待任务交给操作系统，用回调函数接收通知，自己继续转
+    |
+    v
+[新问题：有依赖关系的异步操作，回调嵌套成地狱]
+    |
+    v
+[工具2：Promise]
+    把&quot;将来的结果&quot;包装成对象，.then() 串成直线，.catch() 统一兜底
+    |
+    v
+[新问题：.then 链读起来不像人话]
+    |
+    v
+[工具3：async/await]
+    Promise 的语法糖，await 只暂停当前函数，事件循环继续转
+    |
+    v
+[完整方案：事件循环 + 非阻塞 I/O + Promise + async/await = Node.js 异步模型]
+    |
+    v
+[适用边界：I/O 密集型场景极佳；CPU 密集型需 Worker Threads 分流]
+</code></pre>
+<h2>关联笔记</h2>
+<blockquote>
+<p><strong>相关原子概念</strong><br><a href="/knowledge/npm.html">npm</a> · <a href="/knowledge/pnpm.html">pnpm</a> · <a href="/knowledge/sdk.html">SDK</a></p>
+</blockquote>
+<p>Node.js 是 <a href="/knowledge/npm.html">npm</a> 和 <a href="/knowledge/pnpm.html">pnpm</a> 的运行环境，也是各类 <a href="/knowledge/sdk.html">SDK</a> 的 JavaScript 宿主平台。Node.js 的异步模型（事件循环 + Promise）是 JavaScript 生态所有工具的底层基础。</p>
+
+      </div>
+    </article>
+
+    <section class="related-notes">
+  <h3>Related Notes</h3>
+  <div class="related-notes-grid">
+    <a href="npm.html" class="related-note-card">
+      <div class="related-title">npm</div>
+      <div class="related-category">Other</div>
+    </a>
+    <a href="pnpm.html" class="related-note-card">
+      <div class="related-title">pnpm</div>
+      <div class="related-category">Other</div>
+    </a>
+    <a href="sdk.html" class="related-note-card">
+      <div class="related-title">SDK</div>
+      <div class="related-category">Other</div>
+    </a>
+  </div>
+</section>
+
+
+    <div style="max-width:800px;margin:0 auto;padding-bottom:60px;">
+      <a href="/knowledge/" class="back-link">Back to Knowledge Graph</a>
+    </div>
+  </main>
+
+  <!-- Footer -->
+  <footer>
+    <p>Designed &amp; Built by <a href="https://github.com/ChenSchenG">ChenSchenG</a></p>
+  </footer>
+
+  <script src="../js/main.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+  <script>hljs.highlightAll();</script>
+</body>
+</html>

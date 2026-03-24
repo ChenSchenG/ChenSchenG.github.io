@@ -1,0 +1,332 @@
+{
+  "nodes": [
+    {
+      "id": "nodejs",
+      "title": "Node.js",
+      "category": "Other",
+      "slug": "nodejs",
+      "date": "2026-03-20",
+      "excerpt": "Node.js 用单线程事件循环 + 非阻塞 I/O 实现高并发：把等待任务交给操作系统，自己继续转，用 Promise/async/await 优雅表达异步流程。",
+      "tags": [
+        "软件工程",
+        "概念",
+        "Node.js",
+        "事件循环",
+        "非阻塞IO",
+        "异步编程"
+      ],
+      "connections": 3
+    },
+    {
+      "id": "sdk",
+      "title": "SDK",
+      "category": "Other",
+      "slug": "sdk",
+      "date": "2026-03-17",
+      "excerpt": "SDK 是对平台 HTTP 通信细节的抽象层：封装签名、重试、序列化、错误处理，让调用者一行代码完成原来几百行的工作。",
+      "tags": [
+        "软件工程",
+        "概念",
+        "SDK",
+        "Client",
+        "签名",
+        "重试"
+      ],
+      "connections": 6
+    },
+    {
+      "id": "npm",
+      "title": "npm",
+      "category": "Other",
+      "slug": "npm",
+      "date": "2026-03-19",
+      "excerpt": "npm 是 JavaScript 的包管理器：用 package.json 声明依赖意图，从公共 registry 自动下载到 node_modules，用 package-lock.json 锁定精确版本。",
+      "tags": [
+        "软件工程",
+        "概念",
+        "npm",
+        "包管理",
+        "Node.js",
+        "registry"
+      ],
+      "connections": 3
+    },
+    {
+      "id": "pnpm",
+      "title": "pnpm",
+      "category": "Other",
+      "slug": "pnpm",
+      "date": "2026-03-19",
+      "excerpt": "pnpm 用全局 store + 硬链接解决 npm 的重复存储问题，用严格目录结构消灭幽灵依赖——相同内容只存一份，只暴露你声明的包。",
+      "tags": [
+        "软件工程",
+        "概念",
+        "pnpm",
+        "包管理",
+        "Node.js",
+        "硬链接"
+      ],
+      "connections": 3
+    },
+    {
+      "id": "react-hook",
+      "title": "React Hook",
+      "category": "Frontend",
+      "slug": "react-hook",
+      "date": "2026-03-17",
+      "excerpt": "把函数组件需要\"记住\"和\"感知\"的能力，从函数体外面托管给 React，通过约定好的接口借用",
+      "tags": [
+        "前端开发",
+        "概念",
+        "React",
+        "Hook",
+        "useState",
+        "useEffect"
+      ],
+      "connections": 0
+    },
+    {
+      "id": "aksk",
+      "title": "AKSK",
+      "category": "Security",
+      "slug": "aksk",
+      "date": "2026-03-17",
+      "excerpt": "用一个永远不传输的共享秘密，对每次请求的内容做指纹，让服务器能验真伪、让攻击者无法伪造",
+      "tags": [
+        "密码学与安全",
+        "协议",
+        "AKSK",
+        "AccessKey",
+        "SecretKey",
+        "HMAC"
+      ],
+      "connections": 6
+    },
+    {
+      "id": "oauth-2-0",
+      "title": "OAuth 2.0",
+      "category": "Security",
+      "slug": "oauth-2-0",
+      "date": "2026-03-17",
+      "excerpt": "让用户在不暴露密码的情况下，把特定资源的访问权精确地委托给第三方——委托范围可见，时效可控，随时可撤",
+      "tags": [
+        "密码学与安全",
+        "协议",
+        "OAuth2.0",
+        "授权码",
+        "AccessToken",
+        "RefreshToken"
+      ],
+      "connections": 4
+    },
+    {
+      "id": "oidc",
+      "title": "OIDC（OpenID Connect）",
+      "category": "Security",
+      "slug": "oidc",
+      "date": "2026-03-17",
+      "excerpt": "OIDC 是 OAuth 2.0 的超集：在委托授权之上加一层标准化身份层，用 JWT 格式的 ID Token 让任意客户端无需额外请求即可知道\"你是谁\"。",
+      "tags": [
+        "密码学与安全",
+        "协议",
+        "OIDC",
+        "OpenID Connect",
+        "OAuth 2.0",
+        "JWT"
+      ],
+      "connections": 6
+    },
+    {
+      "id": "sts",
+      "title": "STS",
+      "category": "Security",
+      "slug": "sts",
+      "date": "2026-03-17",
+      "excerpt": "把\"你能做什么\"和\"你能做多久\"封进一张有签名保证的临时通行证，让权限随任务诞生、随任务消亡",
+      "tags": [
+        "密码学与安全",
+        "协议",
+        "STS",
+        "临时凭证",
+        "SessionToken",
+        "AssumeRole"
+      ],
+      "connections": 5
+    },
+    {
+      "id": "jwt",
+      "title": "JWT",
+      "category": "Security",
+      "slug": "jwt",
+      "date": "2026-03-17",
+      "excerpt": "把身份信息连同防伪签名一起交给客户端保管，让服务器凭本地验算而非数据库查询来信任每一次请求",
+      "tags": [
+        "密码学与安全",
+        "概念",
+        "JWT",
+        "Header",
+        "Payload",
+        "Signature"
+      ],
+      "connections": 3
+    },
+    {
+      "id": "ssrf",
+      "title": "SSRF",
+      "category": "Security",
+      "slug": "ssrf",
+      "date": "2026-03-23",
+      "excerpt": "SSRF 让攻击者借服务器的网络权限访问内网：通过诱导服务器发出受控请求，绕过防火墙探测内网、窃取云元数据凭证。",
+      "tags": [
+        "密码学与安全",
+        "概念",
+        "SSRF",
+        "服务端请求伪造",
+        "内网探测",
+        "元数据接口"
+      ],
+      "connections": 3
+    },
+    {
+      "id": "transformer",
+      "title": "Transformer",
+      "category": "AI",
+      "slug": "transformer",
+      "date": "2026-03-16",
+      "excerpt": "用可学习的\"相互询问\"替代逐步压缩，让每个词在处理之前就能看到整个上下文",
+      "tags": [
+        "机器学习与AI",
+        "算法",
+        "Transformer",
+        "自注意力",
+        "多头注意力",
+        "位置编码"
+      ],
+      "connections": 0
+    },
+    {
+      "id": "port",
+      "title": "端口",
+      "category": "Network",
+      "slug": "port",
+      "date": "2026-03-16",
+      "excerpt": "端口是操作系统在 IP 地址之下分配给程序的编号房间，让数据包精确送达对应程序",
+      "tags": [
+        "计算机网络",
+        "概念",
+        "端口",
+        "Port",
+        "四元组",
+        "TCP"
+      ],
+      "connections": 1
+    },
+    {
+      "id": "gateway",
+      "title": "网关",
+      "category": "Network",
+      "slug": "gateway",
+      "date": "2026-03-16",
+      "excerpt": "网关是本地网络的出口守卫，替不认识路的数据包开门，顺手把地址换成外界认识的样子",
+      "tags": [
+        "计算机网络",
+        "概念",
+        "网关",
+        "Gateway",
+        "NAT",
+        "子网掩码"
+      ],
+      "connections": 1
+    }
+  ],
+  "edges": [
+    {
+      "source": "nodejs",
+      "target": "npm"
+    },
+    {
+      "source": "nodejs",
+      "target": "pnpm"
+    },
+    {
+      "source": "nodejs",
+      "target": "sdk"
+    },
+    {
+      "source": "sdk",
+      "target": "aksk"
+    },
+    {
+      "source": "sdk",
+      "target": "sts"
+    },
+    {
+      "source": "sdk",
+      "target": "oidc"
+    },
+    {
+      "source": "npm",
+      "target": "pnpm"
+    },
+    {
+      "source": "npm",
+      "target": "sdk"
+    },
+    {
+      "source": "pnpm",
+      "target": "sdk"
+    },
+    {
+      "source": "oauth-2-0",
+      "target": "aksk"
+    },
+    {
+      "source": "oauth-2-0",
+      "target": "sts"
+    },
+    {
+      "source": "oidc",
+      "target": "oauth-2-0"
+    },
+    {
+      "source": "oidc",
+      "target": "jwt"
+    },
+    {
+      "source": "oidc",
+      "target": "aksk"
+    },
+    {
+      "source": "oidc",
+      "target": "sts"
+    },
+    {
+      "source": "sts",
+      "target": "aksk"
+    },
+    {
+      "source": "jwt",
+      "target": "aksk"
+    },
+    {
+      "source": "jwt",
+      "target": "oauth-2-0"
+    },
+    {
+      "source": "ssrf",
+      "target": "sts"
+    },
+    {
+      "source": "ssrf",
+      "target": "aksk"
+    },
+    {
+      "source": "ssrf",
+      "target": "oidc"
+    },
+    {
+      "source": "port",
+      "target": "gateway"
+    }
+  ]
+}

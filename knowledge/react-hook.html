@@ -1,0 +1,387 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>React Hook — ChenSchenG</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⚡</text></svg>">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../css/style.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css">
+</head>
+<body>
+  <!-- Navigation -->
+  <nav id="nav">
+    <div class="nav-logo">
+      <a href="/">CSG</a>
+    </div>
+    <div class="nav-links-wrapper">
+      <ol class="nav-links">
+        <li><a href="/#about"><span class="nav-number">01.</span>About</a></li>
+        <li><a href="/#projects"><span class="nav-number">02.</span>Projects</a></li>
+        <li><a href="/knowledge/"><span class="nav-number">03.</span>Knowledge</a></li>
+        <li><a href="/#contact"><span class="nav-number">04.</span>Contact</a></li>
+      </ol>
+      <div class="nav-resume">
+        <a href="/about.html">More About Me</a>
+      </div>
+    </div>
+    <button class="hamburger" id="hamburger" aria-label="Menu">
+      <span class="hamburger-inner"></span>
+    </button>
+  </nav>
+
+  <!-- Mobile Menu -->
+  <div class="mobile-menu-overlay" id="mobile-overlay"></div>
+  <aside class="mobile-menu" id="mobile-menu">
+    <ol>
+      <li><a href="/#about">About</a></li>
+      <li><a href="/#projects">Projects</a></li>
+      <li><a href="/knowledge/">Knowledge</a></li>
+      <li><a href="/#contact">Contact</a></li>
+    </ol>
+    <div class="mobile-resume">
+      <a href="/about.html">More About Me</a>
+    </div>
+  </aside>
+
+  <main class="article-page">
+    <article>
+      <header class="article-header">
+        <div class="article-breadcrumb">
+          <a href="/">Home</a>
+          <span class="separator">/</span>
+          <a href="/knowledge/">Knowledge</a>
+          <span class="separator">/</span>
+          <span>Frontend</span>
+        </div>
+        <h1>React Hook</h1>
+        <div class="article-meta">
+          <span>2026-03-17</span>
+          <span>Frontend</span>
+        </div>
+        <div class="article-tags">
+  <span class="tag">前端开发</span>
+  <span class="tag">概念</span>
+  <span class="tag">React</span>
+  <span class="tag">Hook</span>
+  <span class="tag">useState</span>
+  <span class="tag">useEffect</span>
+  <span class="tag">自定义Hook</span>
+  <span class="tag">副作用</span>
+</div>
+
+      </header>
+
+      <div class="article-body">
+        <h1>React Hook</h1>
+<blockquote>
+<p><strong>一句话本质</strong><br>把函数组件需要&quot;记住&quot;和&quot;感知&quot;的能力，从函数体外面托管给 React，通过约定好的接口借用</p>
+</blockquote>
+<h2>第一幕：问题感知</h2>
+<p>写一个计数器组件——点按钮，数字加一，页面上的数字跟着变。</p>
+<p>用最朴素的方式写：</p>
+<pre><code class="language-javascript">function Counter() {
+  let count = 0;
+  return (
+    &lt;div&gt;
+      &lt;p&gt;{count}&lt;/p&gt;
+      &lt;button onClick={() =&gt; { count = count + 1; }}&gt;+1&lt;/button&gt;
+    &lt;/div&gt;
+  );
+}
+</code></pre>
+<p>点击按钮——页面上的数字纹丝不动。</p>
+<p><code>count</code> 确实变了，你在控制台打印能看到。但屏幕没有更新。</p>
+<p>为什么？因为 React 不知道 <code>count</code> 变了。它不会盯着你的每一个变量——它只在&quot;有人告诉我数据变了&quot;的时候才重新渲染。</p>
+<p>好，那告诉它。但怎么告诉？<code>count</code> 只是一个普通的局部变量，函数运行完就消失了。下次 React 重新渲染这个组件，<code>count</code> 又从 <code>0</code> 开始——之前加了多少次，全部清零。</p>
+<p>局部变量有两个致命伤：<strong>改了 React 不知道，记住了下次又忘</strong>。</p>
+<p>生活中有没有这样的困境：你需要记住某个东西，但每次重新开始都会遗忘，除非有人替你保管？</p>
+<p><strong>函数组件怎么记住自己的数据？</strong></p>
+<hr>
+<blockquote>
+<p>想一想：如果你来设计，怎么让 React 帮函数&quot;记住&quot;一个值，并且值变了之后自动刷新屏幕？</p>
+</blockquote>
+<hr>
+<h2>第二幕：引导式构建</h2>
+<p>你刚才大概想到：需要一个&quot;外部保管员&quot;——把数据存到函数外面，React 来管理，变了就通知重渲染。</p>
+<p>这个思路完全正确。这就是 <strong><code>useState</code></strong> 做的事。</p>
+<hr>
+<p><strong>第一件工具：<code>useState</code>——让函数记住数据</strong></p>
+<p><code>useState</code> 是 React 提供的一个函数。你调用它，传入初始值，它给你两样东西：</p>
+<pre><code class="language-javascript">const [count, setCount] = useState(0);
+</code></pre>
+<p>左边是数组解构——<code>count</code> 是当前的值，<code>setCount</code> 是用来修改它的函数。</p>
+<p><code>count</code> 不是普通局部变量。React 把它存在组件外部的一块专属内存里。函数每次重新执行，<code>count</code> 都能从那块内存里取到最新的值，不会丢失。</p>
+<p><code>setCount</code> 也不是普通赋值。你调用 <code>setCount(1)</code>，React 做两件事：更新那块内存里的值，然后触发这个组件重新渲染——屏幕自动刷新。</p>
+<p>计数器现在能工作了：</p>
+<pre><code class="language-javascript">function Counter() {
+  const [count, setCount] = useState(0);
+  return (
+    &lt;div&gt;
+      &lt;p&gt;{count}&lt;/p&gt;
+      &lt;button onClick={() =&gt; setCount(count + 1)}&gt;+1&lt;/button&gt;
+    &lt;/div&gt;
+  );
+}
+</code></pre>
+<blockquote>
+<p>想一想：如果直接写 <code>count = count + 1</code> 而不用 <code>setCount</code>，会怎样？</p>
+</blockquote>
+<p>值确实变了，但 React 不知道——屏幕不更新。和第一幕的问题一模一样。<code>setCount</code> 是&quot;通知 React&quot;的那个动作，缺了它，记忆存在了，但通知断了。</p>
+<hr>
+<p><code>useState</code> 解决了&quot;记住数据&quot;的问题。但很快遇到了新的困境。</p>
+<p>组件里经常需要做一些&quot;和外部世界打交道&quot;的事：页面加载时从服务器拉数据、组件消失时取消一个定时器、根据某个值的变化去做某件事……</p>
+<p>这类操作有一个共同特征：它们不是&quot;计算出一个值&quot;，而是&quot;产生某种效果&quot;。</p>
+<p>问题是：函数组件每次渲染都会从头执行一遍。如果把&quot;拉数据&quot;的代码直接写在函数体里，每次渲染都会发一次请求——用户滚动一下页面触发重渲染，又是一次请求，又是一次……</p>
+<p><strong>第二件工具：<code>useEffect</code>——控制&quot;什么时候做&quot;</strong></p>
+<p><code>useEffect</code> 接受两个参数：一个函数（要做什么），和一个数组（什么时候做）。</p>
+<pre><code class="language-javascript">useEffect(() =&gt; {
+  // 要做的事
+}, [依赖项]);
+</code></pre>
+<p>第二个参数叫<strong>依赖数组（Dependency Array）</strong>，它决定了&quot;什么时候触发&quot;：</p>
+<p>空数组 <code>[]</code>——只在组件第一次出现时执行一次，之后再不执行。</p>
+<p>有值 <code>[count]</code>——组件第一次出现执行一次，之后每次 <code>count</code> 变化时再执行一次。</p>
+<p>不传——每次渲染之后都执行。</p>
+<p>拉数据的典型写法：</p>
+<pre><code class="language-javascript">useEffect(() =&gt; {
+  fetch(&#39;/api/user&#39;)
+    .then(res =&gt; res.json())
+    .then(data =&gt; setUser(data));
+}, []); // 空数组：只在挂载时拉一次
+</code></pre>
+<blockquote>
+<p>想一想：如果依赖数组写成 <code>[userId]</code>，这段代码什么时候会重新拉数据？</p>
+</blockquote>
+<p>每次 <code>userId</code> 变化时——比如用户切换了账号。这正是&quot;跟着某个值的变化做某件事&quot;的表达方式。</p>
+<hr>
+<p><code>useEffect</code> 还有一个细节：<strong>清理（Cleanup）</strong>。</p>
+<p>有些效果是持续性的——比如开启一个定时器，或者订阅某个数据流。组件消失时，这些东西必须手动关掉，否则它们会继续在后台运行，产生内存泄漏，甚至在组件已经消失后还往里面更新状态（React 会报警告）。</p>
+<p><code>useEffect</code> 允许你在那个函数里返回一个&quot;清理函数&quot;：</p>
+<pre><code class="language-javascript">useEffect(() =&gt; {
+  const timer = setInterval(() =&gt; {
+    setCount(c =&gt; c + 1);
+  }, 1000);
+
+  return () =&gt; clearInterval(timer); // 组件消失时，清理定时器
+}, []);
+</code></pre>
+<p>返回的函数，在组件从页面移除时自动被调用。</p>
+<blockquote>
+<p>想一想：如果依赖数组是 <code>[count]</code>，清理函数在什么时机执行？只在组件消失时，还是每次 <code>count</code> 变化时也会执行？</p>
+</blockquote>
+<p>每次 <code>count</code> 变化时，React 会先执行上一次的清理函数，再执行新的 effect——相当于&quot;换一次 effect 之前先打扫干净&quot;。组件消失时也会执行最后一次清理。</p>
+<hr>
+<p>现在有了 <code>useState</code> 和 <code>useEffect</code>。但随着组件变复杂，一个新的问题浮现了。</p>
+<p>同一段逻辑，在多个组件里都需要——比如&quot;根据 <code>userId</code> 拉用户数据，存到 state，处理 loading 和 error 状态&quot;。你在 <code>ProfilePage</code> 写了一遍，在 <code>UserCard</code> 写了一遍，在 <code>CommentList</code> 又写了一遍……</p>
+<p>复制粘贴三份。</p>
+<p>改动时要改三处。漏改一处就是 bug。</p>
+<p><strong>第三件工具：自定义 Hook（Custom Hook）——把逻辑打包复用</strong></p>
+<p>如果一段逻辑里用到了 <code>useState</code> 或 <code>useEffect</code>，它就没办法抽成普通函数——普通函数里不能调用 Hook（这是 React 的规则，后面会解释为什么）。</p>
+<p>但可以抽成一个<strong>自定义 Hook</strong>：名字以 <code>use</code> 开头的函数，里面可以调用其他 Hook，可以有自己的 state 和 effect，最后把需要暴露的值 return 出去。</p>
+<pre><code class="language-javascript">function useFetchUser(userId) {
+  const [user, setUser] = useState(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() =&gt; {
+    setLoading(true);
+    fetch(`/api/user/${userId}`)
+      .then(res =&gt; res.json())
+      .then(data =&gt; {
+        setUser(data);
+        setLoading(false);
+      });
+  }, [userId]);
+
+  return { user, loading };
+}
+</code></pre>
+<p>现在任何组件都可以一行调用：</p>
+<pre><code class="language-javascript">const { user, loading } = useFetchUser(userId);
+</code></pre>
+<p>逻辑只写一次，在多个组件里共享，每个组件都有自己独立的状态实例。</p>
+<blockquote>
+<p>想一想：两个组件都调用了 <code>useFetchUser(123)</code>，它们的 <code>user</code> state 是同一份，还是各自独立的？</p>
+</blockquote>
+<p>各自独立。Hook 是逻辑的复用，不是状态的共享。每个组件调用 Hook，都得到自己的一套 state 和 effect——就像同一张蓝图盖出的两栋房子，结构相同，但住的人各不相同。</p>
+<hr>
+<p>最后一个需要理解的东西：<strong>为什么 Hook 只能在函数顶层调用，不能写在 <code>if</code> 或循环里？</strong></p>
+<p>React 在内部用一个有序列表追踪这个组件的所有 Hook 调用——第一次调用的 Hook 对应位置 1，第二次对应位置 2，以此类推。每次重渲染，React 按顺序一一对应，把上次的状态归还给对应的 Hook。</p>
+<p>如果把 Hook 写进 <code>if</code> 里，某次渲染条件不满足，这个 Hook 就被跳过了——列表顺序乱了，位置 2 的状态被交给了本来是位置 3 的 Hook，所有 state 错位，程序崩溃。</p>
+<p>顺序固定 = React 知道每个 Hook 对应谁的状态。这是整个 Hook 机制能工作的地基。</p>
+<blockquote>
+<p>想一想：如果你需要&quot;在某个条件下才执行某段逻辑&quot;，正确做法是什么？把条件写进 Hook 外面，还是写进 Hook 里面？</p>
+</blockquote>
+<p>把条件写进 <code>useEffect</code> 或 Hook 内部的逻辑里，而不是把 Hook 调用本身包在 <code>if</code> 里。Hook 的调用必须无条件执行，条件判断在调用之后做。</p>
+<hr>
+<h2>第三幕：完整组装</h2>
+<h3>全景图</h3>
+<pre><code>React 函数组件的三层需求
+         |
+         |--- 需要记住数据，数据变了屏幕要更新
+         |         |
+         |    [useState]
+         |    const [value, setValue] = useState(初始值)
+         |    - value:    从 React 托管内存读取的当前值
+         |    - setValue: 更新值 + 触发重渲染的通知函数
+         |
+         |--- 需要做&quot;有副作用&quot;的事（请求/定时器/订阅）
+         |         |
+         |    [useEffect]
+         |    useEffect(() =&gt; {
+         |      // 做事
+         |      return () =&gt; { /* 清理 */ }
+         |    }, [依赖项])
+         |    - []:        只在挂载时执行一次
+         |    - [x]:       x 变化时执行
+         |    - 不传:      每次渲染后执行
+         |
+         |--- 需要在多个组件复用含 Hook 的逻辑
+                   |
+              [自定义 Hook]
+              function useSomething(...) {
+                // 内部用 useState / useEffect
+                return { 暴露给外部的值 }
+              }
+              - 逻辑复用，状态各自独立
+              - 名字必须 use 开头
+              - 只能在函数顶层调用（顺序固定原则）
+</code></pre>
+<h3>端到端示例：一个带加载状态的用户卡片</h3>
+<p><strong>需求</strong>：显示用户名，有 loading 态，userId 变化时重新拉取。</p>
+<p><strong>第一步：抽自定义 Hook，封装拉数据逻辑</strong></p>
+<pre><code class="language-javascript">function useFetchUser(userId) {
+  const [user, setUser] = useState(null);    // 记住用户数据
+  const [loading, setLoading] = useState(true); // 记住加载状态
+
+  useEffect(() =&gt; {
+    setLoading(true);                         // 开始加载
+    fetch(`/api/user/${userId}`)
+      .then(res =&gt; res.json())
+      .then(data =&gt; {
+        setUser(data);
+        setLoading(false);                    // 加载完成
+      });
+  }, [userId]);                              // userId 变了就重新拉
+
+  return { user, loading };
+}
+</code></pre>
+<p><strong>第二步：组件调用 Hook，专注渲染</strong></p>
+<pre><code class="language-javascript">function UserCard({ userId }) {
+  const { user, loading } = useFetchUser(userId); // 一行拿到数据和状态
+
+  if (loading) return &lt;p&gt;加载中...&lt;/p&gt;;
+  return &lt;p&gt;用户名：{user.name}&lt;/p&gt;;
+}
+</code></pre>
+<p><strong>第三步：追踪一次完整流程</strong></p>
+<pre><code>1. &lt;UserCard userId={42} /&gt; 首次渲染
+   -&gt; useFetchUser(42) 被调用
+   -&gt; useState(null)  =&gt; user=null,    位置1
+   -&gt; useState(true)  =&gt; loading=true, 位置2
+   -&gt; 渲染: 显示&quot;加载中...&quot;
+
+2. 渲染完毕，React 执行 useEffect
+   -&gt; 发起 fetch(&#39;/api/user/42&#39;)
+   -&gt; 等待响应...
+
+3. 数据回来
+   -&gt; setUser({name:&quot;张三&quot;})  -&gt; 触发重渲染
+   -&gt; setLoading(false)       -&gt; 触发重渲染
+   -&gt; 两次 setState 批量处理，只重渲染一次
+
+4. 重渲染
+   -&gt; useState 从位置1读到 user={name:&quot;张三&quot;}
+   -&gt; useState 从位置2读到 loading=false
+   -&gt; 渲染: 显示&quot;用户名：张三&quot;
+
+5. userId 从 42 变为 99
+   -&gt; useEffect 依赖 [userId] 变化，重新执行
+   -&gt; 重复步骤 2-4，显示新用户
+</code></pre>
+<hr>
+<h2>第四幕：验证与压力测试</h2>
+<h3>反事实：去掉关键部分会怎样？</h3>
+<p><strong>不用 <code>setCount</code>，直接改变量</strong>：count 的值确实改变，但 React 没有收到通知，屏幕不更新。函数下次执行时从 React 内存里取的还是旧值，之前的修改等于没做。</p>
+<p><strong><code>useEffect</code> 依赖数组漏写</strong>：假设漏写了 <code>userId</code>，写成 <code>[]</code>。userId 从 42 变成 99，useEffect 不重新执行——页面永远显示 userId=42 的数据。这是 React 里最常见的 bug 之一，React 的 lint 工具会主动报警提醒。</p>
+<p><strong>自定义 Hook 名字不以 <code>use</code> 开头</strong>：写成 <code>fetchUser</code> 而不是 <code>useFetchUser</code>。React 无法识别它是 Hook，不会做 Hook 规则检查，lint 工具也不报警——但如果你在里面调用了 useState，仍然受 Hook 规则约束，只是错误更难发现。这是设计选择：命名约定是 React 识别 Hook 的唯一方式。</p>
+<h3>边界：Hook 在哪些情况下容易出问题？</h3>
+<p><strong>闭包陷阱</strong>：<code>useEffect</code> 的函数在创建时&quot;捕获&quot;了当时的变量值。如果依赖数组写漏，effect 里的变量永远是第一次渲染时的旧值——这叫<strong>闭包陷阱（Stale Closure）</strong>。调试时值&quot;看起来对&quot;，但行为不对，是 Hook 最阴险的 bug。</p>
+<p><strong>无限循环</strong>：<code>useEffect</code> 里调用了 <code>setXxx</code>，但把 <code>xxx</code> 写进了依赖数组——xxx 变了触发 effect，effect 改变 xxx，又触发 effect……死循环。解决方法：仔细想清楚依赖关系，或者用 <code>setCount(c =&gt; c + 1)</code> 函数式更新，不依赖外部的 count。</p>
+<p><strong>并发模式下的撕裂</strong>：React 18 引入并发渲染，同一次用户交互可能触发多次渲染。如果 state 更新不是原子性的（多次 <code>setState</code> 分散调用），中间状态可能被用户看到。解决方案是用 <code>useReducer</code> 把多个相关 state 合并成一个原子更新。</p>
+<h3>连接：Hook 跟哪些东西有关？</h3>
+<p><strong>类组件 vs 函数组件</strong>：Hook 出现之前（React 16.8 之前），函数组件是&quot;纯展示&quot;组件，没有状态没有生命周期。状态和副作用必须用类组件的 <code>this.state</code> 和 <code>componentDidMount</code>/<code>componentDidUpdate</code> 实现。Hook 让函数组件获得了类组件的全部能力，同时逻辑复用比类组件的 HOC/Render Props 简洁得多。</p>
+<p><strong><code>useReducer</code></strong>：当 state 逻辑变复杂（多个字段联动、下一个状态依赖当前状态），用 <code>useState</code> 管理会变得混乱。<code>useReducer</code> 是 <code>useState</code> 的&quot;升级版&quot;，把状态转换逻辑集中到一个 reducer 函数里——本质上就是组件内的一个微型 Redux。</p>
+<p><strong><code>useContext</code></strong>：解决&quot;跨层传数据&quot;的问题。不用一层层 props 传下去，直接在任意子组件里读取顶层提供的数据。通常和 <code>useState</code> 配合，做全局状态管理的轻量方案。</p>
+<p><strong>React Query / SWR</strong>：把&quot;拉数据 + loading + error + 缓存 + 重新请求&quot;这套逻辑进一步封装成库级别的 Hook。我们上面手写的 <code>useFetchUser</code> 就是这类库的简化版——生产环境里一般直接用这些库，不手写。</p>
+<h3>终极挑战·空白重建</h3>
+<p>只记得第一幕的问题，能重新发明 Hook 吗？</p>
+<pre><code>[问题]
+  函数组件的局部变量有两个致命伤：
+  改了 React 不知道 / 重渲染后全部清零
+
+[缺口1]
+  需要一个&quot;外部保管员&quot;替函数记住数据
+  值变了要能通知 React 刷新屏幕
+
+[工具1: useState]
+  const [val, setVal] = useState(初始值)
+  - val:    React 托管内存里的值（跨渲染持久）
+  - setVal: 更新值 + 触发重渲染的通知函数
+
+[缺口2]
+  有些操作不能每次渲染都执行（如拉数据）
+  需要精确控制&quot;什么时候做&quot;
+
+[工具2: useEffect]
+  useEffect(() =&gt; { 做事; return 清理函数 }, [依赖])
+  - []:   只在挂载时执行
+  - [x]:  x 变化时执行
+  - 清理函数在下次执行前 / 卸载时自动调用
+
+[缺口3]
+  含 Hook 的逻辑无法用普通函数复用
+  多个组件重复写同一套 state + effect 逻辑
+
+[工具3: 自定义 Hook]
+  function useSomething() { 内部用 useState/useEffect }
+  - 逻辑复用，每个调用者状态独立
+  - 名字 use 开头，React 凭此识别
+  - 必须在函数顶层调用（顺序固定 = 状态归位准确）
+
+[完整方案]
+  useState  -&gt; 记住数据 + 触发更新
+  useEffect -&gt; 控制副作用时机 + 清理
+  自定义Hook -&gt; 打包逻辑，多处复用
+  三件工具组合，函数组件获得完整的&quot;记忆+感知+复用&quot;能力
+</code></pre>
+<p>只凭这张地图，你能独自走完全程。Hook 的本质就是这一句话：<strong>把函数组件需要&quot;记住&quot;和&quot;感知&quot;的能力，从函数体外面托管给 React，通过约定好的接口借用。</strong></p>
+<h2>关联笔记</h2>
+<blockquote>
+<p><strong>相关原子概念</strong><br>当前知识库暂无相关前端笔记，待后续归档 JavaScript、组件化、状态管理等笔记后补充关联。</p>
+</blockquote>
+
+      </div>
+    </article>
+
+    
+
+    <div style="max-width:800px;margin:0 auto;padding-bottom:60px;">
+      <a href="/knowledge/" class="back-link">Back to Knowledge Graph</a>
+    </div>
+  </main>
+
+  <!-- Footer -->
+  <footer>
+    <p>Designed &amp; Built by <a href="https://github.com/ChenSchenG">ChenSchenG</a></p>
+  </footer>
+
+  <script src="../js/main.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+  <script>hljs.highlightAll();</script>
+</body>
+</html>

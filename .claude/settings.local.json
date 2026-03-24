@@ -17,7 +17,17 @@
       "WebFetch(domain:blog.zhheo.com)",
       "WebFetch(domain:akilar.top)",
       "WebFetch(domain:blog.anheyu.com)",
-      "WebSearch"
+      "WebSearch",
+      "WebFetch(domain:bchiang7.github.io)",
+      "WebFetch(domain:huangxuan.me)",
+      "WebFetch(domain:raw.githubusercontent.com)",
+      "Bash(curl:*)",
+      "Bash(cat:*)",
+      "Bash(find .:*)",
+      "Bash(npm init:*)",
+      "Bash(npm install:*)",
+      "Bash(node:*)",
+      "Bash(ls:*)"
     ]
   }
 }

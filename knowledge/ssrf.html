@@ -1,0 +1,340 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SSRF — ChenSchenG</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⚡</text></svg>">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../css/style.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css">
+</head>
+<body>
+  <!-- Navigation -->
+  <nav id="nav">
+    <div class="nav-logo">
+      <a href="/">CSG</a>
+    </div>
+    <div class="nav-links-wrapper">
+      <ol class="nav-links">
+        <li><a href="/#about"><span class="nav-number">01.</span>About</a></li>
+        <li><a href="/#projects"><span class="nav-number">02.</span>Projects</a></li>
+        <li><a href="/knowledge/"><span class="nav-number">03.</span>Knowledge</a></li>
+        <li><a href="/#contact"><span class="nav-number">04.</span>Contact</a></li>
+      </ol>
+      <div class="nav-resume">
+        <a href="/about.html">More About Me</a>
+      </div>
+    </div>
+    <button class="hamburger" id="hamburger" aria-label="Menu">
+      <span class="hamburger-inner"></span>
+    </button>
+  </nav>
+
+  <!-- Mobile Menu -->
+  <div class="mobile-menu-overlay" id="mobile-overlay"></div>
+  <aside class="mobile-menu" id="mobile-menu">
+    <ol>
+      <li><a href="/#about">About</a></li>
+      <li><a href="/#projects">Projects</a></li>
+      <li><a href="/knowledge/">Knowledge</a></li>
+      <li><a href="/#contact">Contact</a></li>
+    </ol>
+    <div class="mobile-resume">
+      <a href="/about.html">More About Me</a>
+    </div>
+  </aside>
+
+  <main class="article-page">
+    <article>
+      <header class="article-header">
+        <div class="article-breadcrumb">
+          <a href="/">Home</a>
+          <span class="separator">/</span>
+          <a href="/knowledge/">Knowledge</a>
+          <span class="separator">/</span>
+          <span>Security</span>
+        </div>
+        <h1>SSRF</h1>
+        <div class="article-meta">
+          <span>2026-03-23</span>
+          <span>Security</span>
+        </div>
+        <div class="article-tags">
+  <span class="tag">密码学与安全</span>
+  <span class="tag">概念</span>
+  <span class="tag">SSRF</span>
+  <span class="tag">服务端请求伪造</span>
+  <span class="tag">内网探测</span>
+  <span class="tag">元数据接口</span>
+  <span class="tag">DNS重绑定</span>
+  <span class="tag">云安全</span>
+</div>
+
+      </header>
+
+      <div class="article-body">
+        <h1>SSRF（服务端请求伪造）</h1>
+<blockquote>
+<p><strong>一句话本质</strong><br>SSRF 让攻击者借服务器的网络权限访问内网：通过诱导服务器发出受控请求，绕过防火墙探测内网、窃取云元数据凭证。</p>
+</blockquote>
+<h2>第一幕：问题感知</h2>
+<p>你做了一个很贴心的功能：用户可以输入一个网址，你的网站帮他把那个网页的标题和描述抓取回来，显示成一张预览卡片。</p>
+<p>比如用户输入 <code>https://github.com/some/repo</code>，你的服务器就去请求那个地址，把页面内容解析一下，返回给用户。</p>
+<p>功能上线了，用户很喜欢。</p>
+<p>然后某天，有个用户输入了这个地址：</p>
+<pre><code>http://192.168.1.1
+</code></pre>
+<p>这是你服务器所在的内网里，路由器的管理后台。从外网，任何人都访问不到这个地址——它只存在于内网。</p>
+<p>但你的服务器在内网里。你的服务器去请求这个地址，没有任何阻碍。返回的页面内容，就被原样传给了那个用户。</p>
+<p>这个用户刚刚看到了你路由器的管理界面。</p>
+<p>他再试一下 <code>http://10.0.0.1:8080</code>……是你内网的某个服务。<code>http://10.0.0.2:3306</code>……数据库的管理端口。</p>
+<p>他没有越过任何防火墙，没有入侵任何系统。他只是告诉你的服务器&quot;帮我去那边看一下&quot;，然后你的服务器忠实地去看了，把结果带回来给他。</p>
+<p><strong>怎么让服务器不替攻击者&quot;跑腿&quot;？</strong></p>
+<hr>
+<h2>第二幕：引导式构建</h2>
+<p>回到那个&quot;帮你抓网页&quot;的功能，问题的本质是什么？</p>
+<p>你的服务器接受了用户提供的 URL，然后<strong>以自己的身份</strong>去发了一个请求。</p>
+<p>这里有一个关键词：<strong>以自己的身份</strong>。</p>
+<p>服务器在内网里，它能访问的东西，用户在外网根本访问不到。用户提供了目标地址，但是发出请求的人是服务器——服务器的网络权限，被用户借去用了。</p>
+<p>这就是 <strong>SSRF</strong>（Server-Side Request Forgery，服务端请求伪造）的本质：攻击者诱导服务器替他发出请求，访问攻击者自己无法直接访问的资源。</p>
+<blockquote>
+<p>想一想：为什么叫&quot;伪造&quot;？攻击者伪造了什么？</p>
+</blockquote>
+<p>伪造的是&quot;请求的发起方&quot;。这个请求表面上来自服务器，实际上是攻击者在幕后操控目标地址。服务器不知道自己成了攻击者的&quot;代理人&quot;。</p>
+<hr>
+<p>现在来看攻击者能利用这个能力做什么。</p>
+<p>最直接的用途：<strong>探测内网</strong>。</p>
+<p>攻击者不知道你内网里有什么，但他可以让你的服务器帮他扫描。他尝试各种内网地址，看哪个有响应、响应内容是什么：</p>
+<pre><code>攻击者输入: http://10.0.0.1       -&gt; 服务器返回: 路由器管理界面
+攻击者输入: http://10.0.0.5:8080  -&gt; 服务器返回: 某个内部 API
+攻击者输入: http://10.0.0.5:3306  -&gt; 服务器返回: 连接被拒绝（但说明端口存在）
+攻击者输入: http://10.0.0.9       -&gt; 服务器返回: 超时（说明没有这台机器）
+</code></pre>
+<p>通过响应的差异，攻击者逐渐画出了你内网的地图。</p>
+<blockquote>
+<p>想一想：攻击者能看到的，比&quot;有没有响应&quot;更多吗？</p>
+</blockquote>
+<p>可以更多。如果响应内容被原样返回给攻击者（就像那个&quot;抓网页标题&quot;的功能），攻击者能看到实际的页面内容——包括内部管理界面、未加鉴权的 API 返回的数据、甚至配置信息。</p>
+<hr>
+<p>有一个特别危险的攻击目标值得单独说——<strong>云服务器的元数据接口</strong>。</p>
+<p>几乎所有云服务商（AWS、腾讯云、阿里云）都提供一个特殊的地址，运行在云服务器上的程序可以访问它，获取这台服务器自身的配置信息：机器 ID、所在区域、绑定的权限角色……</p>
+<p>这个地址在大多数云平台上是固定的：</p>
+<pre><code>http://169.254.169.254/
+</code></pre>
+<p>这个地址只能从云服务器内部访问。正常情况下，外网完全到不了它。</p>
+<p>但如果你的服务器有 SSRF 漏洞，攻击者输入这个地址，你的服务器去请求它，返回的内容里——可能包含这台服务器绑定的<strong>临时凭证</strong>（AccessKey + SecretKey + Token）。</p>
+<p>拿到这个临时凭证，攻击者就能以这台服务器的身份，调用你的云服务 API。</p>
+<blockquote>
+<p>想一想：这和之前学过的 STS 有什么关系？</p>
+</blockquote>
+<p>云服务器的元数据接口，本质上就是 STS 的&quot;本地版&quot;——云平台把临时凭证放在这个地址上，让服务器上的程序可以随时取用，而不需要把 AccessKey 硬编码在代码里。这个机制是安全的——前提是只有服务器本身能访问这个地址。SSRF 打穿了这个前提。</p>
+<hr>
+<p>知道了攻击路径，怎么防？</p>
+<p>最直觉的方案：检查用户输入的 URL，如果是内网地址就拒绝。</p>
+<p>在代码里写一个函数，判断目标 IP 是不是私有地址段：<code>10.0.0.0/8</code>、<code>172.16.0.0/12</code>、<code>192.168.0.0/16</code>、<code>127.0.0.1</code>、<code>169.254.169.254</code>。如果是，直接返回错误。</p>
+<blockquote>
+<p>想一想：这个方案有什么漏洞？攻击者能绕过它吗？</p>
+</blockquote>
+<p>可以绕过。攻击者不直接写内网 IP，他用一个自己控制的域名，让这个域名解析到内网 IP。</p>
+<p>你的代码拿到域名，看起来像合法的外网地址——检查通过。然后你的服务器去解析这个域名，得到真实 IP，发出请求——访问到了内网。</p>
+<p>这叫 <strong>DNS 重绑定</strong>（DNS Rebinding）：第一次解析返回合法 IP（骗过检查），第二次解析返回内网 IP（完成攻击）。攻击者可以把域名 TTL 设为 0，让服务器每次解析都可能得到不同的结果。</p>
+<hr>
+<p>所以单纯检查 URL 字符串是不够的。正确的防御要在<strong>实际发出请求之前</strong>，拿到解析后的真实 IP，再检查这个 IP 是否合法。</p>
+<p>流程要变成：</p>
+<pre><code>用户输入 URL
+    |
+    v
+解析域名，得到真实 IP
+    |
+    v
+检查这个 IP 是否是内网地址
+    |
+    v（通过检查才继续）
+发出 HTTP 请求
+</code></pre>
+<p>这样，不管攻击者用什么域名包装，最终的 IP 都要过检查。</p>
+<blockquote>
+<p>想一想：这个流程有没有还能被绕过的地方？</p>
+</blockquote>
+<p>还有。&quot;解析域名&quot;和&quot;实际发出请求&quot;之间有一个时间差。攻击者可以在这个时间差里，让域名解析结果改变——你检查时是合法 IP，真正发请求时已经变成内网 IP。这叫 <strong>TOCTOU</strong>（Time-Of-Check-Time-Of-Use，检查时刻与使用时刻不一致）问题。</p>
+<p>更可靠的做法是：解析出 IP 之后，直接用这个 IP 发请求（不再经过域名），彻底绕开 DNS 重绑定的可能。</p>
+<hr>
+<p>除了 IP 检查，还有一层防御：<strong>限制服务器的出网权限</strong>。</p>
+<p>即使 SSRF 漏洞存在，如果服务器本身只被允许访问特定的外部地址（白名单），那攻击者能利用的范围就大大缩小了。这是<strong>纵深防御</strong>的思路——不只靠代码检查，还要靠网络层的隔离。</p>
+<hr>
+<h2>第三幕：完整组装</h2>
+<p><strong>SSRF 攻击的完整路径</strong></p>
+<pre><code>攻击者（外网）
+    |
+    | 1. 提交恶意 URL
+    |    (内网地址 / 元数据接口 / DNS 重绑定域名)
+    v
++------------------+
+| 你的服务器（内网） |
+|                  |
+| 2. 接受 URL，     |
+|    发出请求       |
++------------------+
+    |
+    | 3. 访问内网资源
+    v
++-------------------+     +------------------------+
+| 内网服务            | 或  | 元数据接口              |
+| 10.0.0.x:port     |     | 169.254.169.254        |
+| (管理后台/数据库)   |     | (临时凭证/机器配置)      |
++-------------------+     +------------------------+
+    |
+    | 4. 返回数据
+    v
+攻击者拿到内网数据
+</code></pre>
+<p><strong>防御清单：攻击手法 vs 对应防御</strong></p>
+<table>
+<thead>
+<tr>
+<th>攻击手法</th>
+<th>对应防御</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>直接写内网 IP</td>
+<td>解析后检查真实 IP，拒绝私有地址段</td>
+</tr>
+<tr>
+<td>DNS 重绑定</td>
+<td>解析后用 IP 直接发请求，不再二次解析</td>
+</tr>
+<tr>
+<td>访问元数据接口</td>
+<td>拦截 <code>169.254.169.254</code> 及所有 link-local 地址</td>
+</tr>
+<tr>
+<td>IPv6 / 十六进制 / 八进制 IP 变体</td>
+<td>标准化 IP 后用支持 IPv6 的库检查，不认识的格式默认拒绝</td>
+</tr>
+<tr>
+<td>Serverless 环境元数据泄露</td>
+<td>代码层防御是最后防线，必须严格；同时收紧函数绑定角色的权限</td>
+</tr>
+<tr>
+<td>绕过检查探测内网</td>
+<td>网络层白名单，限制服务器出网目标</td>
+</tr>
+<tr>
+<td>读取响应内容泄露数据</td>
+<td>不要把第三方响应原样返回给用户</td>
+</tr>
+</tbody></table>
+<p><strong>一次完整的安全请求处理流程</strong></p>
+<pre><code>收到用户 URL
+    |
+    v
+解析域名 -&gt; 得到 IP_real
+    |
+    v
+标准化 IP_real（处理十六进制/八进制/整数形式/IPv4-mapped IPv6）
+    |
+    v
+检查 IP_real（IPv4 + IPv6 同时覆盖）:
+  - 回环:  127.0.0.0/8  ::1          -&gt; 拒绝
+  - 私有:  10/8  172.16/12  192.168/16  fc00::/7  -&gt; 拒绝
+  - link-local: 169.254.0.0/16  fe80::/10 -&gt; 拒绝（元数据接口在此段）
+  - 不认识的格式                          -&gt; 默认拒绝
+  - 其他? -&gt; 继续
+    |
+    v
+用 IP_real 直接发 HTTP 请求（不经过域名）
+    |
+    v
+检查响应，只返回必要字段给用户（不原样透传）
+</code></pre>
+<hr>
+<h2>第四幕：验证与压力测试</h2>
+<h3>反事实：如果不做任何防御</h3>
+<p>一个抓取网页标题的功能，就是一个内网扫描器。攻击者可以枚举 <code>10.0.0.1</code> 到 <code>10.0.0.254</code>，逐一扫描常见端口，在不入侵任何系统的情况下，摸清你整个内网的服务分布——而你的服务器全程&quot;合法地&quot;在帮他工作。</p>
+<h3>反事实：只检查 URL 字符串，不检查解析后的 IP</h3>
+<p>DNS 重绑定可以绕过。攻击者注册一个域名，初始解析到一个合法外网 IP，TTL 设为 0，一旦你的检查通过，立刻把解析改成内网 IP，下一次请求就打到内网了。字符串检查只能挡住懒惰的攻击者。</p>
+<h3>边界：哪些情况下防御会失效</h3>
+<p><strong>云函数 / Serverless 环境</strong>：传统服务器有固定 IP，可以在网络层配规则精确管控出网目标。云函数不同——每次触发平台临时分配容器，跑完即销毁，下次可能是另一个容器、另一个 IP，没有固定&quot;机器&quot;可以管控，网络层出口规则很难落地。但这些临时容器依然运行在云平台内网里，<code>169.254.169.254</code> 依然可达，云函数绑定的服务账号的临时凭证依然挂在那里。后果和传统服务器一样：攻击者控制输入 URL → 云函数请求元数据接口 → 拿到临时凭证 → 以函数身份调用云 API。区别在于：传统服务器可以用防火墙堵住，<strong>云函数的代码层防御反而成了最后一道防线</strong>，而不是辅助手段。</p>
+<p><strong>IPv6 绕过</strong>：大多数 SSRF 防御用字符串匹配检查 IPv4 私有段（<code>127.</code>、<code>10.</code>、<code>192.168.</code> 开头）。IPv6 有等价的特殊地址——<code>::1</code> 是 IPv6 的本机回环（等价于 <code>127.0.0.1</code>），<code>fe80::/10</code> 是 IPv6 的 link-local（等价于 <code>169.254.x.x</code>）——但字符串里没有 <code>127.</code> 前缀，字符串匹配不中，直接放行。攻击者输入 <code>http://[::1]:8080/internal-api</code>（IPv6 地址在 URL 里用方括号包裹），你的过滤函数看不出问题，服务器实际上访问了自己的回环地址。更隐蔽的变体还有十六进制 IP（<code>http://0x7f000001/</code>）、八进制 IP（<code>http://0177.0.0.1/</code>）、十进制整数 IP（<code>http://2130706433/</code>）——这三种写法全部指向 <code>127.0.0.1</code>，但字符串检查全部放行。根本解法是<strong>不在字符串层面做判断，而是把任意格式的地址解析成标准 IP 后，用支持 IPv6 的库做分类检查</strong>，同时覆盖 IPv4 和 IPv6 的私有/回环/link-local 段，不认识的格式默认拒绝。</p>
+<p><strong>重定向绕过</strong>：你检查了原始 URL，通过了。但目标服务器返回了 <code>301 重定向</code>，把请求跳转到内网地址。如果你的 HTTP 客户端自动跟随重定向，第二跳就绕过了检查。防御：禁止自动跟随重定向，或对每一跳的 IP 重新检查。</p>
+<h3>连接：SSRF 与已学知识的关系</h3>
+<p><strong>SSRF 与 STS</strong>：云平台的元数据接口是 STS 机制在服务器本地的落地形式——云平台把临时凭证放在 <code>169.254.169.254</code>，让服务器程序随时取用。SSRF 打穿元数据接口，就是在把 STS 的安全假设击穿：原本只有服务器自己能拿的临时凭证，被攻击者通过 SSRF 拿走了。</p>
+<p><strong>SSRF 与 AKSK</strong>：拿到临时凭证的攻击者，接下来会用 AKSK 签名机制伪造合法请求，以受害服务器的身份调用 API。SSRF 是入口，AKSK 是后续攻击的工具。</p>
+<p><strong>SSRF 与 OIDC/OAuth</strong>：内网里可能跑着身份服务（企业内部的 SSO）。SSRF 可以让攻击者访问这些服务的管理端口，甚至伪造内网来源的身份认证请求。</p>
+<h3>终极挑战：路线图重建</h3>
+<pre><code>[问题：服务器替攻击者访问了不该访问的内网资源]
+    |
+    v
+[根因：服务器用自己的网络权限，发出了攻击者指定目标的请求]
+    |
+    v
+[攻击面1：内网服务 / 管理界面 / 数据库端口]
+    |
+    v
+[攻击面2：云元数据接口 169.254.169.254 -&gt; 泄露临时凭证]
+    |
+    v
+[防御1：检查 URL 字符串 -&gt; 不够，DNS 重绑定可绕过]
+    |
+    v
+[防御2：解析后检查真实 IP -&gt; 更好，但 TOCTOU 问题存在]
+    |
+    v
+[防御3：用解析后的 IP 直接发请求，封死 DNS 重绑定]
+    |
+    v
+[防御4：禁止跟随重定向，或对每跳 IP 重新检查]
+    |
+    v
+[纵深防御：网络层白名单，限制服务器出网范围]
+    |
+    v
+[完整方案：IP检查 + 直接用IP发请求 + 禁止重定向跟随 + 网络层隔离]
+</code></pre>
+<h2>关联笔记</h2>
+<blockquote>
+<p><strong>相关原子概念</strong><br><a href="/knowledge/sts.html">STS</a> · <a href="/knowledge/aksk.html">AKSK</a> · <a href="/knowledge/oidc.html">OIDC</a></p>
+</blockquote>
+<p>SSRF 最高危的利用路径是通过元数据接口窃取 <a href="/knowledge/sts.html">STS</a> 临时凭证，拿到凭证后用 <a href="/knowledge/aksk.html">AKSK</a> 签名伪造合法请求。<a href="/knowledge/oidc.html">OIDC</a> 等内网身份服务也是 SSRF 的潜在攻击目标。</p>
+
+      </div>
+    </article>
+
+    <section class="related-notes">
+  <h3>Related Notes</h3>
+  <div class="related-notes-grid">
+    <a href="sts.html" class="related-note-card">
+      <div class="related-title">STS</div>
+      <div class="related-category">Security</div>
+    </a>
+    <a href="aksk.html" class="related-note-card">
+      <div class="related-title">AKSK</div>
+      <div class="related-category">Security</div>
+    </a>
+    <a href="oidc.html" class="related-note-card">
+      <div class="related-title">OIDC（OpenID Connect）</div>
+      <div class="related-category">Security</div>
+    </a>
+  </div>
+</section>
+
+
+    <div style="max-width:800px;margin:0 auto;padding-bottom:60px;">
+      <a href="/knowledge/" class="back-link">Back to Knowledge Graph</a>
+    </div>
+  </main>
+
+  <!-- Footer -->
+  <footer>
+    <p>Designed &amp; Built by <a href="https://github.com/ChenSchenG">ChenSchenG</a></p>
+  </footer>
+
+  <script src="../js/main.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+  <script>hljs.highlightAll();</script>
+</body>
+</html>

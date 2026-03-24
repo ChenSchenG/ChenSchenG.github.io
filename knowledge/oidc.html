@@ -1,0 +1,417 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>OIDC（OpenID Connect） — ChenSchenG</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⚡</text></svg>">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../css/style.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css">
+</head>
+<body>
+  <!-- Navigation -->
+  <nav id="nav">
+    <div class="nav-logo">
+      <a href="/">CSG</a>
+    </div>
+    <div class="nav-links-wrapper">
+      <ol class="nav-links">
+        <li><a href="/#about"><span class="nav-number">01.</span>About</a></li>
+        <li><a href="/#projects"><span class="nav-number">02.</span>Projects</a></li>
+        <li><a href="/knowledge/"><span class="nav-number">03.</span>Knowledge</a></li>
+        <li><a href="/#contact"><span class="nav-number">04.</span>Contact</a></li>
+      </ol>
+      <div class="nav-resume">
+        <a href="/about.html">More About Me</a>
+      </div>
+    </div>
+    <button class="hamburger" id="hamburger" aria-label="Menu">
+      <span class="hamburger-inner"></span>
+    </button>
+  </nav>
+
+  <!-- Mobile Menu -->
+  <div class="mobile-menu-overlay" id="mobile-overlay"></div>
+  <aside class="mobile-menu" id="mobile-menu">
+    <ol>
+      <li><a href="/#about">About</a></li>
+      <li><a href="/#projects">Projects</a></li>
+      <li><a href="/knowledge/">Knowledge</a></li>
+      <li><a href="/#contact">Contact</a></li>
+    </ol>
+    <div class="mobile-resume">
+      <a href="/about.html">More About Me</a>
+    </div>
+  </aside>
+
+  <main class="article-page">
+    <article>
+      <header class="article-header">
+        <div class="article-breadcrumb">
+          <a href="/">Home</a>
+          <span class="separator">/</span>
+          <a href="/knowledge/">Knowledge</a>
+          <span class="separator">/</span>
+          <span>Security</span>
+        </div>
+        <h1>OIDC（OpenID Connect）</h1>
+        <div class="article-meta">
+          <span>2026-03-17</span>
+          <span>Security</span>
+        </div>
+        <div class="article-tags">
+  <span class="tag">密码学与安全</span>
+  <span class="tag">协议</span>
+  <span class="tag">OIDC</span>
+  <span class="tag">OpenID Connect</span>
+  <span class="tag">OAuth 2.0</span>
+  <span class="tag">JWT</span>
+  <span class="tag">ID Token</span>
+  <span class="tag">身份认证</span>
+</div>
+
+      </header>
+
+      <div class="article-body">
+        <h1>OIDC（OpenID Connect）</h1>
+<blockquote>
+<p><strong>一句话本质</strong><br>OIDC 是 OAuth 2.0 的超集：在委托授权之上加一层标准化身份层，用 JWT 格式的 ID Token 让任意客户端无需额外请求即可知道&quot;你是谁&quot;。</p>
+</blockquote>
+<h2>第一幕：问题感知</h2>
+<p>你用 GitHub 账号登录了一个第三方网站，比如 Notion。</p>
+<p>点击&quot;用 GitHub 登录&quot;，跳转到 GitHub，你同意授权，跳回来——你就登进去了。</p>
+<p>背后用的是 OAuth 2.0。GitHub 给 Notion 发了一个 <strong>Access Token</strong>。</p>
+<p>现在，Notion 拿着这个 Access Token，能干什么？</p>
+<p>它能以你的名义访问 GitHub API——比如读你的仓库列表、读你的邮箱。这是 OAuth 2.0 设计的本意：<strong>委托操作权限</strong>。</p>
+<p>但 Notion 真正想要的，其实不是操作你的 GitHub 数据。</p>
+<p>Notion 想知道的只有一件事：<strong>你是谁？</strong></p>
+<p>具体来说：你的用户名是什么、你的邮箱是什么、你的头像是什么——这些信息足够 Notion 为你建立账号、让你登录进去。</p>
+<p>但 OAuth 2.0 只管&quot;你有没有权限做某事&quot;，它不管&quot;你是谁&quot;。Access Token 是一把钥匙，能开门，但门上没写主人的名字。</p>
+<p>Notion 拿到 Access Token 之后，如果想知道你是谁，它还得额外调一次 GitHub 的 <code>/user</code> API——用 Token 去问 GitHub：&quot;这个 Token 对应的用户叫什么？&quot;</p>
+<p>这个方案能用，但有个问题：每家平台的&quot;身份接口&quot;长得不一样。GitHub 叫 <code>/user</code>，Google 叫 <code>/userinfo</code>，微博又是另一个 URL，返回的字段名也各不相同。</p>
+<p>如果你想同时接入 GitHub、Google、微博登录，你要写三套对接代码。</p>
+<p>有没有一套统一的、标准的方式，让&quot;用 X 账号登录&quot;这件事不依赖于每家平台的私有接口？</p>
+<p><strong>如何在委托授权的同时，顺手知道&quot;你是谁&quot;？</strong></p>
+<hr>
+<h2>第二幕：引导式构建</h2>
+<p>OAuth 2.0 解决了&quot;委托授权&quot;的问题，但它刻意没有定义身份层。</p>
+<p>规范里明确说：Access Token 是<strong>不透明的</strong>（opaque）——授权服务器发什么格式都行，接收方不应该自己解读 Token 里面有什么。</p>
+<p>所以在纯 OAuth 2.0 的世界里，Notion 拿到 Access Token 之后，并不知道这个 Token 对应的是哪个用户。它必须额外去问。</p>
+<p>这&quot;额外去问&quot;就是问题所在：没有标准，每家不一样，对接成本高。</p>
+<p>OIDC 要做的事情，就是在 OAuth 2.0 的框架上，<strong>加一层标准化的身份层</strong>。</p>
+<blockquote>
+<p>想一想：如果你来设计这个身份层，你会怎么做？OAuth 2.0 已经有一个 Access Token 了，你会直接扩展它，还是另外再发一个东西？</p>
+</blockquote>
+<p>OIDC 的答案是：<strong>再发一个专门代表身份的 Token</strong>。</p>
+<p>这个新 Token 叫做 <strong>ID Token</strong>（身份令牌）。ID Token 和 Access Token 并排存在，各司其职——Access Token 代表你有什么操作权限，ID Token 代表你是谁。职责分离，不相互侵入。</p>
+<p>那 ID Token 长什么样？</p>
+<p>这里 OIDC 做了一个关键选择：ID Token <strong>必须是 JWT 格式</strong>。</p>
+<p>你已经学过 JWT——它是 <code>Header.Payload.Signature</code> 三段结构，Payload 里放 JSON 字段，整体用签名防篡改。</p>
+<p>选 JWT 的好处是：Notion 拿到 ID Token 之后，<strong>不需要再去问 GitHub</strong>，自己就能解开读取身份信息，同时验证签名确认这个 Token 确实是 GitHub 签发的。</p>
+<blockquote>
+<p>想一想：这里有个重要的前提——Notion 要验证 ID Token 的签名，它需要什么？</p>
+</blockquote>
+<p>Notion 需要 GitHub 的<strong>公钥</strong>。签名是用私钥签的，验证要用对应的公钥。</p>
+<p>OIDC 规定，每个身份提供方（比如 GitHub）必须在一个固定的、公开的 URL 上发布自己的公钥列表，这个 URL 叫做 <strong>JWKS 端点</strong>（JSON Web Key Set）。任何人都可以去这个 URL 拿到公钥，然后验证 ID Token 的签名是否合法。</p>
+<p>现在 ID Token 能被验证了，接下来的问题是：Payload 里放哪些字段来代表身份？</p>
+<p>OIDC 把 Payload 里的字段统称为 <strong>Claims</strong>（声明）——每一个字段，就是一条&quot;关于这个用户的声明&quot;。</p>
+<p>OIDC 首先规定了一个最重要的字段：<strong><code>sub</code></strong>（Subject，主体）。<code>sub</code> 是用户在这个身份提供方的唯一 ID，不随时间变化。就像身份证号码——不管你改名换姓，这个编号不变。</p>
+<p>有了 <code>sub</code>，Notion 就能知道&quot;这是同一个人&quot;。但光知道&quot;是谁&quot;还不够——Notion 还需要知道&quot;这个 Token 是可信的吗？&quot;</p>
+<p>这就需要另外几个字段配合。<strong><code>iss</code></strong>（Issuer，签发者）记录这个 Token 是谁发的，比如 <code>https://accounts.google.com</code>——Notion 验证 <code>iss</code> 是不是自己信任的提供方。<strong><code>exp</code></strong>（Expiration，过期时间）和 <strong><code>iat</code></strong>（Issued At，签发时间）控制 Token 的有效期窗口——Notion 验证当前时间是否在 <code>iat</code> 到 <code>exp</code> 之间。</p>
+<blockquote>
+<p>想一想：还缺一个什么字段？假设攻击者从网站 A 截获了你的 ID Token，拿去网站 B 登录——现有的 sub/iss/exp/iat 能阻止这件事吗？</p>
+</blockquote>
+<p>阻止不了。Token 是真实的、没过期的、签发者也可信——但它不是发给网站 B 的。</p>
+<p>所以还需要 <strong><code>aud</code></strong>（Audience，受众）字段：这个 Token 是发给哪个客户端用的（比如 Notion 的 Client ID）。网站 B 验证 Token 时，发现 <code>aud</code> 不是自己的 Client ID，直接拒绝。</p>
+<p>这五个字段——<code>sub</code>、<code>iss</code>、<code>aud</code>、<code>exp</code>、<code>iat</code>——是所有 ID Token 都必须包含的核心 Claims。</p>
+<p>除此之外，OIDC 还定义了一组可选的标准 Claims：<code>name</code>（姓名）、<code>email</code>（邮箱）、<code>picture</code>（头像 URL）、<code>locale</code>（语言偏好）……字段名是标准化的，所以不管你对接哪家 OIDC 兼容的提供方，同样的代码都能读取同样的字段。</p>
+<blockquote>
+<p>想一想：知道了 ID Token 的字段结构，那 Notion 怎么告诉 GitHub&quot;我需要 ID Token，而不只是普通的 Access Token&quot;？</p>
+</blockquote>
+<p>这里 OIDC 的设计非常巧妙：它复用了 OAuth 2.0 的 <strong>Scope</strong>（作用域）机制。</p>
+<p>Scope 是客户端在授权请求里声明&quot;我需要什么权限&quot;的字段。OIDC 在这个体系里加了一个特殊的 Scope 关键字：<strong><code>openid</code></strong>。</p>
+<p>服务器收到授权请求后，会检查 Scope 列表。如果看到了 <code>openid</code>，就知道&quot;这不只是普通的授权请求，而是身份认证请求&quot;——于是在响应里额外签发并返回 ID Token。如果没有 <code>openid</code>，就走纯 OAuth 2.0 流程，只返回 Access Token。</p>
+<p>这个开关设计让 OIDC 向后完全兼容 OAuth 2.0：加一个词，升级成 OIDC；不加，就是普通 OAuth。</p>
+<p>OIDC 还在 <code>openid</code> 之外定义了两个标准 Scope 来控制返回哪些字段：加上 <code>profile</code>，服务器就在 ID Token（或 UserInfo 端点）里附上 <code>name</code>、<code>picture</code>、<code>locale</code> 等个人资料；加上 <code>email</code>，就附上 <code>email</code> 和 <code>email_verified</code>。</p>
+<blockquote>
+<p>想一想：一个请求里同时包含 <code>openid</code>、<code>profile</code>、<code>email</code>，还有一个自定义的 <code>read:repos</code>，会发生什么？</p>
+</blockquote>
+<p>服务器看到 <code>openid</code>，知道要走 OIDC 流程，会签发 ID Token；看到 <code>profile</code> 和 <code>email</code>，知道 ID Token 里（或 UserInfo 端点）要包含对应的用户信息字段；看到 <code>read:repos</code>，知道要授权读取仓库的 Access Token。响应里会同时有 ID Token（身份）和 Access Token（权限），两件事一次完成。</p>
+<p>现在还剩一个问题：ID Token 里放不了太多字段——JWT 要放在 URL 参数或 HTTP 头里传输，太大会有问题。但有时候客户端需要更详细的用户信息怎么办？</p>
+<p>OIDC 定义了 <strong>UserInfo 端点</strong>（UserInfo Endpoint）：客户端拿着 Access Token 去请求这个端点，可以按需获取更详细的用户信息。返回的字段名和 ID Token 里的 Claims 完全一致，是同一套标准。</p>
+<p>这样的设计思路是&quot;轻量 Token + 按需拉取&quot;——ID Token 只放验证身份必须的字段，需要更多信息再去 UserInfo 端点取。</p>
+<p>最后一个问题：Notion 怎么知道 Google 的 JWKS 端点和 UserInfo 端点在哪？</p>
+<p>OIDC 规定，每个身份提供方都必须在一个固定格式的 URL 上发布自己的<strong>配置文档</strong>：</p>
+<pre><code>{issuer}/.well-known/openid-configuration
+</code></pre>
+<p>比如 Google 的配置文档在 <code>https://accounts.google.com/.well-known/openid-configuration</code>。打开这个 URL，你会看到一个 JSON，里面列出了所有端点地址：授权端点、Token 端点、UserInfo 端点、JWKS 端点……</p>
+<p>这个机制叫做 <strong>Discovery</strong>（发现）。客户端只需要知道 issuer 的 URL，就能自动发现所有端点，不需要硬编码。</p>
+<blockquote>
+<p>想一想：Discovery 机制有什么安全隐患？</p>
+</blockquote>
+<p>如果 Discovery 文档被篡改，攻击者可以把 JWKS 端点指向自己控制的地址，返回自己的公钥——这样攻击者自签的 ID Token 就能通过验证。所以 Discovery 文档本身必须通过 HTTPS 获取，并且要缓存合理的时间：不能每次请求都重新拉取（性能差），也不能缓存太久（无法及时感知密钥轮换）。</p>
+<hr>
+<h2>第三幕：完整组装</h2>
+<p>把所有组件放在一起，看 OIDC 的完整流程：</p>
+<pre><code>  Notion                  用户浏览器               Google (OIDC Provider)
+    |                         |                          |
+    |  1. 用户点&quot;用 Google 登录&quot; |                          |
+    |&lt;------------------------|                          |
+    |                         |                          |
+    |  2. 重定向到 Google       |                          |
+    |    scope=openid profile email                       |
+    |    response_type=code                               |
+    |    client_id=xxx                                    |
+    |    redirect_uri=https://notion.so/callback         |
+    |------------------------&gt;|-------------------------&gt;|
+    |                         |  3. 用户登录 Google，确认授权|
+    |                         |&lt;-------------------------|
+    |                         |  4. 返回授权码(code)        |
+    |&lt;------------------------|&lt;-------------------------|
+    |  5. 用 code 换 Token                                 |
+    |    (client_id + client_secret + code)               |
+    |-----------------------------------------------------&gt;|
+    |  6. 返回: access_token + id_token                   |
+    |&lt;-----------------------------------------------------|
+    |                         |                          |
+    |  7. 验证 id_token:                                   |
+    |    a. 从 Discovery 文档找到 JWKS 端点                 |
+    |    b. 拿到 Google 公钥                               |
+    |    c. 验证签名 + iss + aud + exp                     |
+    |    d. 从 Payload 取出 sub, email, name              |
+    |                         |                          |
+    |  8. 用 sub 作为用户唯一 ID,                           |
+    |     创建/查找 Notion 账号                             |
+    |------------------------&gt;|                          |
+    |  9. 登录成功,返回 Session                             |
+    |&lt;------------------------|                          |
+</code></pre>
+<p><strong>各组件对应关系</strong>：</p>
+<table>
+<thead>
+<tr>
+<th>组件</th>
+<th>来源</th>
+<th>在 OIDC 中的作用</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>授权码流程</td>
+<td>OAuth 2.0</td>
+<td>安全获取 Token 的基本框架</td>
+</tr>
+<tr>
+<td><code>openid</code> Scope</td>
+<td>OIDC 扩展</td>
+<td>触发身份认证，申请 ID Token</td>
+</tr>
+<tr>
+<td>ID Token (JWT)</td>
+<td>OIDC 新增</td>
+<td>携带身份信息，可本地验证</td>
+</tr>
+<tr>
+<td>JWKS 端点</td>
+<td>OIDC 新增</td>
+<td>发布公钥，供客户端验证签名</td>
+</tr>
+<tr>
+<td>Discovery 文档</td>
+<td>OIDC 新增</td>
+<td>自动发现所有端点地址</td>
+</tr>
+<tr>
+<td>UserInfo 端点</td>
+<td>OIDC 新增</td>
+<td>按需获取更详细的用户信息</td>
+</tr>
+<tr>
+<td>Claims（sub/iss/aud/exp/iat…）</td>
+<td>OIDC 标准化</td>
+<td>统一身份字段格式</td>
+</tr>
+</tbody></table>
+<p><strong>端到端示例：用 Google 账号登录 Notion</strong></p>
+<p>假设 Notion 的 Client ID 是 <code>notion_client_123</code>。</p>
+<p><strong>Step 1</strong> — 构造授权 URL：</p>
+<pre><code>https://accounts.google.com/o/oauth2/v2/auth
+  ?response_type=code
+  &amp;client_id=notion_client_123
+  &amp;redirect_uri=https://notion.so/callback
+  &amp;scope=openid%20profile%20email
+  &amp;state=random_csrf_string
+</code></pre>
+<p>注意 <code>scope</code> 里有 <code>openid</code>——这是触发 OIDC 的关键。</p>
+<p><strong>Step 2</strong> — 用户登录 Google，同意授权。Google 重定向回：</p>
+<pre><code>https://notion.so/callback?code=AUTH_CODE_xyz&amp;state=random_csrf_string
+</code></pre>
+<p><strong>Step 3</strong> — Notion 后端用 code 换 Token：</p>
+<pre><code>POST https://oauth2.googleapis.com/token
+  code=AUTH_CODE_xyz
+  client_id=notion_client_123
+  client_secret=notion_secret_abc
+  redirect_uri=https://notion.so/callback
+  grant_type=authorization_code
+</code></pre>
+<p>Google 返回：</p>
+<pre><code class="language-json">{
+  &quot;access_token&quot;: &quot;ya29.xxx&quot;,
+  &quot;id_token&quot;: &quot;eyJhbGciOiJSUzI1NiJ9.eyJzdWIiOiIxMTI5MDQ5MTU2MDUzMDc0MzM4MDQiLCJpc3MiOiJodHRwczovL2FjY291bnRzLmdvb2dsZS5jb20iLCJhdWQiOiJub3Rpb25fY2xpZW50XzEyMyIsImV4cCI6MTcxMTM5MjAwMCwiaWF0IjoxNzExMzg4NDAwLCJlbWFpbCI6InVzZXJAZ21haWwuY29tIiwibmFtZSI6IkFsaWNlIn0.SIGNATURE&quot;,
+  &quot;token_type&quot;: &quot;Bearer&quot;,
+  &quot;expires_in&quot;: 3600
+}
+</code></pre>
+<p><strong>Step 4</strong> — Notion 验证 ID Token：</p>
+<p>先去 <code>https://accounts.google.com/.well-known/openid-configuration</code> 拿配置，找到 <code>jwks_uri</code>，再去取公钥。</p>
+<p>然后：</p>
+<ul>
+<li>验证签名：用 Google 公钥验证 <code>SIGNATURE</code> 是否合法 ✓</li>
+<li>验证 <code>iss</code>：<code>https://accounts.google.com</code> ✓</li>
+<li>验证 <code>aud</code>：<code>notion_client_123</code> ✓（是我们自己的 Client ID）</li>
+<li>验证 <code>exp</code>：没过期 ✓</li>
+</ul>
+<p>全部通过。从 Payload 取出：</p>
+<ul>
+<li><code>sub = &quot;112904915605307433804&quot;</code>（Google 内部的用户唯一 ID）</li>
+<li><code>email = &quot;user@gmail.com&quot;</code></li>
+<li><code>name = &quot;Alice&quot;</code></li>
+</ul>
+<p><strong>Step 5</strong> — Notion 用 <code>iss</code> + <code>sub</code> 组合作为用户唯一标识（防止不同提供方的 <code>sub</code> 碰撞），查找或创建账号，建立 Session，登录成功。</p>
+<hr>
+<h2>第四幕：验证与压力测试</h2>
+<h3>反事实：去掉 ID Token，只用 Access Token 会怎样？</h3>
+<p>这正是纯 OAuth 2.0 的做法——Notion 必须额外调一次 <code>/userinfo</code> API。</p>
+<p>问题有三：每次登录多一次网络请求；每家提供方的接口不一样，没有标准；Access Token 是不透明的，Notion 不应该自己解读它的格式。</p>
+<p>ID Token 的价值在于：<strong>可本地验证、格式标准、自带身份信息</strong>——一次 Token 交换之后，不需要额外的网络请求就能完成身份认证。</p>
+<h3>反事实：ID Token 如果不用 JWT，改用随机字符串会怎样？</h3>
+<p>那 Notion 就无法本地验证了。它必须把 ID Token 发回给 Google 的端点问&quot;这个 Token 是不是你发的，对应哪个用户&quot;——回到了需要额外网络请求的老路。</p>
+<p>JWT + 签名验证，是 OIDC 能做到&quot;本地验证&quot;的关键。</p>
+<h3>边界：OIDC 在哪些情况下会失效？</h3>
+<p><strong>签名算法选错</strong>：OIDC 的 ID Token 通常用 RS256（非对称，RSA 签名）或 ES256（椭圆曲线）。有一种危险的配置：如果服务器同时接受 HS256（对称，HMAC），攻击者可以用 OIDC Provider 的<strong>公钥</strong>（本来只用于验证，是公开的）作为 HS256 的密钥来伪造 Token——因为 HS256 的&quot;密钥&quot;和&quot;验证密钥&quot;是同一个东西。这就是<strong>算法混淆攻击</strong>在 OIDC 中的具体应用。防御方法：验证方必须强制指定允许的算法列表，绝不接受 Token 里声明的算法作为信任来源。</p>
+<p><strong><code>sub</code> 的稳定性假设失效</strong>：OIDC 约定 <code>sub</code> 是用户在该提供方的永久不变 ID。但现实中有些提供方的 <code>sub</code> 会变（账号合并、迁移）。如果 Notion 用 <code>sub</code> 关联账号，<code>sub</code> 变了就会出现&quot;老用户被当新用户&quot;的问题。</p>
+<p><strong><code>nonce</code> 被忽略导致重放攻击</strong>：OIDC 支持在授权请求里带一个 <code>nonce</code>（随机值），这个值会原样嵌进 ID Token 的 Payload。客户端验证 ID Token 时，必须检查 <code>nonce</code> 是否和自己发出的一致。如果不检查，攻击者截获一个合法的 ID Token，可以重新提交给同一个客户端。</p>
+<h3>连接：OIDC 跟 SAML 是什么关系？</h3>
+<p>SAML（Security Assertion Markup Language）是 OIDC 的&quot;前辈&quot;，解决的是同样的问题：跨系统的身份联合（Federated Identity）。</p>
+<table>
+<thead>
+<tr>
+<th>维度</th>
+<th>SAML</th>
+<th>OIDC</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>时代</td>
+<td>2002 年，企业时代</td>
+<td>2014 年，移动互联网时代</td>
+</tr>
+<tr>
+<td>格式</td>
+<td>XML</td>
+<td>JSON + JWT</td>
+</tr>
+<tr>
+<td>适合场景</td>
+<td>企业 SSO（内网系统互信）</td>
+<td>消费级&quot;社会化登录&quot;、移动 App</td>
+</tr>
+<tr>
+<td>复杂度</td>
+<td>高（XML 签名和加密极其复杂）</td>
+<td>中等（基于 OAuth 2.0，JSON 友好）</td>
+</tr>
+</tbody></table>
+<p>现实中，企业内部系统（Salesforce、Workday 等）大量使用 SAML；消费级&quot;用 Google/GitHub 登录&quot;基本都是 OIDC。</p>
+<h3>终极挑战：路线图重建</h3>
+<p>如果忘掉一切，只记得第一幕的问题，能否从零重建 OIDC？</p>
+<pre><code>[问题：OAuth 2.0 不知道&quot;你是谁&quot;]
+    |
+    v
+[缺口1：Access Token 不透明，无法本地解读身份]
+    |
+    v
+[工具1：新增 ID Token，专门代表身份]
+    |
+    v
+[缺口2：ID Token 要能本地验证，不能是随机字符串]
+    |
+    v
+[工具2：ID Token 采用 JWT 格式，带签名]
+    |
+    v
+[缺口3：客户端要能找到提供方的公钥来验证签名]
+    |
+    v
+[工具3：JWKS 端点，标准化的公钥发布地址]
+    |
+    v
+[缺口4：客户端要能知道提供方的各个端点在哪]
+    |
+    v
+[工具4：Discovery 文档，{issuer}/.well-known/openid-configuration]
+    |
+    v
+[缺口5：如何在 OAuth 2.0 里触发身份认证？]
+    |
+    v
+[工具5：openid Scope，加上它服务器就在响应里额外签发 ID Token]
+    |
+    v
+[缺口6：ID Token 字段名要统一，各家才能互通]
+    |
+    v
+[工具6：标准 Claims（sub/iss/aud/exp/iat/email/name...）]
+    |
+    v
+[完整方案：OAuth 2.0 + openid scope + ID Token(JWT) + JWKS + Discovery + 标准 Claims = OIDC]
+</code></pre>
+<h2>关联笔记</h2>
+<blockquote>
+<p><strong>相关原子概念</strong><br><a href="/knowledge/oauth-2-0.html">OAuth 2.0</a> · <a href="/knowledge/jwt.html">JWT</a> · <a href="/knowledge/aksk.html">AKSK</a> · <a href="/knowledge/sts.html">STS</a></p>
+</blockquote>
+<p>OIDC 是 <a href="/knowledge/oauth-2-0.html">OAuth 2.0</a> 的超集，ID Token 使用 <a href="/knowledge/jwt.html">JWT</a> 格式，与 <a href="/knowledge/aksk.html">AKSK</a> 同属签名验证体系，临时身份场景可结合 <a href="/knowledge/sts.html">STS</a> 使用。</p>
+
+      </div>
+    </article>
+
+    <section class="related-notes">
+  <h3>Related Notes</h3>
+  <div class="related-notes-grid">
+    <a href="oauth-2-0.html" class="related-note-card">
+      <div class="related-title">OAuth 2.0</div>
+      <div class="related-category">Security</div>
+    </a>
+    <a href="jwt.html" class="related-note-card">
+      <div class="related-title">JWT</div>
+      <div class="related-category">Security</div>
+    </a>
+    <a href="aksk.html" class="related-note-card">
+      <div class="related-title">AKSK</div>
+      <div class="related-category">Security</div>
+    </a>
+    <a href="sts.html" class="related-note-card">
+      <div class="related-title">STS</div>
+      <div class="related-category">Security</div>
+    </a>
+  </div>
+</section>
+
+
+    <div style="max-width:800px;margin:0 auto;padding-bottom:60px;">
+      <a href="/knowledge/" class="back-link">Back to Knowledge Graph</a>
+    </div>
+  </main>
+
+  <!-- Footer -->
+  <footer>
+    <p>Designed &amp; Built by <a href="https://github.com/ChenSchenG">ChenSchenG</a></p>
+  </footer>
+
+  <script src="../js/main.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+  <script>hljs.highlightAll();</script>
+</body>
+</html>

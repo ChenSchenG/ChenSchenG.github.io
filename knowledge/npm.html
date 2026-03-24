@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>npm — ChenSchenG</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⚡</text></svg>">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../css/style.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css">
+</head>
+<body>
+  <!-- Navigation -->
+  <nav id="nav">
+    <div class="nav-logo">
+      <a href="/">CSG</a>
+    </div>
+    <div class="nav-links-wrapper">
+      <ol class="nav-links">
+        <li><a href="/#about"><span class="nav-number">01.</span>About</a></li>
+        <li><a href="/#projects"><span class="nav-number">02.</span>Projects</a></li>
+        <li><a href="/knowledge/"><span class="nav-number">03.</span>Knowledge</a></li>
+        <li><a href="/#contact"><span class="nav-number">04.</span>Contact</a></li>
+      </ol>
+      <div class="nav-resume">
+        <a href="/about.html">More About Me</a>
+      </div>
+    </div>
+    <button class="hamburger" id="hamburger" aria-label="Menu">
+      <span class="hamburger-inner"></span>
+    </button>
+  </nav>
+
+  <!-- Mobile Menu -->
+  <div class="mobile-menu-overlay" id="mobile-overlay"></div>
+  <aside class="mobile-menu" id="mobile-menu">
+    <ol>
+      <li><a href="/#about">About</a></li>
+      <li><a href="/#projects">Projects</a></li>
+      <li><a href="/knowledge/">Knowledge</a></li>
+      <li><a href="/#contact">Contact</a></li>
+    </ol>
+    <div class="mobile-resume">
+      <a href="/about.html">More About Me</a>
+    </div>
+  </aside>
+
+  <main class="article-page">
+    <article>
+      <header class="article-header">
+        <div class="article-breadcrumb">
+          <a href="/">Home</a>
+          <span class="separator">/</span>
+          <a href="/knowledge/">Knowledge</a>
+          <span class="separator">/</span>
+          <span>Other</span>
+        </div>
+        <h1>npm</h1>
+        <div class="article-meta">
+          <span>2026-03-19</span>
+          <span>Other</span>
+        </div>
+        <div class="article-tags">
+  <span class="tag">软件工程</span>
+  <span class="tag">概念</span>
+  <span class="tag">npm</span>
+  <span class="tag">包管理</span>
+  <span class="tag">Node.js</span>
+  <span class="tag">registry</span>
+  <span class="tag">package.json</span>
+  <span class="tag">依赖管理</span>
+</div>
+
+      </header>
+
+      <div class="article-body">
+        <h1>npm（Node Package Manager）</h1>
+<blockquote>
+<p><strong>一句话本质</strong><br>npm 是 JavaScript 的包管理器：用 package.json 声明依赖意图，从公共 registry 自动下载到 node_modules，用 package-lock.json 锁定精确版本。</p>
+</blockquote>
+<h2>第一幕：问题感知</h2>
+<p>你刚入职一家公司，拿到一台新电脑。</p>
+<p>同事发给你一个项目的代码压缩包，你解压，打开文件夹——代码文件加起来不到 200KB，很轻。你双击 <code>index.js</code>，什么也没发生。你问同事：&quot;怎么跑起来？&quot;</p>
+<p>同事说：&quot;你得先把依赖装上。&quot;</p>
+<p>你愣了一下。&quot;依赖？&quot;</p>
+<p>同事解释：这个项目用到了别人写好的工具库，比如处理日期的、格式化颜色的、解析命令行的——作者没有把这些工具的代码一起打包给你，因为那些工具库本身又依赖了另一些工具库，那些库又依赖了更多库。如果全部手动复制粘贴，光是理清&quot;谁依赖谁、哪个版本&quot;这件事，就能让人崩溃。</p>
+<p>同事打开终端，输入一行命令。几秒后，项目跑起来了。</p>
+<p>你盯着那行命令，忽然意识到：</p>
+<p><strong>如何让&quot;把所有依赖按正确版本装好&quot;这件事，变成一行命令？</strong></p>
+<hr>
+<h2>第二幕：引导式构建</h2>
+<p>假设你的项目只需要一个外部工具：<code>chalk</code>（一个给终端输出加颜色的库）。</p>
+<p>手动做法：去 GitHub 找到 chalk，下载代码，放进你的项目文件夹，手动处理它的依赖……</p>
+<p>等等，chalk 本身也有依赖。它的依赖的依赖呢？</p>
+<p>在你绝望之前，先退一步，只解决&quot;记录我用了什么&quot;这个小问题。</p>
+<p>你创建一个文件，叫它 <code>package.json</code>。它只做一件事：用结构化的方式写清楚&quot;这个项目叫什么、需要哪些外部工具、每个工具要哪个版本&quot;。</p>
+<pre><code class="language-json">{
+  &quot;name&quot;: &quot;my-project&quot;,
+  &quot;dependencies&quot;: {
+    &quot;chalk&quot;: &quot;5.0.0&quot;
+  }
+}
+</code></pre>
+<blockquote>
+<p>想一想：有了这份清单，&quot;帮我把清单上的东西都装好&quot;这件事，是不是就可以交给一个自动化工具去做了？</p>
+</blockquote>
+<p>工具库不在你的电脑上，也不在同事的电脑上。它们需要一个公共的存放地点——一个所有人都能上传、也能下载的仓库。这个仓库就叫 <strong>registry</strong>（注册表），可以把它想象成一个公共图书馆：任何人都可以把自己写的工具&quot;捐&quot;进去，任何人也都可以来借。</p>
+<blockquote>
+<p>想一想：下载下来放哪儿？总不能和你的源代码混在一起——不然别人拿到你的代码，又要重新厘清哪些是你写的、哪些是下载的。</p>
+</blockquote>
+<p>你给外部工具指定一个统一的落脚点：<code>node_modules</code> 文件夹。所有从公共图书馆下载的工具，都放进这里。你的同事拿到项目时不需要这个文件夹——他只要拿到 <code>package.json</code>，让自动化工具重新下载一遍就好。<code>node_modules</code> 是可以随时删掉、随时重建的。</p>
+<p>现在还有一个隐患。你在 <code>package.json</code> 里写 <code>&quot;chalk&quot;: &quot;^5.0.0&quot;</code>，意思是&quot;5.x.x 里任何新版本都行&quot;。今天你装的是 5.0.1，三个月后同事重新装，可能装到了 5.3.0。代码行为悄悄变了，却没人发现。</p>
+<p>于是出现了 <strong><code>package-lock.json</code></strong>——它记录的不是&quot;我想要什么版本&quot;，而是&quot;我上次实际装了什么版本，精确到每一个间接依赖&quot;。这是一份<strong>快照</strong>，保证任何人在任何时候执行安装，都能得到和你完全一样的结果。</p>
+<blockquote>
+<p>想一想：<code>package.json</code> 是意图，<code>package-lock.json</code> 是现实。两份文件都应该提交到代码仓库吗？</p>
+</blockquote>
+<p>都应该提交。<code>package.json</code> 告诉别人&quot;这个项目要什么&quot;，<code>package-lock.json</code> 保证&quot;装出来的结果和你一模一样&quot;。只提交前者，版本可能飘；只提交后者，别人看不懂意图。</p>
+<hr>
+<h2>第三幕：完整组装</h2>
+<pre><code>你的项目
+|
++-- package.json          &lt;- 意图清单（&quot;我需要这些工具&quot;）
++-- package-lock.json     &lt;- 精确快照（&quot;上次实际装了这些版本&quot;）
++-- index.js              &lt;- 你写的代码
+|
++-- node_modules/         &lt;- 所有外部工具的落脚点（不提交到 git）
+    +-- chalk/
+    +-- ansi-styles/      &lt;- chalk 的依赖，也被装进来了
+
+
+                    +-----------------------------+
+                    |       npm registry          |
+                    |   (公共图书馆，在云端)        |
+                    +-------------+---------------+
+                                  | npm install
+                                  v
++--------------------------------------------------+
+|  你的电脑                                          |
+|  package.json  --&gt;  告诉 npm 要装什么              |
+|  package-lock.json &lt;-- npm 写入精确版本快照         |
+|  node_modules/ &lt;--- npm 把文件下载到这里            |
++--------------------------------------------------+
+</code></pre>
+<p><strong>端到端示例：从零开始创建一个项目</strong></p>
+<pre><code class="language-bash"># 初始化，生成 package.json
+npm init -y
+
+# 安装一个工具库
+npm install chalk
+# 1. 去 registry 下载 chalk 及其所有依赖
+# 2. 放入 node_modules/
+# 3. 更新 package.json（dependencies 里加了 chalk）
+# 4. 生成/更新 package-lock.json
+
+# 在代码里使用
+# index.js
+import chalk from &#39;chalk&#39;;
+console.log(chalk.blue(&#39;Hello!&#39;));
+
+node index.js   # 输出：Hello!（蓝色）
+</code></pre>
+<p><strong>拿到别人的项目，恢复所有依赖</strong></p>
+<pre><code class="language-bash">npm install
+# npm 读取 package-lock.json，精确还原，版本和原作者完全一致
+</code></pre>
+<p><strong>关键文件对照表</strong></p>
+<table>
+<thead>
+<tr>
+<th>文件</th>
+<th>作用</th>
+<th>提交到 git？</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>package.json</code></td>
+<td>声明项目信息与依赖意图</td>
+<td>✅ 必须</td>
+</tr>
+<tr>
+<td><code>package-lock.json</code></td>
+<td>锁定实际安装的精确版本</td>
+<td>✅ 必须</td>
+</tr>
+<tr>
+<td><code>node_modules/</code></td>
+<td>实际下载的工具文件</td>
+<td>❌ 不要</td>
+</tr>
+</tbody></table>
+<p><strong>常用命令</strong></p>
+<table>
+<thead>
+<tr>
+<th>命令</th>
+<th>做了什么</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>npm init -y</code></td>
+<td>生成默认 package.json</td>
+</tr>
+<tr>
+<td><code>npm install &lt;包名&gt;</code></td>
+<td>安装一个包，加入 dependencies</td>
+</tr>
+<tr>
+<td><code>npm install</code></td>
+<td>按 lock 文件还原所有依赖</td>
+</tr>
+<tr>
+<td><code>npm uninstall &lt;包名&gt;</code></td>
+<td>卸载一个包</td>
+</tr>
+<tr>
+<td><code>npm run &lt;脚本名&gt;</code></td>
+<td>运行 package.json 里定义的脚本</td>
+</tr>
+</tbody></table>
+<hr>
+<h2>第四幕：验证与压力测试</h2>
+<h3>反事实：如果没有 npm</h3>
+<p>你需要手动去每个工具库的 GitHub 页面下载代码、手动追踪&quot;A 依赖 B 的 1.2 版，B 依赖 C 的 2.0 版&quot;这张依赖图、每次换电脑或换同事都要重新做一遍。npm 把这些全部自动化了。</p>
+<h3>边界：npm 不能做什么</h3>
+<p><strong>npm 不保证代码是安全的。</strong> 任何人都可以往 registry 发布包，历史上出现过恶意包混入的情况（名字和知名库只差一个字母）。<code>npm audit</code> 可以扫描已知漏洞，但不是万能防火墙。</p>
+<p><strong>npm 不解决&quot;同一个包被装了十份&quot;的问题。</strong> 如果你的电脑上有 50 个项目，每个都用了 <code>lodash</code>——硬盘上存了 50 份完全相同的文件。这个问题由 <a href="/knowledge/pnpm.html">pnpm</a> 解决。</p>
+<h3>路线图重建</h3>
+<pre><code>[痛点：手动管理依赖太痛苦]
+    |
+    v
+[决策1：需要一个描述文件] --&gt; package.json
+    |
+    v
+[决策2：需要一个公共仓库] --&gt; registry
+    |
+    v
+[决策3：需要一个本地隔离区] --&gt; node_modules/
+    |
+    v
+[决策4：版本飘移是隐患] --&gt; package-lock.json
+    |
+    v
+[遗留问题：重复文件太多、硬盘浪费] --&gt; 留给 pnpm 解决
+</code></pre>
+<h2>关联笔记</h2>
+<blockquote>
+<p><strong>相关原子概念</strong><br><a href="/knowledge/pnpm.html">pnpm</a> · <a href="/knowledge/sdk.html">SDK</a></p>
+</blockquote>
+<p><a href="/knowledge/pnpm.html">pnpm</a> 是 npm 的改进版，解决了 npm 的重复存储和幽灵依赖问题。<a href="/knowledge/sdk.html">SDK</a> 的 node_modules 管理依赖于 npm/pnpm 这样的包管理器。</p>
+
+      </div>
+    </article>
+
+    <section class="related-notes">
+  <h3>Related Notes</h3>
+  <div class="related-notes-grid">
+    <a href="pnpm.html" class="related-note-card">
+      <div class="related-title">pnpm</div>
+      <div class="related-category">Other</div>
+    </a>
+    <a href="sdk.html" class="related-note-card">
+      <div class="related-title">SDK</div>
+      <div class="related-category">Other</div>
+    </a>
+  </div>
+</section>
+
+
+    <div style="max-width:800px;margin:0 auto;padding-bottom:60px;">
+      <a href="/knowledge/" class="back-link">Back to Knowledge Graph</a>
+    </div>
+  </main>
+
+  <!-- Footer -->
+  <footer>
+    <p>Designed &amp; Built by <a href="https://github.com/ChenSchenG">ChenSchenG</a></p>
+  </footer>
+
+  <script src="../js/main.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+  <script>hljs.highlightAll();</script>
+</body>
+</html>

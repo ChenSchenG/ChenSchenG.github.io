@@ -1,0 +1,339 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AKSK — ChenSchenG</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⚡</text></svg>">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../css/style.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css">
+</head>
+<body>
+  <!-- Navigation -->
+  <nav id="nav">
+    <div class="nav-logo">
+      <a href="/">CSG</a>
+    </div>
+    <div class="nav-links-wrapper">
+      <ol class="nav-links">
+        <li><a href="/#about"><span class="nav-number">01.</span>About</a></li>
+        <li><a href="/#projects"><span class="nav-number">02.</span>Projects</a></li>
+        <li><a href="/knowledge/"><span class="nav-number">03.</span>Knowledge</a></li>
+        <li><a href="/#contact"><span class="nav-number">04.</span>Contact</a></li>
+      </ol>
+      <div class="nav-resume">
+        <a href="/about.html">More About Me</a>
+      </div>
+    </div>
+    <button class="hamburger" id="hamburger" aria-label="Menu">
+      <span class="hamburger-inner"></span>
+    </button>
+  </nav>
+
+  <!-- Mobile Menu -->
+  <div class="mobile-menu-overlay" id="mobile-overlay"></div>
+  <aside class="mobile-menu" id="mobile-menu">
+    <ol>
+      <li><a href="/#about">About</a></li>
+      <li><a href="/#projects">Projects</a></li>
+      <li><a href="/knowledge/">Knowledge</a></li>
+      <li><a href="/#contact">Contact</a></li>
+    </ol>
+    <div class="mobile-resume">
+      <a href="/about.html">More About Me</a>
+    </div>
+  </aside>
+
+  <main class="article-page">
+    <article>
+      <header class="article-header">
+        <div class="article-breadcrumb">
+          <a href="/">Home</a>
+          <span class="separator">/</span>
+          <a href="/knowledge/">Knowledge</a>
+          <span class="separator">/</span>
+          <span>Security</span>
+        </div>
+        <h1>AKSK</h1>
+        <div class="article-meta">
+          <span>2026-03-17</span>
+          <span>Security</span>
+        </div>
+        <div class="article-tags">
+  <span class="tag">密码学与安全</span>
+  <span class="tag">协议</span>
+  <span class="tag">AKSK</span>
+  <span class="tag">AccessKey</span>
+  <span class="tag">SecretKey</span>
+  <span class="tag">HMAC</span>
+  <span class="tag">签名认证</span>
+  <span class="tag">API认证</span>
+</div>
+
+      </header>
+
+      <div class="article-body">
+        <h1>AKSK</h1>
+<blockquote>
+<p><strong>一句话本质</strong><br>用一个永远不传输的共享秘密，对每次请求的内容做指纹，让服务器能验真伪、让攻击者无法伪造</p>
+</blockquote>
+<h2>第一幕：问题感知</h2>
+<p>你写了一个程序，需要调用云服务商的 API——比如往对象存储里上传文件。</p>
+<p>最直觉的方案：用用户名和密码。程序里写死你的账号密码，每次调用 API 时带上。</p>
+<p>这个方案在生产环境里活不过一周。</p>
+<p>代码会被提交到 Git 仓库。仓库可能是半公开的，或者有十几个同事能看到。密码泄漏了，攻击者拿到的不是&quot;上传文件&quot;的权限——是你整个账号的所有权限，包括删库、扣费、看所有数据。</p>
+<p>好，不写死密码。每次调用 API 前先让用户手动登录，拿到 token 再用。</p>
+<p>但这是一个<strong>程序</strong>，不是人在操作。没有人坐在那里输密码，程序需要全自动运行，半夜三点也要能发请求。</p>
+<p>程序需要一种&quot;证明自己是谁&quot;的方式，但这个证明：不能是账号密码（权限太大），不需要人参与（全自动），还得让服务器能验证（不能随便伪造）。</p>
+<p>生活里有没有类似的东西：不是你本人出面，但凭一张特定的凭证就能证明你有权做某件事，而且这张凭证本身就能自证真伪？</p>
+<p><strong>程序怎么向 API 证明自己的身份？</strong></p>
+<hr>
+<blockquote>
+<p>想一想：你会怎么设计这张&quot;凭证&quot;？它应该包含什么，才能既证明身份又防止伪造？</p>
+</blockquote>
+<hr>
+<h2>第二幕：引导式构建</h2>
+<p>你刚才大概想到：给程序发一对专属的密钥，和账号密码分开管理，权限可以单独控制。</p>
+<p>这个直觉完全对。但光有密钥还不够——我们一步步来看为什么。</p>
+<hr>
+<p><strong>第一步：给程序一个专属身份——AK</strong></p>
+<p>首先，给程序分配一个公开的身份标识，就像一个用户名，但专门给程序用。</p>
+<p>这个标识叫 <strong>Access Key（访问密钥 ID，简称 AK）</strong>。它是一串随机字符，比如 <code>AKIAIOSFODNN7EXAMPLE</code>。</p>
+<p>AK 可以明文放在请求里，服务器靠它知道&quot;这个请求是哪个程序发来的&quot;。</p>
+<blockquote>
+<p>想一想：如果只有 AK，没有别的，会有什么问题？</p>
+</blockquote>
+<p>任何人都能伪造。我知道你的 AK，我就能冒充你的程序发请求——服务器没有办法区分真假。AK 本身不能证明身份，它只是个&quot;我叫什么&quot;，不是&quot;我真的是我&quot;。</p>
+<hr>
+<p>所以还需要一个只有真正的程序才知道的秘密。</p>
+<p>这个秘密叫 <strong>Secret Key（秘密访问密钥，简称 SK）</strong>。SK 绝对不能出现在网络请求里——它只存在于程序内部，永远不发送出去。</p>
+<blockquote>
+<p>想一想：SK 不发出去，服务器怎么用它来验证请求？</p>
+</blockquote>
+<p>这就是整个机制最关键的地方。SK 不用发出去——它只用来<strong>签名</strong>。服务器也存着这个 SK（在它自己的数据库里），所以它能在本地验证签名，不需要接收 SK。</p>
+<hr>
+<p><strong>第二步：用 SK 对请求签名——HMAC</strong></p>
+<p>现在有了 AK（公开身份）和 SK（私密钥匙）。问题是：怎么用 SK 证明&quot;这个请求确实是我发的&quot;，而且不能暴露 SK 本身？</p>
+<p>答案是：用 SK 对请求内容做一次<strong>哈希计算</strong>，生成一个签名。</p>
+<p>具体来说，用的是 <strong>HMAC（Hash-based Message Authentication Code，基于哈希的消息认证码）</strong>。</p>
+<p>HMAC 的输入是两样东西：一个密钥（SK），和一段消息（请求内容）。输出是一个固定长度的摘要——签名。</p>
+<p>$$\text{Signature} = \text{HMAC}(\text{SK},\ \text{message})$$</p>
+<p>HMAC 有两个关键性质：</p>
+<ul>
+<li><strong>不可逆</strong>：看到签名，无法推算出 SK</li>
+<li><strong>绑定内容</strong>：消息改了一个字节，签名完全不同</li>
+</ul>
+<blockquote>
+<p>想一想：如果攻击者截获了一个合法请求（包含 AK 和签名），他能用这个请求冒充你吗？</p>
+</blockquote>
+<p>可以重放这一条请求——把同样的请求包原封不动再发一次。但他改不了请求内容（比如改上传的文件或者调用的接口），因为改了内容签名就不对了。重放攻击是一个真实问题，后面会看到怎么防。</p>
+<hr>
+<p>我们来消化一下目前的进展：</p>
+<pre><code>程序持有:  AK（公开，放请求里）
+           SK（私密，永远不发出去）
+
+发请求时:
+  1. 把请求的关键信息拼成一段字符串（&quot;待签名字符串&quot;）
+  2. 用 SK 对这段字符串做 HMAC，得到签名
+  3. 把 AK + 签名 放进请求头，发出去
+
+服务器验证:
+  1. 从请求头取出 AK
+  2. 用 AK 查到对应的 SK（存在服务器数据库里）
+  3. 用同样的方法重新计算签名
+  4. 比对：一致 = 合法，不一致 = 拒绝
+</code></pre>
+<p>这就是 AKSK 的核心骨架。SK 从来不传输，只用来算签名——服务器自己也能算，所以能验证，但攻击者不知道 SK，伪造不了。</p>
+<hr>
+<p><strong>第三步：防重放——加时间戳和 Nonce</strong></p>
+<p>刚才发现了一个漏洞：攻击者截获合法请求后，可以原封不动重放。</p>
+<p>解决方案是：在&quot;待签名字符串&quot;里加入<strong>时间戳（Timestamp）</strong>。</p>
+<p>请求里带上当前时间，服务器检查：如果这个时间戳和服务器当前时间相差超过 5 分钟（各家实现不同，一般是 5-15 分钟），就拒绝请求。</p>
+<p>攻击者截获了一个请求，最多只有 5 分钟的窗口重放它。5 分钟后，这个请求就永久失效。</p>
+<blockquote>
+<p>想一想：如果攻击者在 5 分钟窗口内疯狂重放这个请求，时间戳方案还够用吗？怎么彻底堵住？</p>
+</blockquote>
+<p>还不够。可以再加一个 <strong>Nonce（一次性随机数）</strong>——每个请求带一个随机字符串，服务器记录最近收到过的所有 Nonce，收到重复的直接拒绝。时间戳 + Nonce 配合，既限制了窗口，又堵死了窗口内的重放。</p>
+<hr>
+<p><strong>第四步：签名哪些内容？——规范化</strong></p>
+<p>还有一个工程细节：HMAC 的输入是&quot;请求内容&quot;，但一个 HTTP 请求里有 URL、请求方法、各种 Header、Body……哪些内容参与签名？</p>
+<p>如果签名范围不明确，就会出问题：</p>
+<ul>
+<li>签了 Body 但没签 URL：攻击者把请求的 URL 改成另一个接口，签名还是合法的</li>
+<li>不同的实现对 Header 排序不同：同样的请求，客户端算出的签名和服务器算出的不一致</li>
+</ul>
+<p>所以需要一套**规范化（Canonicalization）**规则——明确规定哪些字段参与签名、按什么顺序拼接、怎么处理空格和编码。</p>
+<p>AWS 的 Signature Version 4、阿里云的 HMAC-SHA256 签名机制，都有详细的规范化文档，核心思路一样：把请求里的关键信息按固定规则拼成一个字符串，再做 HMAC。</p>
+<blockquote>
+<p>想一想：如果规范化规则里忘了把请求 Body 纳入签名，会有什么安全漏洞？</p>
+</blockquote>
+<p>攻击者可以截获一个合法请求，把 Body 换成任意内容（比如把&quot;上传文件 A&quot;改成&quot;删除所有文件&quot;），签名仍然合法——因为 Body 没有被签名保护。规范化范围越广，请求被篡改的可能性越小。</p>
+<hr>
+<h2>第三幕：完整组装</h2>
+<h3>全景图</h3>
+<pre><code>密钥管理
++-----------------------------------+
+|  AK: AKIAIOSFODNN7EXAMPLE        |  &lt;-- 公开身份，可以明文传输
+|  SK: wJalrXUtnFEMI/K7MDENG/bPxR  |  &lt;-- 私密，只存在程序和服务器
++-----------------------------------+
+
+发起请求（客户端）
++-----------------------------------------------+
+|  Step 1: 构造待签名字符串                        |
+|    = 请求方法 + &quot;\n&quot;                            |
+|    + 规范化URL + &quot;\n&quot;                           |
+|    + 规范化Headers + &quot;\n&quot;                       |
+|    + Body哈希 + &quot;\n&quot;                            |
+|    + 时间戳 + &quot;\n&quot;                              |
+|    + Nonce                                     |
+|                                               |
+|  Step 2: 计算签名                               |
+|    Signature = HMAC-SHA256(SK, 待签名字符串)     |
+|                                               |
+|  Step 3: 组装请求头                             |
+|    Authorization: AK=xxx, Sig=yyy, T=zzz      |
++-----------------------------------------------+
+                     |
+                     | HTTP 请求
+                     v
+验证请求（服务器端）
++-----------------------------------------------+
+|  Step 1: 从请求头取出 AK                        |
+|  Step 2: 用 AK 查数据库，取出对应 SK             |
+|  Step 3: 检查时间戳（±5分钟内？）                |
+|  Step 4: 检查 Nonce（见过吗？）                  |
+|  Step 5: 用同样规则重建待签名字符串               |
+|  Step 6: 计算 HMAC-SHA256(SK, 待签名字符串)     |
+|  Step 7: 比对签名                               |
+|    一致 -&gt; 放行                                 |
+|    不一致 -&gt; 401 拒绝                           |
++-----------------------------------------------+
+</code></pre>
+<h3>端到端示例：调用&quot;列出存储桶&quot;接口</h3>
+<p><strong>已知条件</strong></p>
+<pre><code>AK  = &quot;MYACCESSKEY123&quot;
+SK  = &quot;mysecretkey456&quot;
+请求 = GET https://oss.example.com/buckets
+时间戳 = &quot;2026-03-17T10:00:00Z&quot;
+Nonce = &quot;abc123&quot;
+Body = (空)
+</code></pre>
+<p><strong>Step 1：构造待签名字符串</strong></p>
+<pre><code>StringToSign =
+  &quot;GET\n&quot;
+  &quot;/buckets\n&quot;
+  &quot;host:oss.example.com\n&quot;
+  &quot;x-date:2026-03-17T10:00:00Z\n&quot;
+  &quot;x-nonce:abc123\n&quot;
+  &quot;e3b0c44...&quot;   &lt;- 空Body的SHA256哈希
+</code></pre>
+<p><strong>Step 2：计算签名</strong></p>
+<pre><code>Signature = HMAC-SHA256(&quot;mysecretkey456&quot;, StringToSign)
+          = &quot;a7f3d9c2...&quot;  (示意值)
+</code></pre>
+<p><strong>Step 3：发送请求</strong></p>
+<pre><code>GET /buckets HTTP/1.1
+Host: oss.example.com
+X-Date: 2026-03-17T10:00:00Z
+X-Nonce: abc123
+Authorization: AKSK AK=MYACCESSKEY123, Sig=a7f3d9c2...
+</code></pre>
+<p><strong>Step 4：服务器验证</strong></p>
+<pre><code>1. 取出 AK = &quot;MYACCESSKEY123&quot;
+2. 查库得到 SK = &quot;mysecretkey456&quot;
+3. 时间戳检查: 10:00:00 vs 服务器当前时间 -&gt; OK
+4. Nonce &quot;abc123&quot; -&gt; 未见过 -&gt; OK，记录它
+5. 重建 StringToSign（同样的规则）
+6. 计算 HMAC-SHA256(&quot;mysecretkey456&quot;, StringToSign)
+7. 结果 = &quot;a7f3d9c2...&quot; -&gt; 与请求头一致 -&gt; 放行 ✓
+</code></pre>
+<hr>
+<h2>第四幕：验证与压力测试</h2>
+<h3>反事实：去掉关键组件会怎样？</h3>
+<p><strong>去掉 SK，只用 AK</strong>：任何知道 AK 的人都能冒充你发请求。AK 通常出现在日志、错误信息里，几乎是半公开的——没有 SK，AKSK 机制等于没有。</p>
+<p><strong>去掉时间戳</strong>：攻击者截获任意一个合法请求，可以在未来任意时间重放它。被截获的请求永久有效，泄漏一次，后患无穷。</p>
+<p><strong>规范化规则不包含 Body</strong>：请求体可以被篡改，签名仍合法。API 调用的实际内容（参数、数据）没有被保护。</p>
+<h3>边界：AKSK 在哪些情况下不够用或有风险？</h3>
+<p><strong>SK 泄漏是灾难性的</strong>：SK 一旦泄漏，攻击者可以完美伪造任何请求，直到 SK 被吊销。代码里硬编码 SK、把 SK 提交到 Git，是最常见的泄漏方式。真实世界里，GitHub 上能搜到大量泄漏的云服务 SK，被攻击者用来挖矿或者删数据。</p>
+<p><strong>长期有效 = 长期危险</strong>：AKSK 通常长期有效（除非手动轮换）。这和&quot;最小权限、最短时效&quot;的安全原则有张力。这个问题催生了 STS——用 AKSK 换取短期临时凭证，到期自动失效。</p>
+<p><strong>不适合用户侧认证</strong>：AKSK 设计给&quot;程序对程序&quot;的场景（Machine-to-Machine）。用户登录网站这类场景，用的是 OAuth / OIDC，不是 AKSK。</p>
+<p><strong>跨账号授权麻烦</strong>：你想让另一个团队的程序访问你的资源，需要给对方创建 AK/SK，管理起来很繁琐。STS 的角色扮演机制更适合跨账号场景。</p>
+<h3>连接：AKSK 和哪些东西有关？</h3>
+<p><strong>STS（Security Token Service，临时安全令牌服务）</strong>：用永久 AKSK 换取一组临时的 AK/SK/Token，有效期几小时到几天。临时凭证到期自动失效，即使泄漏损失也有限。AKSK 是 STS 的基础——临时凭证本质上是一对临时的 AK+SK。</p>
+<p><strong>IAM（Identity and Access Management，身份与访问管理）</strong>：管理 AK/SK 的系统。每个 AK 对应一组权限策略（能调哪些接口、操作哪些资源），权限不是全部或全无，而是精细控制的。</p>
+<p><strong>HMAC vs 数字签名</strong>：AKSK 用的是对称的 HMAC——双方都持有 SK，都能算签名，服务器验证时用自己的 SK 重算比对。JWT 等场景也可以用非对称签名（私钥签名，公钥验证），两者各有适用场景。</p>
+<h3>终极挑战·空白重建</h3>
+<pre><code>[问题]
+  程序需要调用 API
+  账号密码权限太大、泄漏代价太高
+
+[缺口1]
+  需要一个专属于程序的身份标识
+  和账号密码分开，权限可单独控制
+
+[工具1: AK]
+  公开的程序身份 ID
+  放在请求里让服务器认识&quot;你是谁&quot;
+  但 AK 公开，任何人都能冒充
+
+[缺口2]
+  需要证明&quot;这个请求真的是我发的&quot;
+  但不能在网络上传输秘密本身
+
+[工具2: SK + HMAC]
+  SK 是只有双方知道的共享密钥
+  用 SK 对请求内容做 HMAC 得到签名
+  签名随请求发出，SK 永远不发出
+  服务器用自己的 SK 重算比对
+
+[缺口3]
+  合法请求可以被截获后重放
+
+[工具3: 时间戳 + Nonce]
+  时间戳: 超过 5 分钟的请求拒绝
+  Nonce: 见过的随机数拒绝
+  两者都纳入待签名字符串，防篡改
+
+[缺口4]
+  &quot;请求内容&quot;范围不明确导致漏洞
+
+[工具4: 规范化规则]
+  明确哪些字段参与签名
+  固定拼接顺序和编码方式
+  保证客户端和服务器算出相同签名
+
+[完整方案]
+  AK 公开身份 + SK 私密签名
+  发请求: 规范化 -&gt; HMAC -&gt; 带签名发出
+  验请求: 查 SK -&gt; 重算签名 -&gt; 比对
+  防重放: 时间戳 + Nonce 纳入签名范围
+</code></pre>
+<p>AKSK 的本质就是这一句话：<strong>用一个永远不传输的共享秘密，对每次请求的内容做指纹，让服务器能验真伪、让攻击者无法伪造。</strong></p>
+<h2>关联笔记</h2>
+<blockquote>
+<p><strong>相关原子概念</strong><br>待关联检索后补充</p>
+</blockquote>
+
+      </div>
+    </article>
+
+    
+
+    <div style="max-width:800px;margin:0 auto;padding-bottom:60px;">
+      <a href="/knowledge/" class="back-link">Back to Knowledge Graph</a>
+    </div>
+  </main>
+
+  <!-- Footer -->
+  <footer>
+    <p>Designed &amp; Built by <a href="https://github.com/ChenSchenG">ChenSchenG</a></p>
+  </footer>
+
+  <script src="../js/main.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+  <script>hljs.highlightAll();</script>
+</body>
+</html>

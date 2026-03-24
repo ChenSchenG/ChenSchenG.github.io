@@ -1,0 +1,416 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SDK — ChenSchenG</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⚡</text></svg>">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../css/style.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css">
+</head>
+<body>
+  <!-- Navigation -->
+  <nav id="nav">
+    <div class="nav-logo">
+      <a href="/">CSG</a>
+    </div>
+    <div class="nav-links-wrapper">
+      <ol class="nav-links">
+        <li><a href="/#about"><span class="nav-number">01.</span>About</a></li>
+        <li><a href="/#projects"><span class="nav-number">02.</span>Projects</a></li>
+        <li><a href="/knowledge/"><span class="nav-number">03.</span>Knowledge</a></li>
+        <li><a href="/#contact"><span class="nav-number">04.</span>Contact</a></li>
+      </ol>
+      <div class="nav-resume">
+        <a href="/about.html">More About Me</a>
+      </div>
+    </div>
+    <button class="hamburger" id="hamburger" aria-label="Menu">
+      <span class="hamburger-inner"></span>
+    </button>
+  </nav>
+
+  <!-- Mobile Menu -->
+  <div class="mobile-menu-overlay" id="mobile-overlay"></div>
+  <aside class="mobile-menu" id="mobile-menu">
+    <ol>
+      <li><a href="/#about">About</a></li>
+      <li><a href="/#projects">Projects</a></li>
+      <li><a href="/knowledge/">Knowledge</a></li>
+      <li><a href="/#contact">Contact</a></li>
+    </ol>
+    <div class="mobile-resume">
+      <a href="/about.html">More About Me</a>
+    </div>
+  </aside>
+
+  <main class="article-page">
+    <article>
+      <header class="article-header">
+        <div class="article-breadcrumb">
+          <a href="/">Home</a>
+          <span class="separator">/</span>
+          <a href="/knowledge/">Knowledge</a>
+          <span class="separator">/</span>
+          <span>Other</span>
+        </div>
+        <h1>SDK</h1>
+        <div class="article-meta">
+          <span>2026-03-17</span>
+          <span>Other</span>
+        </div>
+        <div class="article-tags">
+  <span class="tag">软件工程</span>
+  <span class="tag">概念</span>
+  <span class="tag">SDK</span>
+  <span class="tag">Client</span>
+  <span class="tag">签名</span>
+  <span class="tag">重试</span>
+  <span class="tag">序列化</span>
+  <span class="tag">抽象层</span>
+</div>
+
+      </header>
+
+      <div class="article-body">
+        <h1>SDK</h1>
+<blockquote>
+<p><strong>一句话本质</strong><br>SDK 是对平台 HTTP 通信细节的抽象层：封装签名、重试、序列化、错误处理，让调用者一行代码完成原来几百行的工作。</p>
+</blockquote>
+<h2>第一幕：问题感知</h2>
+<p>你想在自己的 App 里接入腾讯云的对象存储，让用户能上传图片。</p>
+<p>打开腾讯云文档，发现要发一个 HTTP 请求，大概长这样：</p>
+<pre><code>PUT /photo.jpg HTTP/1.1
+Host: mybucket.cos.ap-beijing.myqcloud.com
+Date: Tue, 04 Apr 2023 08:35:00 GMT
+Authorization: q-sign-algorithm=sha1&amp;q-ak=AKIDxxx&amp;q-sign-time=...&amp;q-key-time=...&amp;q-header-list=...&amp;q-url-param-list=...&amp;q-signature=...
+Content-Length: 102400
+</code></pre>
+<p><code>Authorization</code> 那一行，你得自己构造。文档说需要多步计算：先基于时间戳生成一个中间密钥，再用这个中间密钥对规范化的请求信息做哈希，最终得到签名字符串——光这一步就要好几十行代码。</p>
+<p>这还只是签名部分。你还得处理：大文件怎么切块分批上传、网络超时了要不要重试、上传进度怎么回调、服务器返回 403 是权限不够还是签名过期……</p>
+<p>每接入一个云服务，就要把这套流程重新实现一遍。每家云厂商的签名规则还不一样。</p>
+<p><strong>为什么不能把这些封装好直接给我用？</strong></p>
+<hr>
+<h2>第二幕：引导式构建</h2>
+<p>&quot;封装好直接给我用&quot;——这个想法本身就是 SDK 的出发点。</p>
+<p>但封装这件事，有一个根本问题需要先想清楚：<strong>封装什么、不封装什么？</strong></p>
+<p>如果把所有东西都封装掉，你就失去了控制权——出了问题不知道哪里错了，想做定制化也做不到。如果封装太少，又回到了原点——用户还是得自己处理签名、重试、错误解析。</p>
+<p>这个取舍，就是 SDK 设计的核心张力。</p>
+<p><strong>SDK</strong>（Software Development Kit，软件开发工具包）是一组专门为某个平台/服务设计的代码库，把调用该服务所需的复杂细节封装起来，让开发者用更简单的接口完成任务。</p>
+<p>腾讯云 COS 的 SDK，就是把签名计算、分块上传、重试逻辑全部藏在背后，暴露给你的只是：</p>
+<pre><code class="language-python">client.upload_file(&quot;photo.jpg&quot;, bucket=&quot;mybucket&quot;, key=&quot;photo.jpg&quot;)
+</code></pre>
+<p>一行代码，完成原来需要几百行的工作。</p>
+<blockquote>
+<p>想一想：这一行代码背后，SDK 帮你做了哪些&quot;看不见的工作&quot;？除了签名，还有什么？</p>
+</blockquote>
+<p>至少有这些：读取你的密钥配置、构造 HTTP 请求、根据文件大小决定是直接上传还是分块上传、发送请求、处理网络超时并自动重试、解析响应、把云服务的错误码翻译成人类可读的异常……</p>
+<p>这些工作每个单独拿出来都不难，但合在一起就是相当大的工程量。SDK 帮你做完了，你不用关心。</p>
+<p>这个&quot;帮你做完了、你不用关心&quot;，有个专门的名字——<strong>抽象</strong>（Abstraction）。SDK 是对底层 HTTP 通信和平台细节的抽象层。</p>
+<blockquote>
+<p>想一想：抽象层有什么代价？</p>
+</blockquote>
+<p>代价是失去对底层的直接控制。如果 SDK 的实现有 bug，你很难发现；如果你需要某个 SDK 不支持的功能，你就被卡住了；如果 SDK 版本升级了接口，你的代码可能要跟着改。</p>
+<p>所以一个好的 SDK，不是把一切都藏起来，而是<strong>分层暴露</strong>：常见操作有高层接口（一行代码搞定），特殊需求有低层接口（直接操作原始 HTTP），两层都有。</p>
+<p>现在来看 SDK 里具体装了哪些东西。</p>
+<p>第一个部件：<strong>Client（客户端对象）</strong>。</p>
+<p>你调用 SDK 的第一步，总是创建一个 Client：</p>
+<pre><code class="language-python">client = CosClient(secret_id=&quot;AKIDxxx&quot;, secret_key=&quot;SKEYyyy&quot;, region=&quot;ap-beijing&quot;)
+</code></pre>
+<p>Client 是你和服务之间的&quot;代理人&quot;——它保存你的认证信息、知道要连接哪个服务端点，你之后的所有操作都通过它发出。</p>
+<blockquote>
+<p>想一想：为什么要把认证信息放在 Client 里，而不是每次调用时再传？</p>
+</blockquote>
+<p>因为一个程序里可能有成百上千次 API 调用，每次都传密钥既繁琐又容易出错。更重要的是，密钥这种敏感信息越少出现在代码里越好——放在 Client 里统一管理，也方便统一轮换。</p>
+<p>Client 是 SDK 的&quot;状态持有者&quot;，它还管理全局超时配置、重试策略等，是整个 SDK 的配置中心。</p>
+<p>有了 Client 之后，问题来了：每次发请求，怎么证明这个请求是你发的、没被人篡改？</p>
+<p>这就是第二个部件：<strong>Signer（签名器）</strong>。</p>
+<p>你已经学过 AKSK——API 请求必须带签名，证明请求是你发的。SDK 把这个签名过程完全自动化了：每次你调用 <code>client.upload_file()</code>，SDK 内部自动取出密钥、计算时间戳、按照平台算法生成签名、注入请求头。你完全感知不到这个过程。</p>
+<blockquote>
+<p>想一想：如果你在写一个同时支持多个云厂商的工具，每家的签名算法都不一样，你会怎么设计 Signer？</p>
+</blockquote>
+<p>一个好的设计是把 Signer 做成<strong>可插拔的接口</strong>：定义一个 <code>sign(request)</code> 方法，不同云厂商实现不同的 Signer，Client 只管调用 <code>signer.sign(request)</code>，不关心里面具体怎么算。这就是&quot;策略模式&quot;——算法可替换，框架不变。</p>
+<p>签名解决了&quot;怎么证明是你&quot;，但网络本身是不可靠的——请求发出去，可能因为短暂抖动、服务端过载、连接被重置而失败。</p>
+<p>这就是第三个部件：<strong>Retry（重试机制）</strong>。</p>
+<p>但不是所有失败都值得重试。关键问题在于：这次失败，是&quot;你的问题&quot;还是&quot;网络/服务端的临时问题&quot;？</p>
+<p>如果是你的问题——比如签名算错了、参数格式不对——重试 100 次还是同样的错，毫无意义。如果是服务端临时过载——等一会儿可能就好了，值得重试。</p>
+<p>这种&quot;失败来源&quot;的区分，是重试机制的判断依据：客户端导致的错误（4xx）不重试，服务端临时错误（5xx）才重试。</p>
+<blockquote>
+<p>想一想：确定要重试了，应该立刻重试，还是等一会儿再重试？</p>
+</blockquote>
+<p>立刻重试有风险——如果服务端刚好过载，你立刻打过去只会让它更难受。所以每次重试之间要等待，而且等待时间应该越来越长：<strong>指数退避</strong>（Exponential Backoff）——第 1 次失败等 1 秒，第 2 次等 2 秒，第 3 次等 4 秒……</p>
+<p>但这里还有一个微妙的问题：如果 1000 个客户端同时遇到 503，都按指数退避等 1 秒，1 秒后他们会<strong>同时</strong>重试——这叫<strong>惊群效应</strong>（Thundering Herd），1000 个请求同时砸过来，服务端又过载了。</p>
+<p>解决方案是在等待时间上加一点随机<strong>抖动</strong>（Jitter）：等 1 ± 随机值秒，让重试时间自然错开，避免同时打到服务端。</p>
+<p>现在请求成功返回了，但拿到的是一堆原始 JSON 字节。这就需要第四个部件：<strong>Serializer（序列化器）</strong>。</p>
+<p>想象没有 Serializer 时你要怎么做：拿到响应体字符串，手动 <code>json.parse()</code>，检查 <code>response[&quot;Response&quot;]</code> 是否存在，取出 <code>response[&quot;Response&quot;][&quot;User&quot;][&quot;Name&quot;]</code>，处理字段不存在的情况，把时间字符串手动转成 datetime 对象……每个字段都要这样操作。</p>
+<p>Serializer 帮你做完了这一切——它把响应 JSON 反序列化成一个 <code>User</code> 对象，你直接访问 <code>user.name</code>、<code>user.create_time</code>。反过来，当你传参数给 SDK，Serializer 也负责把你的对象序列化成请求体。</p>
+<blockquote>
+<p>想一想：如果服务端返回了一个新字段，而你用的 SDK 版本还不认识这个字段，会发生什么？</p>
+</blockquote>
+<p>取决于 Serializer 的设计策略。严格模式遇到未知字段直接报错（安全，但脆弱——服务端一加新字段你的代码就挂）。宽容模式忽略未知字段（健壮）。好的 SDK 通常选宽容模式，同时提供访问原始响应的后门。</p>
+<p>最后一个部件：<strong>Error Handler（错误处理器）</strong>。</p>
+<p>云服务的原始错误是 JSON 字符串，比如 <code>{&quot;Code&quot;: &quot;AuthFailure.SignatureExpire&quot;, &quot;Message&quot;: &quot;...&quot;}</code>. 如果 SDK 直接把这个扔给你，你只能 if-else 解析字符串，既繁琐又脆弱。</p>
+<p>好的 SDK 把所有错误码映射成结构化的异常类体系：</p>
+<pre><code class="language-python">try:
+    client.upload_file(...)
+except SignatureExpiredError:
+    # 重新生成签名，重试
+except PermissionDeniedError:
+    # 提示用户检查权限
+except CosServiceError as e:
+    # 服务端错误，打日志等待
+</code></pre>
+<p>你的代码可以针对不同错误类型做不同处理，不用解析字符串。</p>
+<blockquote>
+<p>想一想：结合刚才学的 Retry，你的业务代码应该 catch 哪类错误、让哪类错误自动重试？</p>
+</blockquote>
+<p>客户端错误（4xx，比如 SignatureExpiredError、PermissionDeniedError）往上抛——这是需要修复的问题，不应该被 SDK 悄悄吞掉。服务端错误（5xx）应该在 SDK 的 Retry 层自动处理，只有超出最大重试次数才抛给调用方。两层分工清晰。</p>
+<hr>
+<h2>第三幕：完整组装</h2>
+<p>把五个部件放在一起，看 SDK 的完整架构：</p>
+<pre><code>你的代码
+    |
+    v
++-------------------+
+|      Client       |  &lt;-- 你直接交互的对象，持有配置和状态
+|  (认证信息/配置)   |
++-------------------+
+    |         |
+    v         v
++--------+ +--------+
+| Signer | | Retry  |  &lt;-- 请求发出前：签名 / 失败后：重试
++--------+ +--------+
+    |         |
+    v         v
++-------------------+
+|  HTTP Transport   |  &lt;-- 真正发 HTTP 请求的底层
++-------------------+
+         |
+         v  (原始 HTTP 响应)
++-------------------+
+|    Serializer     |  &lt;-- 把字节变成对象，把对象变成字节
++-------------------+
+         |
+         v
++-------------------+
+|   Error Handler   |  &lt;-- 把错误码变成结构化异常
++-------------------+
+         |
+         v
+    你的代码（收到结果或异常）
+</code></pre>
+<p><strong>各组件职责</strong>：</p>
+<table>
+<thead>
+<tr>
+<th>部件</th>
+<th>职责</th>
+<th>对调用方是否可见</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Client</td>
+<td>持有认证信息和配置，是调用入口</td>
+<td>可见（需手动创建）</td>
+</tr>
+<tr>
+<td>Signer</td>
+<td>自动计算并注入签名</td>
+<td>不可见</td>
+</tr>
+<tr>
+<td>Retry</td>
+<td>自动重试可重试错误（指数退避 + Jitter）</td>
+<td>不可见（可配置）</td>
+</tr>
+<tr>
+<td>Serializer</td>
+<td>序列化参数 + 反序列化响应</td>
+<td>不可见</td>
+</tr>
+<tr>
+<td>Error Handler</td>
+<td>错误码 → 结构化异常</td>
+<td>可见（catch 异常时）</td>
+</tr>
+</tbody></table>
+<p><strong>端到端示例：用腾讯云 COS Python SDK 上传文件</strong></p>
+<pre><code class="language-python"># Step 1: 创建 Client（Signer 和配置一并初始化）
+from qcloud_cos import CosConfig, CosS3Client
+
+config = CosConfig(
+    Region=&quot;ap-beijing&quot;,
+    SecretId=&quot;AKIDxxx&quot;,
+    SecretKey=&quot;SKEYyyy&quot;
+)
+client = CosS3Client(config)
+
+# Step 2: 调用高层接口
+# （Serializer 序列化参数，Signer 自动签名，Retry 自动重试服务端错误）
+try:
+    response = client.upload_file(
+        Bucket=&quot;mybucket-1250000000&quot;,
+        LocalFilePath=&quot;./photo.jpg&quot;,
+        Key=&quot;photos/photo.jpg&quot;
+    )
+    print(&quot;上传成功，ETag:&quot;, response[&quot;ETag&quot;])
+
+# Step 3: Error Handler 将原始错误码变成结构化异常
+except CosClientError as e:
+    print(&quot;客户端错误（检查参数/网络）:&quot;, e)
+except CosServiceError as e:
+    print(&quot;服务端错误（已超出重试次数）:&quot;, e.get_error_code(), e.get_error_msg())
+</code></pre>
+<p>SDK 帮你在这 15 行代码背后完成的事：</p>
+<ol>
+<li><strong>Client 初始化</strong>：把密钥存起来，初始化 HTTP 连接池</li>
+<li><strong>Signer 工作</strong>：计算多步签名，注入 Authorization 头</li>
+<li><strong>大文件判断</strong>：如果 photo.jpg 超过阈值，自动切换为分块上传</li>
+<li><strong>Retry 工作</strong>：503 → 等待（指数退避 + Jitter）→ 最多重试 N 次</li>
+<li><strong>Serializer 工作</strong>：把响应 JSON 解析成 Python dict</li>
+<li><strong>Error Handler 工作</strong>：<code>NoSuchBucket</code> 错误码 → <code>CosClientError</code> 异常</li>
+</ol>
+<hr>
+<h2>第四幕：验证与压力测试</h2>
+<h3>反事实：如果没有 SDK，直接调 HTTP API 会怎样？</h3>
+<p>你要自己实现：多步签名逻辑（50+ 行代码）、大文件分块上传（100+ 行代码）、指数退避重试（20+ 行代码）、所有错误码的 if-else 解析……</p>
+<p>可以做，但每次接入新服务都要重新造同样的轮子。<strong>SDK 的价值是&quot;这些轮子只造一次&quot;</strong>。</p>
+<h3>反事实：如果 SDK 把一切都封装死了，不暴露任何底层接口，会怎样？</h3>
+<p>你会被困住。需要给请求加自定义 HTTP 头用于链路追踪？SDK 不支持。需要在请求前后做日志记录？没有 middleware hook。</p>
+<p>好的 SDK 必须提供<strong>逃生舱</strong>（Escape Hatch）：能访问原始 HTTP 请求和响应，能注入自定义 middleware，能绕过 SDK 直接发 raw HTTP 请求。</p>
+<h3>边界：SDK 在哪些情况下不够用？</h3>
+<p><strong>性能敏感场景</strong>：SDK 的抽象层有开销——序列化/反序列化、对象创建、异常处理。在高频调用（每秒百万次）的场景，这些开销累积不可忽略。这时可能需要绕过 SDK 直接用底层 HTTP client。</p>
+<p><strong>版本滞后</strong>：云服务经常发布新功能，SDK 的更新往往滞后于 API。如果你需要刚发布的新接口，SDK 版本可能还没支持，只能手动调 HTTP API。</p>
+<p><strong>多语言环境</strong>：一家云厂商通常只为主流语言（Python/Java/Go/Node）提供官方 SDK。小众语言只能用社区维护的非官方 SDK（可靠性存疑）或直接调 HTTP API。</p>
+<h3>连接：SDK 和 API、Library、Framework 有什么区别？</h3>
+<p><strong>API</strong>（Application Programming Interface）是接口契约——规定了可以调用什么、参数是什么、返回什么。API 是抽象的规范，不是代码。</p>
+<p><strong>Library（库）</strong> 是一组可复用的代码集合，解决某类通用问题（比如 HTTP 请求库、JSON 解析库）。Library 不特定于某个平台。</p>
+<p><strong>SDK</strong> 是为特定平台/服务设计的工具包，通常包含多个 Library + 配置工具 + 文档 + 示例。SDK 是特定于某个服务的。</p>
+<p><strong>Framework（框架）</strong> 是反转控制的——你的代码插入框架的骨架里运行，框架决定调用流程。Library/SDK 是你调用它，Framework 是它调用你。</p>
+<table>
+<thead>
+<tr>
+<th>概念</th>
+<th>谁调用谁</th>
+<th>特定于服务？</th>
+<th>例子</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Library</td>
+<td>你调用它</td>
+<td>否</td>
+<td>requests、lodash</td>
+</tr>
+<tr>
+<td>SDK</td>
+<td>你调用它</td>
+<td>是</td>
+<td>AWS SDK、腾讯云 SDK</td>
+</tr>
+<tr>
+<td>Framework</td>
+<td>它调用你</td>
+<td>否/是</td>
+<td>Django、Spring</td>
+</tr>
+<tr>
+<td>API</td>
+<td>接口规范</td>
+<td>通常是</td>
+<td>REST API、GraphQL</td>
+</tr>
+</tbody></table>
+<h3>连接：SDK 和 AKSK / STS 是什么关系？</h3>
+<p>SDK 是 AKSK 和 STS 的<strong>消费者</strong>。</p>
+<p>AKSK 签名算法——SDK 的 Signer 部件就是在实现这个算法，把它自动化。</p>
+<p>STS 临时凭证——SDK 原生支持传入 SessionToken：</p>
+<pre><code class="language-python">config = CosConfig(
+    SecretId=sts_credentials[&quot;TmpSecretId&quot;],
+    SecretKey=sts_credentials[&quot;TmpSecretKey&quot;],
+    Token=sts_credentials[&quot;Token&quot;]   # SessionToken
+)
+</code></pre>
+<p>SDK 知道如果有 <code>Token</code> 就要在请求头里带上 <code>x-cos-security-token</code>，你不用关心。</p>
+<h3>终极挑战：路线图重建</h3>
+<pre><code>[问题：直接调 HTTP API 太复杂，每次都要重新造轮子]
+    |
+    v
+[缺口1：签名逻辑复杂且每家不同，不应该每次手写]
+    |
+    v
+[工具1：Signer 部件，封装签名算法，自动注入请求]
+    |
+    v
+[缺口2：网络不可靠，需要统一的重试策略]
+    |
+    v
+[工具2：Retry 部件，区分客户端/服务端错误，指数退避 + Jitter]
+    |
+    v
+[缺口3：HTTP 原始响应是字节流，需要变成可用的对象]
+    |
+    v
+[工具3：Serializer 部件，序列化参数 + 反序列化响应]
+    |
+    v
+[缺口4：错误码是字符串，需要结构化异常供调用方处理]
+    |
+    v
+[工具4：Error Handler，错误码 → 异常类层级，4xx 抛出，5xx 先重试]
+    |
+    v
+[缺口5：上述所有部件需要一个统一入口来持有状态和配置]
+    |
+    v
+[工具5：Client 对象，持有认证信息和配置，是用户交互的唯一入口]
+    |
+    v
+[完整方案：Client + Signer + Retry + Serializer + Error Handler = SDK]
+</code></pre>
+<h2>关联笔记</h2>
+<blockquote>
+<p><strong>相关原子概念</strong><br><a href="/knowledge/aksk.html">AKSK</a> · <a href="/knowledge/sts.html">STS</a> · <a href="/knowledge/oidc.html">OIDC</a></p>
+</blockquote>
+<p>SDK 是 <a href="/knowledge/aksk.html">AKSK</a> 签名机制的自动化封装，原生支持 <a href="/knowledge/sts.html">STS</a> 临时凭证，是各类云服务（包括 <a href="/knowledge/oidc.html">OIDC</a> 身份认证服务）的标准调用方式。</p>
+
+      </div>
+    </article>
+
+    <section class="related-notes">
+  <h3>Related Notes</h3>
+  <div class="related-notes-grid">
+    <a href="aksk.html" class="related-note-card">
+      <div class="related-title">AKSK</div>
+      <div class="related-category">Security</div>
+    </a>
+    <a href="sts.html" class="related-note-card">
+      <div class="related-title">STS</div>
+      <div class="related-category">Security</div>
+    </a>
+    <a href="oidc.html" class="related-note-card">
+      <div class="related-title">OIDC（OpenID Connect）</div>
+      <div class="related-category">Security</div>
+    </a>
+  </div>
+</section>
+
+
+    <div style="max-width:800px;margin:0 auto;padding-bottom:60px;">
+      <a href="/knowledge/" class="back-link">Back to Knowledge Graph</a>
+    </div>
+  </main>
+
+  <!-- Footer -->
+  <footer>
+    <p>Designed &amp; Built by <a href="https://github.com/ChenSchenG">ChenSchenG</a></p>
+  </footer>
+
+  <script src="../js/main.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+  <script>hljs.highlightAll();</script>
+</body>
+</html>

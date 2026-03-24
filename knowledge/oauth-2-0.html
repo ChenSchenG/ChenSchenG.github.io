@@ -1,0 +1,348 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>OAuth 2.0 — ChenSchenG</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⚡</text></svg>">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../css/style.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css">
+</head>
+<body>
+  <!-- Navigation -->
+  <nav id="nav">
+    <div class="nav-logo">
+      <a href="/">CSG</a>
+    </div>
+    <div class="nav-links-wrapper">
+      <ol class="nav-links">
+        <li><a href="/#about"><span class="nav-number">01.</span>About</a></li>
+        <li><a href="/#projects"><span class="nav-number">02.</span>Projects</a></li>
+        <li><a href="/knowledge/"><span class="nav-number">03.</span>Knowledge</a></li>
+        <li><a href="/#contact"><span class="nav-number">04.</span>Contact</a></li>
+      </ol>
+      <div class="nav-resume">
+        <a href="/about.html">More About Me</a>
+      </div>
+    </div>
+    <button class="hamburger" id="hamburger" aria-label="Menu">
+      <span class="hamburger-inner"></span>
+    </button>
+  </nav>
+
+  <!-- Mobile Menu -->
+  <div class="mobile-menu-overlay" id="mobile-overlay"></div>
+  <aside class="mobile-menu" id="mobile-menu">
+    <ol>
+      <li><a href="/#about">About</a></li>
+      <li><a href="/#projects">Projects</a></li>
+      <li><a href="/knowledge/">Knowledge</a></li>
+      <li><a href="/#contact">Contact</a></li>
+    </ol>
+    <div class="mobile-resume">
+      <a href="/about.html">More About Me</a>
+    </div>
+  </aside>
+
+  <main class="article-page">
+    <article>
+      <header class="article-header">
+        <div class="article-breadcrumb">
+          <a href="/">Home</a>
+          <span class="separator">/</span>
+          <a href="/knowledge/">Knowledge</a>
+          <span class="separator">/</span>
+          <span>Security</span>
+        </div>
+        <h1>OAuth 2.0</h1>
+        <div class="article-meta">
+          <span>2026-03-17</span>
+          <span>Security</span>
+        </div>
+        <div class="article-tags">
+  <span class="tag">密码学与安全</span>
+  <span class="tag">协议</span>
+  <span class="tag">OAuth2.0</span>
+  <span class="tag">授权码</span>
+  <span class="tag">AccessToken</span>
+  <span class="tag">RefreshToken</span>
+  <span class="tag">Scope</span>
+  <span class="tag">委托授权</span>
+</div>
+
+      </header>
+
+      <div class="article-body">
+        <h1>OAuth 2.0</h1>
+<blockquote>
+<p><strong>一句话本质</strong><br>让用户在不暴露密码的情况下，把特定资源的访问权精确地委托给第三方——委托范围可见，时效可控，随时可撤</p>
+</blockquote>
+<h2>第一幕：问题感知</h2>
+<p>你在用一个新的健身 App，它说：&quot;连接你的 Google 日历，自动帮你安排训练计划。&quot;</p>
+<p>你点了&quot;连接&quot;。</p>
+<p>App 需要读取你的 Google 日历。最直接的方案：App 弹出一个输入框，让你输入 Google 账号的用户名和密码，然后用你的密码直接登录 Google，读取日历。</p>
+<p>你愿意把 Google 密码告诉这个健身 App 吗？</p>
+<p>这个 App 拿到你的密码后，能做的远不止读日历——它能看你的邮件、删你的文件、修改你的账号信息。你无法限制它只做&quot;读日历&quot;这一件事。</p>
+<p>而且这个 App 要存储你的密码。你改了 Google 密码，App 里存的就失效了，得重新输。App 被黑了，你的 Google 密码就泄漏了。</p>
+<p>有没有一种方式：让第三方 App 只拿到&quot;读日历&quot;这一个权限，而不是整个账号的钥匙，而且这个权限随时可以撤销、不需要暴露密码？</p>
+<p><strong>怎么授权第三方，但不给它密码？</strong></p>
+<hr>
+<blockquote>
+<p>想一想：如果你是 Google，你会怎么设计这套授权机制？用户和 App 之间应该经过什么样的流程？</p>
+</blockquote>
+<hr>
+<h2>第二幕：引导式构建</h2>
+<p>你可能想到了：让用户自己在 Google 那里登录，Google 确认身份后，直接给 App 发一张&quot;权限票&quot;——App 用这张票访问日历，而不是用密码。用户的密码全程只出现在用户和 Google 之间，App 根本碰不到。</p>
+<p>这个思路完全正确。这就是 <strong>OAuth 2.0（开放授权协议 2.0）</strong> 的核心思想。</p>
+<p>但把这个思路变成可用的协议，有几个细节需要解决。我们一步步来。</p>
+<hr>
+<p><strong>先认识场景里的四个角色</strong></p>
+<p>OAuth 2.0 的世界里，一次授权涉及四个参与方：</p>
+<p><strong>资源所有者（Resource Owner）</strong> 是你——日历数据的主人，有权决定谁能访问。</p>
+<p><strong>客户端（Client）</strong> 是健身 App——想要访问你数据的第三方应用。注意这里&quot;客户端&quot;不是指浏览器，而是&quot;请求授权的那一方&quot;。</p>
+<p><strong>授权服务器（Authorization Server）</strong> 是 Google 的认证系统——负责验证你的身份，并在你同意后签发权限票。</p>
+<p><strong>资源服务器（Resource Server）</strong> 是 Google 日历 API——实际存储数据、响应请求的地方。</p>
+<blockquote>
+<p>想一想：授权服务器和资源服务器可以是同一台机器吗？还是说它们必须分开？</p>
+</blockquote>
+<p>可以是同一台，也可以分开。Google 可以让认证和数据服务跑在同一个系统里，也可以把它们拆成独立服务。OAuth 2.0 把这两个角色分开定义，是为了支持&quot;一个授权服务器管多个资源服务器&quot;的场景——比如你在一家公司的统一登录系统授权，然后访问公司旗下十几个不同的服务。</p>
+<hr>
+<p><strong>核心流程：换一张票</strong></p>
+<p>四个角色就位了。核心问题是：App 怎么拿到那张&quot;权限票&quot;？</p>
+<p>OAuth 2.0 把这张票叫做 <strong>访问令牌（Access Token）</strong>。它是一个字符串，代表&quot;某个用户授权某个 App 访问某些资源&quot;。App 每次访问日历 API 时，带上这个 Token，API 认这个 Token，就放行。</p>
+<p>Token 不是密码——它只有特定权限（读日历），有过期时间，可以随时撤销，泄漏了也只是丢一个 Token，不是丢整个账号。</p>
+<blockquote>
+<p>想一想：App 怎么拿到这个 Access Token？总不能它自己生成一个吧——那任何人都能伪造。</p>
+</blockquote>
+<p>对，必须是授权服务器（Google）签发的。用户必须参与这个签发过程——毕竟是用户的资源，得用户点头。</p>
+<p>这就是整个协议的核心流程要解决的事。</p>
+<hr>
+<p><strong>最常见的流程：授权码（Authorization Code）</strong></p>
+<p>App 要拿到 Token，但不能让用户把密码给 App。怎么办？</p>
+<p>让用户<strong>直接去 Google 那里</strong>登录，Google 验证身份后，给 App 发一个<strong>临时凭证</strong>。App 再拿这个临时凭证去 Google 换 Token。整个过程中，用户的密码只在用户的浏览器和 Google 之间流动，App 完全不可见。</p>
+<p>这个临时凭证叫 <strong>授权码（Authorization Code）</strong>——它是整个流程的关键中间层，把&quot;用户的登录&quot;和&quot;App 拿 Token&quot;解耦开来。</p>
+<p>授权码非常短命——通常只有几分钟有效期，且只能用一次。就算被截获，攻击者来不及用，也用不了第二次。</p>
+<blockquote>
+<p>想一想：为什么要多一个&quot;授权码&quot;的中间步骤，直接让 Google 把 Token 发给 App 不行吗？</p>
+</blockquote>
+<p>不安全。用户登录发生在浏览器里，浏览器地址栏和请求历史是相对公开的。如果 Token 直接出现在浏览器跳转的 URL 里，它会被记录在浏览器历史、被日志系统记录、被插件读取。授权码只是个一次性的中间票，即使泄漏也无法单独换到 Token（还需要 App 的身份验证）。Token 的获取发生在 App 服务器和 Google 之间的后端通道，不经过浏览器，更安全。</p>
+<hr>
+<p><strong>App 用什么身份换 Token？——客户端凭证</strong></p>
+<p>App 拿着授权码去换 Token，但 Google 怎么知道这个请求是合法的健身 App 发来的，而不是攻击者截获授权码后冒充的？</p>
+<p>App 在注册到 Google 时，会拿到一对 <strong>客户端 ID（Client ID）</strong> 和 <strong>客户端密钥（Client Secret）</strong>。</p>
+<p>Client ID 是公开的——就像 AKSK 里的 AK，代表&quot;这是哪个 App&quot;。Client Secret 是私密的——只有这个 App 的服务器知道，用来证明&quot;我真的是这个 App&quot;。</p>
+<p>用授权码换 Token 时，App 必须同时出示 Client ID + Client Secret。攻击者即使截获了授权码，没有 Client Secret 也换不了 Token。</p>
+<blockquote>
+<p>想一想：Client Secret 存在 App 的服务器上，和 AKSK 的 SK 存在程序里，这两种情况的安全性有什么不同？</p>
+</blockquote>
+<p>本质一样——都是一个&quot;存在服务端、不传给用户、用来证明身份的共享秘密&quot;。但 OAuth 的 Client Secret 用于 App 向授权服务器证明身份，AKSK 的 SK 用于程序向 API 服务器证明身份，场景不同，但机制是同构的。</p>
+<hr>
+<p><strong>权限范围——不是全有全无</strong></p>
+<p>还有一个重要细节：App 申请的是什么权限？</p>
+<p>用户在授权页面看到的是：&quot;健身 App 请求访问你的 Google 日历（只读）&quot;——不是&quot;访问你的全部 Google 账号&quot;。</p>
+<p>这个&quot;只读日历&quot;叫 <strong>权限范围（Scope）</strong>，是 App 在跳转到 Google 授权页面时，在请求里指定的。授权服务器把 Scope 写进 Token 里，资源服务器（日历 API）收到请求时检查 Token 里的 Scope 是否包含当前操作所需的权限。</p>
+<p>Scope 是用户能看到、能理解的授权边界。设计好的 Scope 能让用户在授权时知道自己在允许什么。</p>
+<blockquote>
+<p>想一想：如果 App 申请的 Scope 比它实际需要的大很多（比如申请&quot;读写所有 Google 服务&quot;但实际只需要读日历），会有什么问题？</p>
+</blockquote>
+<p>用户可能拒绝授权，因为权限太大显得可疑。即使用户同意了，Token 泄漏后攻击者拥有全部权限——这违反了最小权限原则。好的 App 只申请刚好需要的 Scope，这也是用户是否信任 App 的重要信号。</p>
+<hr>
+<p><strong>Token 到期了怎么办——刷新令牌</strong></p>
+<p>Access Token 通常有效期很短——几分钟到几小时。到期了，App 需要重新授权吗？要用户每次都手动点&quot;同意&quot;吗？</p>
+<p>不用。授权服务器在签发 Access Token 的同时，还会签发一个 <strong>刷新令牌（Refresh Token）</strong>。Refresh Token 有效期很长（几天到几个月）。Access Token 过期后，App 用 Refresh Token 去授权服务器换一个新的 Access Token，全程不需要用户参与。</p>
+<p>Refresh Token 是比 Access Token 更敏感的东西——它能源源不断地换出新的 Token。Refresh Token 必须安全存储，不能出现在客户端（浏览器、App 本地存储）中。</p>
+<blockquote>
+<p>想一想：Refresh Token 和 Access Token 分开的意义是什么？合并成一个长期有效的 Token 有什么问题？</p>
+</blockquote>
+<p>分开的核心价值是<strong>不同的传输路径</strong>。Access Token 频繁出现在每个 API 请求里，暴露面大，所以短命。Refresh Token 只在需要刷新时出现，暴露面小，可以长命。如果只有一个长期 Token，它每次 API 调用都出现，泄漏概率等于 Access Token 的高频率，但损失等于 Refresh Token 的长有效期——最坏的组合。</p>
+<hr>
+<h2>第三幕：完整组装</h2>
+<h3>全景图</h3>
+<pre><code>四个角色：
+  用户(Resource Owner)
+  健身App(Client)  &lt;-- Client ID + Client Secret
+  Google认证(Authorization Server)
+  Google日历API(Resource Server)
+
+授权码流程（Authorization Code Flow）：
+
+  用户      健身App          Google认证          Google日历API
+   |          |                  |                    |
+   | 点&quot;连接  |                  |                    |
+   | Google&quot;  |                  |                    |
+   |---------&gt;|                  |                    |
+   |          | 跳转到Google授权页|                    |
+   |          | (带ClientID,Scope)|                   |
+   |          |-----------------&gt;|                    |
+   |          |                  |                    |
+   | 看到授权页，输入Google密码    |                    |
+   |--------------------------------&gt;                 |
+   |          |                  | 验证用户身份        |
+   |          |                  | 显示授权范围        |
+   |          |                  |                    |
+   | 点&quot;同意&quot; |                  |                    |
+   |--------------------------------&gt;                 |
+   |          |                  | 生成授权码(Code)    |
+   |          | &lt;--带Code跳回App--|                    |
+   |          |                  |                    |
+   |          | 用Code+ClientSecret换Token            |
+   |          |-----------------&gt;|                    |
+   |          |                  | 验证Code和Secret   |
+   |          | &lt;-- AccessToken  |                    |
+   |          |     RefreshToken |                    |
+   |          |                  |                    |
+   |          | 用AccessToken请求日历数据              |
+   |          |------------------------------------&gt;  |
+   |          |                  |    验证Token的Scope|
+   |          | &lt;-- 日历数据 --------------------------------
+</code></pre>
+<h3>端到端示例</h3>
+<p><strong>场景</strong>：健身 App「FitPlan」想读取你 Google 日历里的空闲时段。</p>
+<p><strong>Step 1：App 构造授权 URL，跳转到 Google</strong></p>
+<pre><code>https://accounts.google.com/o/oauth2/auth
+  ?client_id=fitplan_client_id_123
+  &amp;redirect_uri=https://fitplan.app/callback
+  &amp;scope=https://www.googleapis.com/auth/calendar.readonly
+  &amp;response_type=code
+  &amp;state=random_csrf_token_xyz
+</code></pre>
+<p>用户浏览器跳转到这个 URL，看到 Google 登录页。</p>
+<p><strong>Step 2：用户在 Google 登录并授权</strong></p>
+<p>用户输入 Google 密码（FitPlan 完全看不到），点击&quot;允许 FitPlan 读取我的日历&quot;。</p>
+<p><strong>Step 3：Google 带着授权码跳回 App</strong></p>
+<pre><code>https://fitplan.app/callback
+  ?code=4/P7q7W91a-oMsCeLvIaQc6bYrgtp9
+  &amp;state=random_csrf_token_xyz
+</code></pre>
+<p>授权码 <code>4/P7q7W91...</code> 出现在 URL 里，有效期 10 分钟，只能用一次。</p>
+<p><strong>Step 4：App 服务器用授权码换 Token（后端请求，不经过浏览器）</strong></p>
+<pre><code>POST https://oauth2.googleapis.com/token
+  grant_type=authorization_code
+  code=4/P7q7W91a-oMsCeLvIaQc6bYrgtp9
+  client_id=fitplan_client_id_123
+  client_secret=fitplan_secret_NEVER_EXPOSED
+  redirect_uri=https://fitplan.app/callback
+</code></pre>
+<p><strong>Step 5：Google 返回 Token</strong></p>
+<pre><code class="language-json">{
+  &quot;access_token&quot;: &quot;ya29.a0AfH6SMB...&quot;,
+  &quot;expires_in&quot;: 3600,
+  &quot;refresh_token&quot;: &quot;1//0gLd8...&quot;,
+  &quot;scope&quot;: &quot;https://www.googleapis.com/auth/calendar.readonly&quot;,
+  &quot;token_type&quot;: &quot;Bearer&quot;
+}
+</code></pre>
+<p><strong>Step 6：App 用 Access Token 读取日历</strong></p>
+<pre><code>GET https://www.googleapis.com/calendar/v3/freeBusy
+Authorization: Bearer ya29.a0AfH6SMB...
+</code></pre>
+<p>日历 API 验证 Token 有效、Scope 匹配，返回数据。</p>
+<p><strong>Step 7：1小时后 Access Token 过期，App 用 Refresh Token 换新的</strong></p>
+<pre><code>POST https://oauth2.googleapis.com/token
+  grant_type=refresh_token
+  refresh_token=1//0gLd8...
+  client_id=fitplan_client_id_123
+  client_secret=fitplan_secret_NEVER_EXPOSED
+</code></pre>
+<p>用户无感知，App 拿到新的 Access Token，继续工作。</p>
+<hr>
+<h2>第四幕：验证与压力测试</h2>
+<h3>反事实：去掉关键组件会怎样？</h3>
+<p><strong>去掉授权码，直接把 Access Token 放在跳转 URL 里</strong>：Token 出现在浏览器地址栏，被历史记录、服务器日志、浏览器插件看到。这就是 OAuth 2.0 的&quot;隐式流程（Implicit Flow）&quot;——它真实存在过，现在已被标记为不安全，不推荐使用。</p>
+<p><strong>去掉 Client Secret，只验证 Client ID</strong>：攻击者截获授权码后，可以冒充 FitPlan 去换 Token。Client ID 是公开的（出现在跳转 URL 里），没有 Secret 保护，任何人都能用任何 Client ID 换 Token。</p>
+<p><strong>去掉 Scope</strong>：App 请求的是&quot;所有权限&quot;，用户无法知道自己在授权什么。Token 泄漏后攻击者拥有全部权限。平台无法做细粒度的访问控制。</p>
+<p><strong>去掉 Refresh Token，让 Access Token 长期有效</strong>：Access Token 频繁出现在每次 API 调用里，长期有效意味着一旦泄漏，攻击窗口无限长——退化成类似 AKSK 的问题。</p>
+<h3>边界：OAuth 2.0 在哪些情况下有局限？</h3>
+<p><strong>OAuth 2.0 只管授权，不管身份</strong>：Access Token 告诉资源服务器&quot;某人允许你做某事&quot;，但不告诉 App&quot;这个人是谁&quot;。App 拿到 Token 后，如果想知道用户的姓名、邮箱，需要再额外调一个用户信息接口——这不是 OAuth 2.0 规范的一部分，每家实现不同。这个问题催生了 OIDC（在 OAuth 2.0 上加了身份层）。</p>
+<p><strong>Client Secret 保管问题</strong>：如果 App 是纯前端（浏览器 SPA 或手机 App），没有服务器，Client Secret 存在哪？存在客户端就等于公开了——任何人反编译 App 都能看到。这类场景用 <strong>PKCE（Proof Key for Code Exchange）</strong> 替代 Client Secret，不在这里展开。</p>
+<p><strong>Token 撤销不及时</strong>：Access Token 是无状态的——资源服务器验证 Token 时不需要查数据库，只验证签名和有效期。用户撤销授权后，已签发的 Access Token 在过期前仍然有效。这是便利性（无需查库）和安全性（立即撤销）之间的取舍。</p>
+<h3>连接：OAuth 2.0 和哪些东西有关？</h3>
+<p><strong>OIDC（OpenID Connect）</strong>：OAuth 2.0 的超集。在授权流程上加了一个 <strong>ID Token</strong>，携带用户的身份信息（是谁登录的）。&quot;用 Google 账号登录第三方网站&quot;用的是 OIDC，而不是纯 OAuth 2.0。</p>
+<p><strong>JWT（JSON Web Token）</strong>：Access Token 可以是不透明字符串（资源服务器必须查数据库验证），也可以是 JWT（资源服务器本地验证签名即可）。JWT 格式的 Token 是目前最常见的实现方式。</p>
+<p><strong>AKSK/STS</strong>：OAuth 2.0 解决的是&quot;用户授权第三方 App&quot;的问题（人参与）；AKSK/STS 解决的是&quot;程序对程序&quot;的问题（无人参与）。前者叫委托授权，后者叫机器身份认证，场景不同，但最小权限、Token 时效等核心思想是共通的。</p>
+<p><strong>PKCE</strong>：针对无法安全保管 Client Secret 的客户端（手机 App、SPA）的 OAuth 2.0 扩展。用动态生成的随机码替代静态 Secret。</p>
+<h3>终极挑战·空白重建</h3>
+<pre><code>[问题]
+  第三方 App 需要访问用户在平台的数据
+  不能把用户密码给 App（权限太大、无法撤销）
+
+[缺口1]
+  需要一种凭证，只有特定权限、可撤销、不是密码
+
+[工具1: Access Token]
+  授权服务器签发的权限票
+  包含权限范围(Scope)和过期时间
+  App 用它访问资源，不用密码
+
+[缺口2]
+  用户必须参与授权，但密码不能经过 App
+
+[工具2: 授权码流程]
+  用户在授权服务器登录（密码不过 App）
+  授权服务器给 App 一个临时授权码
+  App 用授权码（+ Client Secret）换 Token
+  密码、Token 的换取，全程不经过浏览器跳转
+
+[缺口3]
+  App 用授权码换 Token 时，怎么防冒充
+
+[工具3: Client ID + Client Secret]
+  平台给 App 注册时颁发的身份凭证
+  Client Secret 只存在 App 服务器，不暴露
+
+[缺口4]
+  Access Token 短命，到期需重新授权太烦
+
+[工具4: Refresh Token]
+  长效令牌，只在后端刷新时使用
+  Access Token 到期后静默换新，用户无感
+
+[完整方案]
+  App 跳转授权服务器 -&gt; 用户登录并同意 Scope
+  -&gt; 授权码发给 App -&gt; App 后端用码+Secret换Token
+  -&gt; Access Token 访问资源，Refresh Token 续命
+  -&gt; 用户随时可在平台撤销授权，Refresh Token 失效
+</code></pre>
+<p>OAuth 2.0 的本质就是这一句话：<strong>让用户在不暴露密码的情况下，把特定资源的访问权精确地委托给第三方——委托范围可见，时效可控，随时可撤。</strong></p>
+<h2>关联笔记</h2>
+<blockquote>
+<p><strong>相关原子概念</strong><br><a href="/knowledge/aksk.html">AKSK</a> · <a href="/knowledge/sts.html">STS</a></p>
+</blockquote>
+<p><a href="/knowledge/aksk.html">AKSK</a><br><a href="/knowledge/sts.html">STS</a></p>
+
+      </div>
+    </article>
+
+    <section class="related-notes">
+  <h3>Related Notes</h3>
+  <div class="related-notes-grid">
+    <a href="aksk.html" class="related-note-card">
+      <div class="related-title">AKSK</div>
+      <div class="related-category">Security</div>
+    </a>
+    <a href="sts.html" class="related-note-card">
+      <div class="related-title">STS</div>
+      <div class="related-category">Security</div>
+    </a>
+  </div>
+</section>
+
+
+    <div style="max-width:800px;margin:0 auto;padding-bottom:60px;">
+      <a href="/knowledge/" class="back-link">Back to Knowledge Graph</a>
+    </div>
+  </main>
+
+  <!-- Footer -->
+  <footer>
+    <p>Designed &amp; Built by <a href="https://github.com/ChenSchenG">ChenSchenG</a></p>
+  </footer>
+
+  <script src="../js/main.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+  <script>hljs.highlightAll();</script>
+</body>
+</html>
