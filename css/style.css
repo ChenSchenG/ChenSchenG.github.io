@@ -23,7 +23,12 @@
 /* Reset */
 *,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
 html{scroll-behavior:smooth}
-body{font-family:var(--font-sans);background:var(--bg);color:var(--text);font-size:15px;line-height:1.7;-webkit-font-smoothing:antialiased}
+body{
+  font-family:var(--font-sans);background:var(--bg);color:var(--text);
+  font-size:15px;line-height:1.7;-webkit-font-smoothing:antialiased;
+  background-image:radial-gradient(circle,#e0e0e0 1px,transparent 1px);
+  background-size:24px 24px;
+}
 ::selection{background:#d0e4ff;color:#000}
 a{text-decoration:none;color:var(--link);transition:var(--transition)}
 a:hover{color:var(--link-hover)}
