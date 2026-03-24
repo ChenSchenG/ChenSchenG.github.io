@@ -36,63 +36,58 @@
   </aside>
 
   <!-- Main -->
-  <div class="site-wrapper">
-    <div class="two-col">
+  <main class="home-main">
 
-      <!-- Left: Posts -->
-      <main class="col-main">
+    <!-- Brief Intro -->
+    <section class="home-intro fade-in">
+      <img class="home-avatar" src="images/xigong.jpg" alt="ChenSchenG">
+      <div class="home-intro-text">
+        <h1>ChenSchenG</h1>
+        <p>Developer & Security Enthusiast. Deep-dive knowledge on auth protocols, network security, and the JS ecosystem.</p>
+        <div class="home-links">
+          <a href="https://github.com/ChenSchenG" target="_blank" rel="noopener">GitHub</a>
+          <a href="about.html">About</a>
+        </div>
+      </div>
+    </section>
 
-        <!-- Article List (huangxuan style — rendered by JS) -->
+    <!-- Knowledge Graph -->
+    <section id="graph" class="graph-section fade-in">
+      <h2 class="section-title">Knowledge Graph</h2>
+      <div class="graph-legend">
+        <span class="legend-item"><i style="background:#e74c3c"></i>Security</span>
+        <span class="legend-item"><i style="background:#27ae60"></i>Network</span>
+        <span class="legend-item"><i style="background:#2980b9"></i>Frontend</span>
+        <span class="legend-item"><i style="background:#8e44ad"></i>AI</span>
+        <span class="legend-item"><i style="background:#7f8c8d"></i>Other</span>
+      </div>
+      <div class="graph-container" id="graph-container">
+        <svg id="graph-svg"></svg>
+        <div class="graph-tooltip" id="graph-tooltip"></div>
+        <div class="detail-panel" id="detail-panel">
+          <button class="detail-panel-close" id="detail-close">&times;</button>
+          <h3 id="detail-title"></h3>
+          <div class="detail-category" id="detail-category"></div>
+          <p class="detail-excerpt" id="detail-excerpt"></p>
+          <div class="detail-tags" id="detail-tags"></div>
+          <a href="#" class="detail-link" id="detail-link">Read Article &rarr;</a>
+        </div>
+      </div>
+    </section>
+
+    <!-- Category Filter + Article List -->
+    <section class="category-directory fade-in">
+      <h2 class="section-title">Articles</h2>
+      <div class="category-grid" id="category-grid">
+        <!-- populated by JS -->
+      </div>
+      <div id="category-articles-container"></div>
+      <div id="all-articles" class="all-articles">
         <div id="post-list" class="post-list"></div>
+      </div>
+    </section>
 
-        <!-- Knowledge Graph -->
-        <section id="graph" class="graph-section fade-in">
-          <h2 class="section-title">Knowledge Graph</h2>
-          <div class="graph-legend">
-            <span class="legend-item"><i style="background:#e74c3c"></i>Security</span>
-            <span class="legend-item"><i style="background:#27ae60"></i>Network</span>
-            <span class="legend-item"><i style="background:#2980b9"></i>Frontend</span>
-            <span class="legend-item"><i style="background:#8e44ad"></i>AI</span>
-            <span class="legend-item"><i style="background:#7f8c8d"></i>Other</span>
-          </div>
-          <div class="graph-container" id="graph-container">
-            <svg id="graph-svg"></svg>
-            <div class="graph-tooltip" id="graph-tooltip"></div>
-            <div class="detail-panel" id="detail-panel">
-              <button class="detail-panel-close" id="detail-close">&times;</button>
-              <h3 id="detail-title"></h3>
-              <div class="detail-category" id="detail-category"></div>
-              <p class="detail-excerpt" id="detail-excerpt"></p>
-              <div class="detail-tags" id="detail-tags"></div>
-              <a href="#" class="detail-link" id="detail-link">Read Article &rarr;</a>
-            </div>
-          </div>
-        </section>
-
-      </main>
-
-      <!-- Right: Sidebar -->
-      <aside class="col-side">
-        <!-- About -->
-        <div class="side-about">
-          <img class="side-avatar" src="images/xigong.jpg" alt="ChenSchenG">
-          <h4>ChenSchenG</h4>
-          <p>Developer &amp; Security Enthusiast. Building deep-dive knowledge on auth protocols, network security, and the JS ecosystem.</p>
-          <div class="side-social">
-            <a href="https://github.com/ChenSchenG" target="_blank" rel="noopener">GitHub</a>
-            <a href="mailto:chenscheng@example.com">Email</a>
-            <a href="about.html">About</a>
-          </div>
-        </div>
-        <!-- Featured Tags -->
-        <div class="side-tags" id="side-tags">
-          <h4>Featured Tags</h4>
-          <!-- populated by JS -->
-        </div>
-      </aside>
-
-    </div>
-  </div>
+  </main>
 
   <!-- Footer -->
   <footer>

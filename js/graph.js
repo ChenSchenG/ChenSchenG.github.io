@@ -1,5 +1,5 @@
 /**
- * graph.js — Post list (huangxuan-style) + D3 knowledge graph + sidebar tags
+ * graph.js — D3 knowledge graph + category chips + article list
  */
 (function () {
   'use strict';
@@ -15,7 +15,6 @@
 
   fetch(dataPath).then(function (r) { return r.json(); }).then(function (data) {
     renderPostList(data);
-    renderSidebarTags(data);
     renderGraph(data);
     renderCategoryChips(data);
   }).catch(function () {
@@ -23,65 +22,21 @@
     if (c) c.innerHTML = '<p style="text-align:center;padding:40px;color:#999">Run <code>node build.js</code> to generate.</p>';
   });
 
-  /* ==================== Post List (huangxuan) ==================== */
+  /* ==================== Post List (all articles, simple rows) ==================== */
   function renderPostList(data) {
     var el = document.getElementById('post-list');
     if (!el) return;
     var sorted = data.nodes.slice().sort(function (a, b) { return (b.date || '').localeCompare(a.date || ''); });
     sorted.forEach(function (n) {
-      var item = document.createElement('div');
-      item.className = 'post-item';
-      var link = document.createElement('a');
-      link.href = prefix + n.slug + '.html';
-
-      var h2 = document.createElement('h2');
-      h2.className = 'post-title';
-      h2.textContent = n.title;
-      link.appendChild(h2);
-
-      if (n.excerpt) {
-        var p = document.createElement('p');
-        p.className = 'post-excerpt';
-        p.textContent = n.excerpt;
-        link.appendChild(p);
-      }
-
-      item.appendChild(link);
-
-      var meta = document.createElement('div');
-      meta.className = 'post-meta';
-      var parts = [];
-      if (n.date) parts.push('<span class="post-date">' + n.date + '</span>');
-      if (n.category) parts.push('<span>' + n.category + '</span>');
-      meta.innerHTML = parts.join(' · ');
-      item.appendChild(meta);
-
-      el.appendChild(item);
-    });
-  }
-
-  /* ==================== Sidebar Tags ==================== */
-  function renderSidebarTags(data) {
-    var el = document.getElementById('side-tags');
-    if (!el) return;
-    var tagCount = {};
-    data.nodes.forEach(function (n) {
-      (n.tags || []).slice(2, 6).forEach(function (t) { tagCount[t] = (tagCount[t] || 0) + 1; });
-    });
-    var tags = Object.keys(tagCount).sort(function (a, b) { return tagCount[b] - tagCount[a]; }).slice(0, 14);
-    var list = document.createElement('div');
-    list.className = 'tag-list';
-    tags.forEach(function (t) {
       var a = document.createElement('a');
-      a.href = '#';
-      a.textContent = t;
-      a.addEventListener('click', function (e) { e.preventDefault(); });
-      list.appendChild(a);
+      a.className = 'article-list-item';
+      a.href = prefix + n.slug + '.html';
+      a.innerHTML = '<span class="article-title">' + n.title + '</span><span class="article-date">' + (n.date || '') + '</span>';
+      el.appendChild(a);
     });
-    el.appendChild(list);
   }
 
-  /* ==================== Category chips (knowledge/ page) ==================== */
+  /* ==================== Category chips ==================== */
   function renderCategoryChips(data) {
     var grid = document.getElementById('category-grid');
     var container = document.getElementById('category-articles-container');
@@ -109,7 +64,7 @@
       sec.id = 'articles-' + cat;
       var list = document.createElement('div');
       list.className = 'article-list';
-      cats[cat].forEach(function (n) {
+      cats[cat].sort(function (a, b) { return (b.date || '').localeCompare(a.date || ''); }).forEach(function (n) {
         var a = document.createElement('a');
         a.className = 'article-list-item';
         a.href = prefix + n.slug + '.html';
