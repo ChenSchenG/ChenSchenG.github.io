@@ -1,75 +1,67 @@
 /* ============================================
-   ChenSchenG's Blog - Deep Tech CSS Variables
+   ChenSchenG's Blog - Theme Variables Override
+   参考: Akilar / 张洪Heo / 安知鱼 风格
    ============================================ */
 
+/* ===== Light Mode ===== */
 :root {
-  /* --- Primary Palette --- */
-  --tech-primary: #00d4ff;
-  --tech-primary-rgb: 0, 212, 255;
-  --tech-secondary: #7c4dff;
-  --tech-secondary-rgb: 124, 77, 255;
-  --tech-accent: #00e5a0;
-  --tech-accent-rgb: 0, 229, 160;
-  --tech-warning: #ffab40;
+  /* Butterfly 主题核心变量覆盖 */
+  --global-bg: #f7f9fe;
+  --card-bg: rgba(255, 255, 255, 0.75);
+  --sidebar-bg: #f7f9fe;
+  --btn-bg: #49b1f5;
+  --btn-hover-color: #ff7242;
+  --text-highlight-color: #49b1f5;
+  --font-color: #4c4948;
+  --hr-color: #a4d8fa;
+  --card-border-color: rgba(0, 0, 0, 0.04);
+  --pseudo-hover: #ff7242;
+  --scrollbar-color: #49b1f5;
+  --tab-botton-color: #49b1f5;
 
-  /* --- Background & Surface (Light) --- */
-  --tech-bg-deep: #f0f4f8;
-  --tech-surface: rgba(255, 255, 255, 0.85);
-  --tech-surface-hover: rgba(255, 255, 255, 0.95);
-  --tech-glass: rgba(255, 255, 255, 0.6);
-  --tech-glass-border: rgba(0, 212, 255, 0.15);
-
-  /* --- Text (Light) --- */
-  --tech-text-primary: #1a1a2e;
-  --tech-text-secondary: #4a4a6a;
-  --tech-text-muted: #8888aa;
-
-  /* --- Gradients --- */
-  --tech-gradient-primary: linear-gradient(135deg, #00d4ff, #7c4dff);
-  --tech-gradient-accent: linear-gradient(135deg, #00e5a0, #00d4ff);
-  --tech-gradient-surface: linear-gradient(135deg, rgba(0, 212, 255, 0.05), rgba(124, 77, 255, 0.05));
-  --tech-gradient-border: linear-gradient(135deg, rgba(0, 212, 255, 0.3), rgba(124, 77, 255, 0.3));
-
-  /* --- Shadows --- */
-  --tech-shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.06);
-  --tech-shadow-md: 0 4px 16px rgba(0, 0, 0, 0.08);
-  --tech-shadow-lg: 0 8px 32px rgba(0, 0, 0, 0.12);
-  --tech-shadow-glow: 0 0 20px rgba(0, 212, 255, 0.15);
-
-  /* --- Border Radius --- */
-  --tech-radius-sm: 8px;
-  --tech-radius-md: 12px;
-  --tech-radius-lg: 16px;
-  --tech-radius-xl: 24px;
-
-  /* --- Transitions --- */
-  --tech-transition-fast: 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-  --tech-transition-normal: 0.35s cubic-bezier(0.4, 0, 0.2, 1);
-  --tech-transition-slow: 0.5s cubic-bezier(0.4, 0, 0.2, 1);
-
-  /* --- Blur --- */
-  --tech-blur-sm: blur(8px);
-  --tech-blur-md: blur(16px);
-  --tech-blur-lg: blur(24px);
+  /* 扩展变量 */
+  --heo-white: #fff;
+  --heo-white-op: rgba(255, 255, 255, 0.75);
+  --heo-black: #000;
+  --heo-black-op: rgba(0, 0, 0, 0.6);
+  --heo-none: rgba(0, 0, 0, 0);
+  --heo-shadow-border: 0 8px 16px -4px rgba(44, 45, 48, 0.07);
+  --heo-shadow-main: 0 4px 8px rgba(0, 0, 0, 0.04);
+  --heo-shadow-hover: 0 4px 20px rgba(73, 177, 245, 0.15);
+  --heo-card-border: rgba(73, 177, 245, 0.12);
+  --heo-main: #425AEF;
+  --heo-main-op: rgba(66, 90, 239, 0.1);
+  --heo-fontcolor: #363636;
+  --heo-secondtext: #708090;
+  --heo-radius: 12px;
+  --heo-radius-lg: 16px;
+  --heo-transition: 0.3s ease;
 }
 
-/* --- Dark Mode Variables --- */
+/* ===== Dark Mode ===== */
 [data-theme="dark"] {
-  --tech-bg-deep: #0a0e17;
-  --tech-surface: rgba(16, 22, 36, 0.9);
-  --tech-surface-hover: rgba(22, 30, 48, 0.95);
-  --tech-glass: rgba(16, 22, 36, 0.7);
-  --tech-glass-border: rgba(0, 212, 255, 0.2);
+  --global-bg: #0d0d0d;
+  --card-bg: rgba(35, 35, 38, 0.85);
+  --sidebar-bg: #1a1a1d;
+  --btn-bg: #5b86e5;
+  --btn-hover-color: #ff7242;
+  --text-highlight-color: #5b86e5;
+  --font-color: #cdd0d4;
+  --hr-color: #3d3d3f;
+  --card-border-color: rgba(255, 255, 255, 0.06);
+  --pseudo-hover: #ff7242;
+  --scrollbar-color: #5b86e5;
 
-  --tech-text-primary: #e8eaf6;
-  --tech-text-secondary: #b0b8d0;
-  --tech-text-muted: #6a7090;
-
-  --tech-gradient-surface: linear-gradient(135deg, rgba(0, 212, 255, 0.08), rgba(124, 77, 255, 0.08));
-  --tech-gradient-border: linear-gradient(135deg, rgba(0, 212, 255, 0.4), rgba(124, 77, 255, 0.4));
-
-  --tech-shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.3);
-  --tech-shadow-md: 0 4px 16px rgba(0, 0, 0, 0.4);
-  --tech-shadow-lg: 0 8px 32px rgba(0, 0, 0, 0.5);
-  --tech-shadow-glow: 0 0 30px rgba(0, 212, 255, 0.2);
+  --heo-white: #1a1a1d;
+  --heo-white-op: rgba(26, 26, 29, 0.85);
+  --heo-black: #e8e8e8;
+  --heo-black-op: rgba(232, 232, 232, 0.8);
+  --heo-shadow-border: 0 8px 16px -4px rgba(0, 0, 0, 0.3);
+  --heo-shadow-main: 0 4px 8px rgba(0, 0, 0, 0.2);
+  --heo-shadow-hover: 0 4px 20px rgba(91, 134, 229, 0.2);
+  --heo-card-border: rgba(91, 134, 229, 0.15);
+  --heo-main: #5b86e5;
+  --heo-main-op: rgba(91, 134, 229, 0.15);
+  --heo-fontcolor: #cdd0d4;
+  --heo-secondtext: #9ca3af;
 }

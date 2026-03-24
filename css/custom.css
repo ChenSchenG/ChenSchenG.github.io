@@ -1,157 +1,222 @@
 /* ============================================
-   ChenSchenG's Blog - Custom Tech Theme
+   ChenSchenG's Blog - Premium Custom Theme
+   参考: Akilar / 张洪Heo / 安知鱼 等优秀博客
    ============================================ */
 
-/* --- Card Glassmorphism Base --- */
-:root {
-  --card-bg: rgba(255, 255, 255, 0.8);
-}
+/* ========== 1. 全局毛玻璃卡片 ========== */
 
-[data-theme="dark"] {
-  --card-bg: rgba(16, 22, 36, 0.85);
-}
-
-/* --- Card Widget Enhancements --- */
+/* 所有侧边栏卡片 + 文章卡片 */
+#aside-content .card-widget,
+#recent-posts > .recent-post-item,
+.layout > div:first-child:not(#recent-posts),
+#page,
 .card-widget {
-  backdrop-filter: var(--tech-blur-md);
-  -webkit-backdrop-filter: var(--tech-blur-md);
-  border: 1px solid var(--tech-glass-border);
-  border-radius: var(--tech-radius-md) !important;
-  transition: transform var(--tech-transition-normal),
-              box-shadow var(--tech-transition-normal),
-              border-color var(--tech-transition-normal);
+  background: var(--card-bg) !important;
+  backdrop-filter: saturate(180%) blur(20px) !important;
+  -webkit-backdrop-filter: saturate(180%) blur(20px) !important;
+  border-radius: var(--heo-radius) !important;
+  border: 1px solid var(--card-border-color) !important;
+  box-shadow: var(--heo-shadow-main) !important;
+  transition: all var(--heo-transition) !important;
 }
 
-.card-widget:hover {
-  transform: translateY(-2px);
-  box-shadow: var(--tech-shadow-lg), var(--tech-shadow-glow);
-  border-color: rgba(var(--tech-primary-rgb), 0.3);
+#aside-content .card-widget:hover,
+#recent-posts > .recent-post-item:hover {
+  box-shadow: var(--heo-shadow-hover) !important;
+  border-color: var(--heo-card-border) !important;
+  transform: translateY(-3px);
 }
 
-/* --- Sidebar Gradient --- */
-#aside-content .card-info {
-  background: var(--tech-gradient-surface);
-  backdrop-filter: var(--tech-blur-lg);
-  -webkit-backdrop-filter: var(--tech-blur-lg);
+/* ========== 2. 导航栏毛玻璃 ========== */
+
+#page-header.nav-visible #nav,
+#page-header #nav {
+  backdrop-filter: saturate(180%) blur(20px) !important;
+  -webkit-backdrop-filter: saturate(180%) blur(20px) !important;
+}
+
+[data-theme="light"] #page-header.nav-visible #nav {
+  background: rgba(255, 255, 255, 0.72) !important;
+}
+
+[data-theme="dark"] #page-header.nav-visible #nav {
+  background: rgba(26, 26, 29, 0.78) !important;
+}
+
+/* ========== 3. 首页文章卡片增强 ========== */
+
+.recent-post-item {
+  overflow: hidden;
+  border-radius: var(--heo-radius) !important;
+  margin-bottom: 1rem;
+}
+
+.recent-post-item .recent-post-info {
+  padding: 1rem 1.2rem;
+}
+
+.recent-post-item .article-title {
+  font-weight: 700;
+  font-size: 1.1rem;
+  transition: color var(--heo-transition);
+}
+
+.recent-post-item:hover .article-title {
+  color: var(--btn-bg) !important;
+}
+
+.recent-post-item .content {
+  color: var(--heo-secondtext);
+  -webkit-line-clamp: 3;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* ========== 4. 侧边栏个人卡片 ========== */
+
+.card-info .author-info-name {
+  font-size: 1.3rem;
+  font-weight: 700;
+  margin: 0.5rem 0 0.3rem;
+}
+
+.card-info .author-info-description {
+  font-size: 0.85rem;
+  color: var(--heo-secondtext);
+}
+
+.card-info .avatar-img img {
+  border-radius: 50%;
+  border: 3px solid var(--btn-bg);
+  padding: 2px;
+  transition: all 0.5s ease;
+  object-fit: cover;
+}
+
+.card-info .avatar-img img:hover {
+  transform: rotate(360deg);
 }
 
 #card-info-btn {
-  background: var(--tech-gradient-primary) !important;
+  background: linear-gradient(135deg, var(--btn-bg), #667eea) !important;
   border: none !important;
-  border-radius: var(--tech-radius-xl) !important;
+  border-radius: 2rem !important;
   color: #fff !important;
-  transition: all var(--tech-transition-normal);
-  box-shadow: 0 4px 12px rgba(var(--tech-primary-rgb), 0.3);
+  font-weight: 600;
+  padding: 0.5rem 1.5rem;
+  transition: all var(--heo-transition);
+  box-shadow: 0 4px 15px rgba(73, 177, 245, 0.25);
 }
 
 #card-info-btn:hover {
-  transform: translateY(-2px) scale(1.02);
-  box-shadow: 0 6px 20px rgba(var(--tech-primary-rgb), 0.5);
+  transform: translateY(-2px) scale(1.03);
+  box-shadow: 0 6px 25px rgba(73, 177, 245, 0.4);
+  filter: brightness(1.05);
 }
 
-/* --- Announcement Tech Border Animation --- */
+/* ========== 5. 公告栏 ========== */
+
 .card-announcement {
   position: relative;
-  overflow: hidden;
-  background: var(--tech-gradient-surface);
-}
-
-.card-announcement::before {
-  content: '';
-  position: absolute;
-  top: -2px;
-  left: -2px;
-  right: -2px;
-  bottom: -2px;
-  background: linear-gradient(
-    45deg,
-    transparent 30%,
-    rgba(var(--tech-primary-rgb), 0.4) 50%,
-    transparent 70%
-  );
-  background-size: 200% 200%;
-  animation: techBorderShimmer 4s ease-in-out infinite;
-  border-radius: inherit;
-  z-index: -1;
-}
-
-@keyframes techBorderShimmer {
-  0%, 100% { background-position: 200% 0; }
-  50% { background-position: -200% 0; }
+  background: linear-gradient(135deg, var(--heo-main-op), rgba(73, 177, 245, 0.06)) !important;
+  border: 1px solid var(--heo-card-border) !important;
 }
 
 .announcement_content {
   font-weight: 600;
-  background: var(--tech-gradient-primary);
+  font-size: 0.92rem;
+  background: linear-gradient(135deg, var(--btn-bg), #667eea);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
 }
 
-/* --- Scrollbar Styling --- */
+/* ========== 6. 圆角 + 阴影全局 ========== */
+
+/* 文章页容器 */
+.layout > .post,
+.layout > #page {
+  border-radius: var(--heo-radius-lg) !important;
+}
+
+/* 代码块 */
+figure.highlight,
+.code-expand-btn,
+pre {
+  border-radius: 10px !important;
+}
+
+/* 页脚 */
+#footer {
+  background: transparent !important;
+}
+
+/* 分页 */
+#pagination .pagination-related {
+  border-radius: var(--heo-radius) !important;
+  overflow: hidden;
+  transition: all var(--heo-transition);
+}
+
+#pagination .pagination-related:hover {
+  box-shadow: var(--heo-shadow-hover);
+  transform: translateY(-2px);
+}
+
+/* ========== 7. 自定义滚动条 ========== */
+
 ::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
+  width: 6px;
+  height: 6px;
 }
 
 ::-webkit-scrollbar-track {
   background: transparent;
+  border-radius: 3px;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: linear-gradient(180deg, var(--tech-primary), var(--tech-secondary));
-  border-radius: 4px;
+  background: var(--scrollbar-color);
+  border-radius: 3px;
+  opacity: 0.8;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: linear-gradient(180deg, var(--tech-secondary), var(--tech-primary));
+  opacity: 1;
 }
 
-/* --- Link Hover Effects --- */
-#article-container a:not(.btn-beautify):not(.flink-list-item a) {
-  color: var(--tech-primary);
+/* ========== 8. 链接悬浮效果 ========== */
+
+#article-container a:not(.btn-beautify):not(.flink-list-item a):not(.contact-item) {
+  color: var(--btn-bg);
   text-decoration: none;
-  background-image: linear-gradient(var(--tech-primary), var(--tech-primary));
-  background-size: 0% 2px;
-  background-position: left bottom;
-  background-repeat: no-repeat;
-  transition: background-size var(--tech-transition-normal),
-              color var(--tech-transition-fast);
+  border-bottom: 2px dashed var(--btn-bg);
+  padding-bottom: 1px;
+  transition: all 0.25s ease;
 }
 
-#article-container a:not(.btn-beautify):not(.flink-list-item a):hover {
-  background-size: 100% 2px;
-  color: var(--tech-secondary);
+#article-container a:not(.btn-beautify):not(.flink-list-item a):not(.contact-item):hover {
+  color: var(--btn-hover-color);
+  border-bottom-style: solid;
+  border-color: var(--btn-hover-color);
 }
 
-/* --- Post Card Enhancements --- */
-.recent-post-item {
-  border-radius: var(--tech-radius-md) !important;
-  overflow: hidden;
-  transition: transform var(--tech-transition-normal),
-              box-shadow var(--tech-transition-normal);
+/* ========== 9. 选中文字 ========== */
+
+::selection {
+  background: rgba(73, 177, 245, 0.2);
+  color: inherit;
 }
 
-.recent-post-item:hover {
-  transform: translateY(-4px);
-  box-shadow: var(--tech-shadow-lg), var(--tech-shadow-glow);
-}
+/* ========== 10. About 页面样式 ========== */
 
-/* --- Navigation Enhancement --- */
-#nav {
-  backdrop-filter: var(--tech-blur-sm);
-  -webkit-backdrop-filter: var(--tech-blur-sm);
-}
-
-/* --- About Page Styles --- */
 .about-profile-card {
-  background: var(--tech-gradient-surface);
-  border: 1px solid var(--tech-glass-border);
-  border-radius: var(--tech-radius-lg);
+  background: linear-gradient(135deg, var(--heo-main-op), rgba(73, 177, 245, 0.05));
+  border: 1px solid var(--heo-card-border);
+  border-radius: var(--heo-radius-lg);
   padding: 2rem;
-  margin-bottom: 2rem;
-  backdrop-filter: var(--tech-blur-md);
-  -webkit-backdrop-filter: var(--tech-blur-md);
+  margin-bottom: 1.5rem;
 }
 
 .about-header {
@@ -166,36 +231,40 @@
 }
 
 .about-avatar {
-  width: 100px;
-  height: 100px;
+  width: 96px;
+  height: 96px;
   border-radius: 50%;
-  border: 3px solid transparent;
-  background-image: var(--tech-gradient-primary);
-  background-origin: border-box;
-  background-clip: content-box, border-box;
-  box-shadow: 0 0 20px rgba(var(--tech-primary-rgb), 0.3);
+  border: 3px solid var(--btn-bg);
+  padding: 2px;
   object-fit: cover;
+  transition: all 0.5s ease;
+}
+
+.about-avatar:hover {
+  transform: rotate(360deg);
+  box-shadow: 0 0 20px rgba(73, 177, 245, 0.35);
 }
 
 .about-name {
-  margin: 0 0 0.3rem 0;
-  font-size: 1.6rem;
-  background: var(--tech-gradient-primary);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
+  margin: 0 0 0.25rem 0;
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--heo-fontcolor);
+  -webkit-text-fill-color: initial;
+  background: none;
 }
 
 .about-name-en {
-  font-size: 0.9rem;
-  opacity: 0.7;
-  -webkit-text-fill-color: var(--tech-text-muted);
+  font-size: 0.85rem;
+  color: var(--heo-secondtext);
+  font-weight: 400;
+  margin-left: 0.4rem;
 }
 
 .about-tagline {
-  color: var(--tech-text-secondary);
+  color: var(--heo-secondtext);
   margin: 0 0 0.8rem 0;
-  font-size: 1rem;
+  font-size: 0.95rem;
 }
 
 .about-badges {
@@ -208,90 +277,103 @@
   display: inline-flex;
   align-items: center;
   gap: 0.3rem;
-  padding: 0.25rem 0.75rem;
-  background: var(--tech-gradient-surface);
-  border: 1px solid var(--tech-glass-border);
-  border-radius: var(--tech-radius-xl);
-  font-size: 0.8rem;
-  color: var(--tech-text-secondary);
-  transition: all var(--tech-transition-fast);
+  padding: 0.3rem 0.85rem;
+  background: var(--heo-main-op);
+  border: 1px solid var(--heo-card-border);
+  border-radius: 2rem;
+  font-size: 0.78rem;
+  color: var(--heo-main);
+  font-weight: 500;
+  transition: all 0.25s ease;
 }
 
 .about-badge:hover {
-  border-color: var(--tech-primary);
-  color: var(--tech-primary);
-  box-shadow: var(--tech-shadow-glow);
+  background: var(--btn-bg);
+  color: #fff;
+  border-color: transparent;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(73, 177, 245, 0.3);
 }
 
 .about-badge i {
-  color: var(--tech-primary);
+  font-size: 0.75rem;
 }
 
+/* About 内容区块 */
 .about-section {
-  margin-bottom: 2rem;
+  margin-bottom: 1.5rem;
   padding: 1.5rem;
-  background: var(--tech-gradient-surface);
-  border: 1px solid var(--tech-glass-border);
-  border-radius: var(--tech-radius-md);
-  backdrop-filter: var(--tech-blur-sm);
-  -webkit-backdrop-filter: var(--tech-blur-sm);
-  transition: border-color var(--tech-transition-normal),
-              box-shadow var(--tech-transition-normal);
+  background: var(--card-bg);
+  border: 1px solid var(--card-border-color);
+  border-radius: var(--heo-radius);
+  backdrop-filter: saturate(180%) blur(20px);
+  -webkit-backdrop-filter: saturate(180%) blur(20px);
+  transition: all var(--heo-transition);
 }
 
 .about-section:hover {
-  border-color: rgba(var(--tech-primary-rgb), 0.3);
-  box-shadow: var(--tech-shadow-glow);
+  border-color: var(--heo-card-border);
+  box-shadow: var(--heo-shadow-hover);
+  transform: translateY(-2px);
 }
 
 .about-section h2 {
-  margin-top: 0;
-  font-size: 1.3rem;
-  background: var(--tech-gradient-primary);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-  border-bottom: none;
-  padding-bottom: 0.5rem;
-  margin-bottom: 1rem;
+  margin: 0 0 1rem 0;
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: var(--heo-fontcolor);
+  border-bottom: 2px solid var(--heo-card-border);
+  padding-bottom: 0.6rem;
+  /* 重置渐变文字 */
+  background: none;
+  -webkit-background-clip: initial;
+  -webkit-text-fill-color: initial;
+  background-clip: initial;
 }
 
 .about-section h2 i {
   margin-right: 0.5rem;
-  -webkit-text-fill-color: var(--tech-primary);
+  color: var(--btn-bg);
 }
 
 .about-section ul {
   list-style: none;
   padding: 0;
+  margin: 0;
 }
 
 .about-section ul li {
-  padding: 0.5rem 0;
-  padding-left: 1.2rem;
+  padding: 0.45rem 0 0.45rem 1.4rem;
   position: relative;
-  color: var(--tech-text-secondary);
+  color: var(--heo-secondtext);
+  font-size: 0.92rem;
+  line-height: 1.7;
 }
 
 .about-section ul li::before {
   content: '';
   position: absolute;
   left: 0;
-  top: 50%;
-  transform: translateY(-50%);
+  top: 0.95rem;
   width: 6px;
   height: 6px;
   border-radius: 50%;
-  background: var(--tech-gradient-primary);
-  box-shadow: 0 0 6px rgba(var(--tech-primary-rgb), 0.5);
+  background: var(--btn-bg);
+}
+
+.about-section ul li strong {
+  color: var(--heo-fontcolor);
 }
 
 .about-section p {
-  color: var(--tech-text-secondary);
-  line-height: 1.8;
+  color: var(--heo-secondtext);
+  line-height: 1.85;
+  margin: 0;
+  font-size: 0.92rem;
 }
 
-/* --- Skills Tags --- */
+/* ========== 11. 技能标签 ========== */
+
 .about-skills {
   display: flex;
   flex-wrap: wrap;
@@ -300,127 +382,136 @@
 
 .skill-tag {
   display: inline-block;
-  padding: 0.35rem 0.9rem;
-  background: var(--tech-glass);
-  border: 1px solid var(--tech-glass-border);
-  border-radius: var(--tech-radius-xl);
-  font-size: 0.85rem;
-  color: var(--tech-text-secondary);
-  transition: all var(--tech-transition-fast);
+  padding: 0.3rem 0.85rem;
+  background: var(--heo-main-op);
+  border: 1px solid var(--heo-card-border);
+  border-radius: 2rem;
+  font-size: 0.82rem;
+  color: var(--heo-main);
+  font-weight: 500;
+  transition: all 0.25s ease;
   cursor: default;
 }
 
 .skill-tag:hover {
-  background: var(--tech-gradient-primary);
+  background: linear-gradient(135deg, var(--btn-bg), #667eea);
   color: #fff;
   border-color: transparent;
   transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(var(--tech-primary-rgb), 0.3);
+  box-shadow: 0 4px 12px rgba(73, 177, 245, 0.3);
 }
 
-/* --- Contact Items --- */
+/* ========== 12. 联系方式 ========== */
+
 .about-contact {
   display: flex;
   flex-direction: column;
-  gap: 0.8rem;
+  gap: 0.6rem;
 }
 
 .contact-item {
   display: inline-flex;
   align-items: center;
-  gap: 0.5rem;
-  color: var(--tech-text-secondary) !important;
+  gap: 0.6rem;
+  color: var(--heo-secondtext) !important;
   text-decoration: none !important;
-  padding: 0.5rem 1rem;
-  border-radius: var(--tech-radius-sm);
-  transition: all var(--tech-transition-fast);
-  background: none !important;
+  padding: 0.6rem 1rem;
+  border-radius: var(--heo-radius);
+  border: 1px solid var(--card-border-color);
+  transition: all 0.25s ease;
+  font-size: 0.9rem;
+  background: transparent !important;
   background-image: none !important;
+  border-bottom: none !important;
 }
 
 .contact-item:hover {
-  color: var(--tech-primary) !important;
-  background: var(--tech-gradient-surface) !important;
+  color: var(--btn-bg) !important;
+  background: var(--heo-main-op) !important;
+  border-color: var(--heo-card-border) !important;
+  transform: translateX(4px);
   -webkit-text-fill-color: initial;
 }
 
 .contact-item i {
-  color: var(--tech-primary);
+  color: var(--btn-bg);
   width: 1.2em;
   text-align: center;
+  font-size: 1rem;
 }
 
-/* --- Friend Link Card Enhancements --- */
+/* ========== 13. 友链卡片 ========== */
+
 .flink-list {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
   gap: 1rem;
   padding: 0.5rem 0;
 }
 
 .flink-list-item {
-  border-radius: var(--tech-radius-md);
+  border-radius: var(--heo-radius);
   overflow: hidden;
-  border: 1px solid var(--tech-glass-border);
-  background: var(--tech-gradient-surface);
-  backdrop-filter: var(--tech-blur-sm);
-  -webkit-backdrop-filter: var(--tech-blur-sm);
-  transition: all var(--tech-transition-normal);
+  border: 1px solid var(--card-border-color);
+  background: var(--card-bg);
+  backdrop-filter: saturate(180%) blur(20px);
+  -webkit-backdrop-filter: saturate(180%) blur(20px);
+  transition: all var(--heo-transition);
 }
 
 .flink-list-item:hover {
-  transform: translateY(-4px) scale(1.02);
-  box-shadow: var(--tech-shadow-lg), var(--tech-shadow-glow);
-  border-color: rgba(var(--tech-primary-rgb), 0.4);
+  transform: translateY(-4px);
+  box-shadow: var(--heo-shadow-hover);
+  border-color: var(--heo-card-border);
 }
 
 .flink-list-item a {
   display: flex;
   align-items: center;
-  gap: 1rem;
+  gap: 0.8rem;
   padding: 1rem;
-  color: var(--tech-text-primary);
+  color: var(--heo-fontcolor);
   text-decoration: none !important;
   background-image: none !important;
   background-size: 0 !important;
+  border-bottom: none !important;
 }
 
 .flink-item-icon {
   flex-shrink: 0;
-  width: 48px;
-  height: 48px;
+  width: 50px;
+  height: 50px;
   border-radius: 50%;
   overflow: hidden;
-  border: 2px solid var(--tech-glass-border);
+  border: 2px solid var(--card-border-color);
   display: flex;
   align-items: center;
   justify-content: center;
-  background: var(--tech-surface);
-  transition: border-color var(--tech-transition-fast);
+  background: var(--heo-white);
+  transition: all 0.25s ease;
 }
 
 .flink-list-item:hover .flink-item-icon {
-  border-color: var(--tech-primary);
-  box-shadow: 0 0 12px rgba(var(--tech-primary-rgb), 0.3);
+  border-color: var(--btn-bg);
+  box-shadow: 0 0 10px rgba(73, 177, 245, 0.25);
 }
 
 .flink-item-icon img {
-  width: 32px;
-  height: 32px;
+  width: 34px;
+  height: 34px;
   object-fit: contain;
 }
 
 .flink-item-name {
   font-weight: 600;
   font-size: 0.95rem;
-  color: var(--tech-text-primary);
-  margin-bottom: 0.2rem;
+  margin-bottom: 0.15rem;
 }
 
 .flink-item-desc {
   font-size: 0.78rem;
-  color: var(--tech-text-muted);
-  line-height: 1.4;
+  color: var(--heo-secondtext);
+  line-height: 1.45;
   overflow: hidden;
   text-overflow: ellipsis;
   display: -webkit-box;
@@ -428,25 +519,31 @@
   -webkit-box-orient: vertical;
 }
 
-/* --- Page Header Overlay --- */
-#page-header::after {
-  content: '';
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  height: 120px;
-  background: linear-gradient(to top, var(--tech-bg-deep), transparent);
-  pointer-events: none;
+/* ========== 14. 页面背景 ========== */
+
+#web_bg {
+  filter: brightness(0.92) saturate(1.1);
 }
 
-/* --- Selection Color --- */
-::selection {
-  background: rgba(var(--tech-primary-rgb), 0.25);
-  color: var(--tech-text-primary);
+[data-theme="dark"] #web_bg {
+  filter: brightness(0.3) saturate(0.9);
 }
 
-/* --- Responsive --- */
+/* ========== 15. 右下角按钮 ========== */
+
+#rightside > div button {
+  border-radius: 50% !important;
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  transition: all 0.25s ease;
+}
+
+#rightside > div button:hover {
+  transform: scale(1.1);
+}
+
+/* ========== 16. 响应式 ========== */
+
 @media screen and (max-width: 768px) {
   .about-header {
     flex-direction: column;
@@ -462,6 +559,17 @@
   }
 
   .about-section {
-    padding: 1rem;
+    padding: 1.2rem;
+  }
+}
+
+/* ========== 17. 减少动画（无障碍） ========== */
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
   }
 }
