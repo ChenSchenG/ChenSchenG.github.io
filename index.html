@@ -18,7 +18,7 @@
     <div class="nav-links-wrapper">
       <ul class="nav-links">
         <li><a href="/">Home</a></li>
-        <li><a href="#graph">Graph</a></li>
+        <li><a href="#graph">Articles</a></li>
         <li><a href="#projects">Projects</a></li>
         <li><a href="about.html">About</a></li>
       </ul>
@@ -31,7 +31,7 @@
   <aside class="mobile-menu" id="mobile-menu">
     <ul>
       <li><a href="/">Home</a></li>
-      <li><a href="#graph">Graph</a></li>
+      <li><a href="#graph">Articles</a></li>
       <li><a href="#projects">Projects</a></li>
       <li><a href="about.html">About</a></li>
     </ul>
@@ -64,33 +64,33 @@
       </div>
     </section>
 
-    <!-- Knowledge Graph -->
-    <section id="graph" class="graph-section fade-in">
-      <h2 class="section-title">Knowledge Graph</h2>
-      <div class="graph-legend">
-        <span class="legend-item"><i style="background:#e74c3c"></i>Security</span>
-        <span class="legend-item"><i style="background:#27ae60"></i>Network</span>
-        <span class="legend-item"><i style="background:#2980b9"></i>Frontend</span>
-        <span class="legend-item"><i style="background:#8e44ad"></i>AI</span>
-        <span class="legend-item"><i style="background:#7f8c8d"></i>Other</span>
-      </div>
-      <div class="graph-container" id="graph-container">
-        <svg id="graph-svg"></svg>
-        <div class="graph-tooltip" id="graph-tooltip"></div>
-        <div class="detail-panel" id="detail-panel">
-          <button class="detail-panel-close" id="detail-close">&times;</button>
-          <h3 id="detail-title"></h3>
-          <div class="detail-category" id="detail-category"></div>
-          <p class="detail-excerpt" id="detail-excerpt"></p>
-          <div class="detail-tags" id="detail-tags"></div>
-          <a href="#" class="detail-link" id="detail-link">Read Article &rarr;</a>
-        </div>
-      </div>
-    </section>
-
     <!-- Category Filter + Article List -->
     <section class="category-directory fade-in">
       <h2 class="section-title section-title-fancy">Articles</h2>
+
+      <!-- Knowledge Graph -->
+      <div id="graph" class="graph-section">
+        <div class="graph-legend">
+          <span class="legend-item"><i style="background:#e74c3c"></i>Security</span>
+          <span class="legend-item"><i style="background:#27ae60"></i>Network</span>
+          <span class="legend-item"><i style="background:#2980b9"></i>Frontend</span>
+          <span class="legend-item"><i style="background:#8e44ad"></i>AI</span>
+          <span class="legend-item"><i style="background:#7f8c8d"></i>Other</span>
+        </div>
+        <div class="graph-container" id="graph-container">
+          <svg id="graph-svg"></svg>
+          <div class="graph-tooltip" id="graph-tooltip"></div>
+          <div class="detail-panel" id="detail-panel">
+            <button class="detail-panel-close" id="detail-close">&times;</button>
+            <h3 id="detail-title"></h3>
+            <div class="detail-category" id="detail-category"></div>
+            <p class="detail-excerpt" id="detail-excerpt"></p>
+            <div class="detail-tags" id="detail-tags"></div>
+            <a href="#" class="detail-link" id="detail-link">Read Article &rarr;</a>
+          </div>
+        </div>
+      </div>
+
       <div class="category-grid" id="category-grid">
         <!-- populated by JS -->
       </div>
