@@ -1,0 +1,346 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>虚拟化 — ChenSchenG</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⚡</text></svg>">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../css/style.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github.min.css">
+</head>
+<body>
+  <nav id="nav">
+    <div class="nav-logo"><a href="/">ChenSchenG</a></div>
+    <div class="nav-links-wrapper">
+      <ul class="nav-links">
+        <li><a href="/">Home</a></li>
+        <li><a href="/#graph">Graph</a></li>
+        <li><a href="/about.html">About</a></li>
+      </ul>
+    </div>
+    <button class="hamburger" id="hamburger" aria-label="Menu"><span class="hamburger-inner"></span></button>
+  </nav>
+  <div class="mobile-menu-overlay" id="mobile-overlay"></div>
+  <aside class="mobile-menu" id="mobile-menu">
+    <ul>
+      <li><a href="/">Home</a></li>
+      <li><a href="/#graph">Graph</a></li>
+      <li><a href="/about.html">About</a></li>
+    </ul>
+  </aside>
+
+  <main class="article-page">
+    <!-- Main content column -->
+    <div class="article-main">
+      <article>
+        <header class="article-header">
+          <div class="article-breadcrumb">
+            <a href="/">Home</a>
+            <span class="separator">/</span>
+            <span>Other</span>
+          </div>
+          <h1>虚拟化</h1>
+          <div class="article-meta">
+            <span><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>Posted 2026-04-08</span>
+            <span><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 19a2 2 0 01-2 2H4a2 2 0 01-2-2V5a2 2 0 012-2h5l2 3h9a2 2 0 012 2z"/></svg>Other</span>
+            <span><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>12 min read</span>
+          </div>
+          <div class="article-tags">
+  <span class="tag">软件工程</span>
+  <span class="tag">概念</span>
+  <span class="tag">虚拟化</span>
+  <span class="tag">Hypervisor</span>
+  <span class="tag">虚拟机</span>
+  <span class="tag">Type1</span>
+  <span class="tag">Type2</span>
+  <span class="tag">快照</span>
+</div>
+
+        </header>
+
+        <div class="article-body">
+          <h1>虚拟化（Virtualization）</h1>
+<blockquote>
+<p><strong>一句话本质</strong><br>Hypervisor 坐在硬件和操作系统之间，把一台物理机的资源隔离切分成多台虚拟机，每台以为自己独占整台电脑。</p>
+</blockquote>
+<h2>第一幕：问题感知</h2>
+<p>你是一家银行的 IT 主管。机房里整整齐齐摆了 <strong>40 台服务器</strong>。</p>
+<p>第一台跑工资系统——每月月底忙三天，其余 27 天几乎空转。CPU 使用率：<strong>8%</strong>。</p>
+<p>第二台跑邮件——白天有点活儿，晚上闲着。CPU 使用率：<strong>12%</strong>。</p>
+<p>第三台跑官网——偶尔有人访问。CPU 使用率：<strong>3%</strong>。</p>
+<p>40 台服务器，平均利用率不到 <strong>15%</strong>。但你不敢把工资系统和邮件装在同一台机器上——上次有人试过，邮件系统崩了，把工资系统一起拖死了，全行三千人那个月差点没发出工资。</p>
+<p>所以每个应用必须独占一台物理机。这是铁律。</p>
+<p>电费账单到了。40 台机器，每台功耗 400 瓦，全年无休。加上空调散热，年电费超过 <strong>70 万</strong>。而这些机器 85% 的时间在空转——你在用真金白银给空气加热。</p>
+<p>领导找你谈话：&quot;能不能砍到 10 台机器？&quot;</p>
+<p>你说不行，应用之间会互相干扰。</p>
+<p>领导说：&quot;那就想个办法，让它们装在一起但互不干扰。&quot;</p>
+<p><strong>怎么让一台机器安全地装下多个系统？</strong></p>
+<hr>
+<h2>第二幕：引导式构建</h2>
+<p>先想清楚&quot;互相干扰&quot;到底在干扰什么。工资系统崩溃拖死邮件系统，根子在于它们<strong>共享同一个操作系统</strong>。一个程序吃光了内存，另一个就饿死了。一个程序让系统内核崩溃，所有程序一起陪葬。</p>
+<p>所以真正的需求是：每个应用以为自己<strong>独占一整台电脑</strong>，拥有自己的操作系统、自己的内存、自己的硬盘，互相完全看不见。但物理上，它们确实跑在同一块硬件上。</p>
+<p>换句话说，我们要造出<strong>假的电脑</strong>，假到连操作系统都分辨不出真假。</p>
+<blockquote>
+<p>想一想：如果你要&quot;假装&quot;出一台电脑，至少需要骗过哪些东西？CPU？内存？硬盘？网卡？谁来负责&quot;演这出戏&quot;？</p>
+</blockquote>
+<p>既然操作系统以为自己在独占硬件，就需要一个<strong>中间人</strong>，坐在真正的硬件和多个操作系统之间，截获所有对硬件的请求，然后巧妙地分配和隔离。</p>
+<p>这个中间人叫 <strong>Hypervisor</strong>（虚拟机监控器）。&quot;Hyper&quot;意为&quot;超越&quot;——它超越了普通的操作系统，站在更底层的位置来调度一切。</p>
+<p>打个比方。一栋大楼（物理服务器）原来只住一户人家（一个操作系统）。现在请来一个<strong>物业管理公司</strong>（Hypervisor），把大楼改造成多个独立公寓。每户有自己的门锁、自己的电表、自己的水管。住在三楼的人完全不知道五楼住了谁，也碰不到五楼的东西。</p>
+<p>每一个&quot;独立公寓&quot;就是一台 <strong>虚拟机</strong>（Virtual Machine, VM）。</p>
+<blockquote>
+<p>想一想：这个&quot;物业公司&quot;应该装在哪里？是直接装在大楼的地基上，还是装在某一户人家里面？这两种方式会有什么不同？</p>
+</blockquote>
+<p>这个问题正好对应两种截然不同的架构。</p>
+<p><strong>第一种</strong>：把 Hypervisor 直接装在裸硬件上，它自己就是最底层的&quot;操作系统&quot;，所有虚拟机都运行在它之上。这叫 <strong>Type 1——裸金属型</strong>（Bare-metal）。就像物业公司直接拥有这栋楼，从打地基开始就是它在管。VMware ESXi、微软 Hyper-V 就是这一类。银行和云计算中心几乎都用这种——中间没有多余的层，性能损耗最小，隔离最干净。</p>
+<p><strong>第二种</strong>：先装一个普通操作系统（比如 Windows 或 Linux），然后在里面装一个软件来创建虚拟机。这叫 <strong>Type 2——宿主型</strong>（Hosted）。就像你在自己家里腾出几个房间隔成小隔间转租出去。VMware Workstation、VirtualBox 就是这一类。方便，但多了一层&quot;房东&quot;在中间转手，性能打折扣。</p>
+<blockquote>
+<p>想一想：如果你是银行 IT 主管，要在生产环境里跑 40 个关键业务系统，你会选哪种？如果你只是想在 Mac 上临时试一下 Windows，又会选哪种？</p>
+</blockquote>
+<p>Hypervisor 到位了，但&quot;分公寓&quot;不是画条线就完事的。你得明确每户能用多少资源。</p>
+<p>先说 <strong>CPU</strong>。一台物理机有 8 个 CPU 核心。你可以给虚拟机 A 分配 2 个<strong>虚拟 CPU（vCPU）</strong>，给 B 分配 4 个，给 C 分配 2 个。Hypervisor 在底层调度，确保 A 只能使用分配给它的那份算力。你甚至可以&quot;超卖&quot;：8 个物理核心分出 12 个 vCPU，赌的是它们不会同时全力运转——就像航空公司超售机票。</p>
+<p>再说 <strong>内存</strong>。物理机有 64GB，你给 A 划 16GB、B 划 32GB、C 划 16GB。A 的程序试图读取 16GB 之外的地址？Hypervisor 直接拦截。B 永远看不到 A 的内存里有什么。</p>
+<p><strong>硬盘</strong>也类似。Hypervisor 为每个虚拟机创建一个<strong>虚拟磁盘文件</strong>——本质上就是物理硬盘上的一个大文件，但虚拟机看起来就是一整块独立硬盘。</p>
+<blockquote>
+<p>想一想：超卖 CPU 听起来很聪明，但什么场景下会翻车？如果三个虚拟机同时跑满，会发生什么？</p>
+</blockquote>
+<p>每台虚拟机还需要上网、互相通信。但物理机可能只有一块网卡。</p>
+<p>Hypervisor 在软件层面造出一个 <strong>虚拟交换机</strong>（Virtual Switch）。每台虚拟机获得一块<strong>虚拟网卡（vNIC）</strong>，拥有自己的 MAC 地址和 IP 地址。虚拟机 A 给虚拟机 B 发数据包，虚拟交换机在内部直接转发，不需要真的跑出物理机再绕回来。要访问外网？虚拟交换机把流量导向物理网卡，送出去。</p>
+<blockquote>
+<p>想一想：如果你想让虚拟机 A 和虚拟机 B 完全网络隔离（即使在同一台物理机上也互相 ping 不通），虚拟交换机该怎么配置？</p>
+</blockquote>
+<p>虚拟机比物理机多了一个魔法般的能力。</p>
+<p>既然整台虚拟机就是一堆文件（虚拟磁盘 + 配置文件 + 内存状态），那你可以在任意时刻给它拍一张 <strong>快照</strong>（Snapshot）——完整保存当前 CPU 寄存器状态、内存内容、磁盘数据。之后搞砸了，一键回滚到快照那一刻。就像游戏里的存档读档。</p>
+<p>更厉害的是 <strong>迁移</strong>（Migration）。把虚拟机的全部文件从物理机 A 拷贝到物理机 B，在 B 上启动——虚拟机&quot;搬家&quot;了。甚至有<strong>热迁移</strong>（Live Migration）：Hypervisor 先同步磁盘和大部分内存，最后在极短的一瞬间暂停源端，把最后一点变化同步过去，在目标端恢复运行。用户几乎无感知。</p>
+<blockquote>
+<p>想一想：快照占空间吗？如果连续拍了 10 个快照，会发生什么？</p>
+</blockquote>
+<hr>
+<h2>第三幕：完整组装</h2>
+<p><strong>一台物理机跑三个虚拟机的完整架构</strong></p>
+<pre><code>+==============================================================+
+|                 物理服务器 (Physical Server)                    |
+|  CPU: 8核   内存: 64GB   硬盘: 2TB   网卡: 1块千兆             |
++==============================================================+
+|                                                                |
+|  +----------------+  +----------------+  +----------------+    |
+|  |  VM-A (工资)    |  |  VM-B (邮件)    |  |  VM-C (官网)    |    |
+|  |  CentOS 7      |  |  Ubuntu 20.04  |  |  Windows 2019  |    |
+|  |  vCPU:2         |  |  vCPU:4         |  |  vCPU:2         |    |
+|  |  vRAM:16GB      |  |  vRAM:32GB      |  |  vRAM:16GB      |    |
+|  |  vDisk:200GB    |  |  vDisk:500GB    |  |  vDisk:300GB    |    |
+|  +-------+--------+  +-------+--------+  +-------+--------+    |
+|          |                    |                    |            |
+|  +-------|--------------------|--------------------|--------+  |
+|  |             虚拟交换机 (Virtual Switch)                    |  |
+|  +----------------------------|-------------------------------+  |
+|                               |                                |
+|  +----------------------------+-------------------------------+  |
+|  |              Hypervisor (Type 1 / 裸金属)                   |  |
+|  |  CPU调度 / 内存隔离 / 存储引擎 / 快照管理 / 迁移引擎        |  |
+|  +-------------------------------------------------------------+  |
+|                               |                                |
++===============================|================================+
+                                |
+                    +-----------+-----------+
+                    |     物理网卡 (1Gbps)   |
+                    +-----------------------+
+</code></pre>
+<p><strong>结果</strong>：40 台物理机 -&gt; 10 台。电费从 70 万降到不到 20 万。工资系统崩了？邮件系统毫无感觉——它们连操作系统都不是同一个。</p>
+<p><strong>组件检查</strong></p>
+<table>
+<thead>
+<tr>
+<th>组件</th>
+<th>在示例中的位置</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Hypervisor</td>
+<td>ESXi 装在物理机上，管理一切</td>
+</tr>
+<tr>
+<td>Type 1 vs Type 2</td>
+<td>生产环境选 Type 1（裸金属）</td>
+</tr>
+<tr>
+<td>vCPU / vRAM / vDisk</td>
+<td>每个 VM 独立分配</td>
+</tr>
+<tr>
+<td>虚拟交换机</td>
+<td>VLAN 隔离工资+邮件 vs 官网</td>
+</tr>
+<tr>
+<td>快照</td>
+<td>升级前拍初始稳定版</td>
+</tr>
+<tr>
+<td>迁移</td>
+<td>物理机维修时把 VM 热迁走</td>
+</tr>
+</tbody></table>
+<hr>
+<h2>第四幕：验证与压力测试</h2>
+<h3>反事实：不用 Hypervisor，直接在一个 Linux 上跑不同应用？</h3>
+<p>能隔离权限，但隔离不了故障。一个应用触发内核崩溃，整台机器所有应用全灭。虚拟化的隔离发生在<strong>硬件抽象层</strong>，每个虚拟机有自己独立的内核，一个内核崩不影响另一个。</p>
+<h3>边界：虚拟化的开销</h3>
+<p><strong>性能税</strong>：早期纯软件虚拟化性能损失 20-30%。Intel VT-x / AMD-V 硬件辅助虚拟化把开销压到 2-5%，但始终不是零。</p>
+<p><strong>内存税</strong>：每个虚拟机跑完整操作系统内核。三个 VM = 三份内核在内存里。</p>
+<p><strong>启动税</strong>：新建虚拟机从开机到就绪要几十秒到几分钟。</p>
+<h3>连接</h3>
+<p><strong>虚拟化 -&gt; VPS / 云服务器</strong>：<a href="/knowledge/vps%E4%B8%8E%E4%BA%91%E6%9C%8D%E5%8A%A1%E5%99%A8.html">VPS与云服务器</a> 底层就是 Hypervisor 切出的虚拟机。</p>
+<p><strong>虚拟化 -&gt; 容器</strong>：<a href="/knowledge/%E5%AE%B9%E5%99%A8%E4%B8%8E%E8%99%9A%E6%8B%9F%E6%9C%BA.html">容器与虚拟机</a> 是虚拟化的轻量级演进——共享内核代替独占内核。</p>
+<h3>路线图重建</h3>
+<pre><code>[问题：一台机器只能跑一个系统，85% 资源在空转]
+    |
+    v
+[工具1：Hypervisor——硬件和OS之间的中间人]
+    |
+    v
+[分叉：Type1 裸金属 vs Type2 宿主型]
+    |
+    v
+[工具2：资源隔离——vCPU/vRAM/vDisk 独立分配]
+    |
+    v
+[工具3：虚拟网络——虚拟交换机 + VLAN]
+    |
+    v
+[工具4：快照——任意时刻存档回滚]
+    |
+    v
+[工具5：迁移——虚拟机搬家，物理机维修不停机]
+    |
+    v
+[完整方案 = 虚拟化，催生 VPS/云计算/容器]
+</code></pre>
+<h2>关联笔记</h2>
+<blockquote>
+<p><strong>相关原子概念</strong><br><a href="/knowledge/vps%E4%B8%8E%E4%BA%91%E6%9C%8D%E5%8A%A1%E5%99%A8.html">VPS与云服务器</a> · <a href="/knowledge/%E5%AE%B9%E5%99%A8%E4%B8%8E%E8%99%9A%E6%8B%9F%E6%9C%BA.html">容器与虚拟机</a> · <a href="/knowledge/sdk.html">SDK</a></p>
+</blockquote>
+<p>虚拟化是 <a href="/knowledge/vps%E4%B8%8E%E4%BA%91%E6%9C%8D%E5%8A%A1%E5%99%A8.html">VPS与云服务器</a> 的技术地基，也是 <a href="/knowledge/%E5%AE%B9%E5%99%A8%E4%B8%8E%E8%99%9A%E6%8B%9F%E6%9C%BA.html">容器与虚拟机</a> 的前代方案。云厂商的 <a href="/knowledge/sdk.html">SDK</a> 管理的 ECS/CVM/EC2 底层都是虚拟机。</p>
+
+        </div>
+      </article>
+
+      <section class="related-notes">
+  <h3>Related Notes</h3>
+  <div class="related-notes-grid">
+    <a href="vps与云服务器.html" class="related-note-card">
+      <div class="related-title">VPS与云服务器</div>
+      <div class="related-category">Other</div>
+    </a>
+    <a href="容器与虚拟机.html" class="related-note-card">
+      <div class="related-title">容器与虚拟机</div>
+      <div class="related-category">Other</div>
+    </a>
+    <a href="sdk.html" class="related-note-card">
+      <div class="related-title">SDK</div>
+      <div class="related-category">Other</div>
+    </a>
+  </div>
+</section>
+
+      <div class="post-nav">
+  <a href="容器与虚拟机.html">
+    <div class="post-nav-label"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg> Previous</div>
+    <div class="post-nav-title">容器与虚拟机</div>
+  </a>
+  <a href="csrf.html">
+    <div class="post-nav-label">Next <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg></div>
+    <div class="post-nav-title">CSRF</div>
+  </a>
+</div>
+
+
+      <div style="padding-bottom:40px;">
+        <a href="/" class="back-link">Back to Home</a>
+      </div>
+    </div>
+
+    <!-- TOC sidebar (right) -->
+    <aside class="toc-sidebar" id="toc-sidebar">
+      <div class="toc-title">On This Page</div>
+      <ul class="toc-list" id="toc-list"></ul>
+    </aside>
+  </main>
+
+  <!-- Back to top -->
+  <button class="back-to-top" id="back-to-top" aria-label="Back to top">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="18 15 12 9 6 15"/></svg>
+  </button>
+
+  <footer>
+    <p>Designed &amp; Built by <a href="https://github.com/ChenSchenG">ChenSchenG</a></p>
+  </footer>
+
+  <script src="../js/main.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+  <script>
+    hljs.highlightAll();
+
+    // --- Generate TOC from headings ---
+    (function(){
+      var body = document.querySelector(".article-body");
+      var tocList = document.getElementById("toc-list");
+      if(!body || !tocList) return;
+      var headings = body.querySelectorAll("h1, h2, h3");
+      if(headings.length < 2){ document.getElementById("toc-sidebar").style.display="none"; return; }
+      headings.forEach(function(h, i){
+        if(!h.id) h.id = "heading-" + i;
+        var li = document.createElement("li");
+        var tag = h.tagName.toLowerCase();
+        li.className = "toc-" + tag;
+        var a = document.createElement("a");
+        a.href = "#" + h.id;
+        a.textContent = h.textContent;
+        li.appendChild(a);
+        tocList.appendChild(li);
+      });
+
+      // Scroll-spy: highlight active TOC item
+      var tocLinks = tocList.querySelectorAll("a");
+      var observer = new IntersectionObserver(function(entries){
+        entries.forEach(function(entry){
+          if(entry.isIntersecting){
+            tocLinks.forEach(function(l){ l.classList.remove("active"); });
+            var active = tocList.querySelector('a[href="#' + entry.target.id + '"]');
+            if(active) active.classList.add("active");
+          }
+        });
+      }, { rootMargin: "-80px 0px -70% 0px", threshold: 0 });
+      headings.forEach(function(h){ observer.observe(h); });
+    })();
+
+    // --- Code copy buttons ---
+    document.querySelectorAll(".article-body pre").forEach(function(pre){
+      var btn = document.createElement("button");
+      btn.className = "code-copy-btn";
+      btn.textContent = "Copy";
+      btn.addEventListener("click", function(){
+        var code = pre.querySelector("code");
+        navigator.clipboard.writeText(code.textContent).then(function(){
+          btn.textContent = "Copied!"; btn.classList.add("copied");
+          setTimeout(function(){ btn.textContent = "Copy"; btn.classList.remove("copied"); }, 2000);
+        });
+      });
+      pre.appendChild(btn);
+    });
+
+    // --- Back to top ---
+    (function(){
+      var btn = document.getElementById("back-to-top");
+      if(!btn) return;
+      window.addEventListener("scroll", function(){
+        btn.classList.toggle("visible", window.scrollY > 400);
+      });
+      btn.addEventListener("click", function(){
+        window.scrollTo({ top: 0, behavior: "smooth" });
+      });
+    })();
+  </script>
+</body>
+</html>

@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>VPS与云服务器 — ChenSchenG</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⚡</text></svg>">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../css/style.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github.min.css">
+</head>
+<body>
+  <nav id="nav">
+    <div class="nav-logo"><a href="/">ChenSchenG</a></div>
+    <div class="nav-links-wrapper">
+      <ul class="nav-links">
+        <li><a href="/">Home</a></li>
+        <li><a href="/#graph">Graph</a></li>
+        <li><a href="/about.html">About</a></li>
+      </ul>
+    </div>
+    <button class="hamburger" id="hamburger" aria-label="Menu"><span class="hamburger-inner"></span></button>
+  </nav>
+  <div class="mobile-menu-overlay" id="mobile-overlay"></div>
+  <aside class="mobile-menu" id="mobile-menu">
+    <ul>
+      <li><a href="/">Home</a></li>
+      <li><a href="/#graph">Graph</a></li>
+      <li><a href="/about.html">About</a></li>
+    </ul>
+  </aside>
+
+  <main class="article-page">
+    <!-- Main content column -->
+    <div class="article-main">
+      <article>
+        <header class="article-header">
+          <div class="article-breadcrumb">
+            <a href="/">Home</a>
+            <span class="separator">/</span>
+            <span>Other</span>
+          </div>
+          <h1>VPS与云服务器</h1>
+          <div class="article-meta">
+            <span><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>Posted 2026-04-08</span>
+            <span><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 19a2 2 0 01-2 2H4a2 2 0 01-2-2V5a2 2 0 012-2h5l2 3h9a2 2 0 012 2z"/></svg>Other</span>
+            <span><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>6 min read</span>
+          </div>
+          <div class="article-tags">
+  <span class="tag">软件工程</span>
+  <span class="tag">概念</span>
+  <span class="tag">VPS</span>
+  <span class="tag">云服务器</span>
+  <span class="tag">ECS</span>
+  <span class="tag">CVM</span>
+  <span class="tag">EC2</span>
+  <span class="tag">弹性伸缩</span>
+</div>
+
+        </header>
+
+        <div class="article-body">
+          <h1>VPS 与云服务器</h1>
+<blockquote>
+<p><strong>一句话本质</strong><br>VPS 是用虚拟化切出来的租赁虚拟机；云服务器在此基础上加了弹性伸缩、按量付费和云生态集成。ECS/CVM/EC2 只是不同厂商的命名。</p>
+</blockquote>
+<h2>第一幕：问题感知</h2>
+<p>你做了一个小程序，想把它放到网上让别人用。</p>
+<p>你需要一台服务器。</p>
+<p>去机房租一台物理服务器？一个月几千块，4 核 16GB——但你的小程序只需要 1 核 1GB。剩下的资源全浪费了。</p>
+<p>而且你不确定这个小程序会不会火。万一明天突然来了十万用户，1 核 1GB 根本扛不住。升级物理服务器意味着换机器、迁数据、停服务。等你折腾完，用户早跑了。</p>
+<p>反过来，如果没人用，你还是要按月交那几千块。</p>
+<p><strong>买大了浪费，买小了不够，还不能随时调整——怎么办？</strong></p>
+<hr>
+<h2>第二幕：引导式构建</h2>
+<p>你已经学过虚拟化——Hypervisor 把一台物理机切成多台虚拟机，每台有独立的 CPU、内存、硬盘、操作系统。</p>
+<p>有人把这件事做成了生意：在自己的机房里放大量物理服务器，用 Hypervisor 切出虚拟机，然后一台一台租给你。</p>
+<p>你租到的这台虚拟机，就叫 <strong>VPS</strong>（Virtual Private Server，虚拟专用服务器）。&quot;Virtual&quot;是虚拟的，&quot;Private&quot;是你独享的——虽然物理机上还有别人的虚拟机，但你看不到他们，他们也看不到你。</p>
+<blockquote>
+<p>想一想：VPS 解决了&quot;买大了浪费&quot;的问题——你可以只租 1 核 1GB。但&quot;买小了不够&quot;呢？如果想从 1 核升到 4 核，VPS 怎么处理？</p>
+</blockquote>
+<p>传统 VPS 的升级很痛苦——停机、迁移、重新分配，可能要几十分钟甚至几个小时。而且 VPS 是按月付费的固定配置，你月初买了 4 核，月底流量下去了还是在为用不到的资源付钱。</p>
+<p>有没有一种方式：配置随时调、按用了多少算钱、升级不用停服务？</p>
+<p>这就是 <strong>云服务器</strong> 出现的动因。</p>
+<p>云服务器本质上还是虚拟机——底层还是 Hypervisor 切出来的。但云厂商在虚拟化之上加了一整套<strong>自动化管理层</strong>。</p>
+<p>第一个能力：<strong>弹性伸缩</strong>（Elastic Scaling）。随时调整 CPU 和内存，几分钟甚至几秒钟完成。云厂商还提供<strong>自动伸缩</strong>：你预设规则（&quot;CPU 超过 80% 持续 5 分钟就加一台&quot;），云平台自动执行。</p>
+<blockquote>
+<p>想一想：凌晨 3 点突然来了十万用户，你人不在——自动伸缩帮你扩容了。流量退了呢？会自动缩回去吗？</p>
+</blockquote>
+<p>会。自动伸缩是双向的——超过阈值扩、低于阈值缩。</p>
+<p>第二个能力：<strong>按量付费</strong>。按小时甚至按秒计费，用多少付多少。</p>
+<p>第三个能力：<strong>快照与镜像</strong>。一键备份整个系统状态，从快照快速创建多台相同的机器。</p>
+<p>第四个能力：<strong>安全组</strong>（Security Group）。云平台提供的虚拟防火墙——定义规则（&quot;只允许 80 和 443 端口入站&quot;），不用在服务器上手动配。</p>
+<blockquote>
+<p>想一想：安全组能防住 SSRF 吗？</p>
+</blockquote>
+<p>不能。安全组管外部到云服务器的流量。SSRF 是云服务器自己发出的请求——从内部访问 <code>169.254.169.254</code>，不经过安全组。</p>
+<p>第五个能力：<strong>生态集成</strong>。云服务器可以直接对接 CDN、STS、数据库、对象存储——你学过的 SDK、AKSK 全在这个生态里运作。</p>
+<p>至于 <strong>ECS</strong>（阿里云）、<strong>CVM</strong>（腾讯云）、<strong>EC2</strong>（AWS）——只是不同厂商对&quot;云服务器&quot;的产品命名，本质完全一样。</p>
+<blockquote>
+<p>想一想：如果你要选择物理服务器、VPS 还是云服务器，决策的关键因素是什么？</p>
+</blockquote>
+<hr>
+<h2>第三幕：完整组装</h2>
+<p><strong>演进对比</strong></p>
+<table>
+<thead>
+<tr>
+<th>维度</th>
+<th>物理服务器</th>
+<th>VPS</th>
+<th>云服务器（ECS/CVM/EC2）</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>硬件</td>
+<td>独占整台机器</td>
+<td>共享物理机，虚拟隔离</td>
+<td>共享物理机，虚拟隔离</td>
+</tr>
+<tr>
+<td>弹性</td>
+<td>固定，升级换机器</td>
+<td>固定，升级要停机迁移</td>
+<td>随时升降配，分钟级生效</td>
+</tr>
+<tr>
+<td>付费</td>
+<td>月租/年租，几千起</td>
+<td>月租，几十起</td>
+<td>按小时/秒计费</td>
+</tr>
+<tr>
+<td>自动化</td>
+<td>全手动</td>
+<td>基本手动</td>
+<td>自动伸缩/备份/监控</td>
+</tr>
+<tr>
+<td>生态</td>
+<td>无</td>
+<td>无</td>
+<td>CDN/STS/数据库/SDK</td>
+</tr>
+<tr>
+<td>适合场景</td>
+<td>极致性能/合规</td>
+<td>个人项目/小流量</td>
+<td>创业到大规模</td>
+</tr>
+</tbody></table>
+<p><strong>选型决策树</strong></p>
+<pre><code>需要极致性能或硬件级合规？ --&gt; 物理服务器
+预算有限，流量稳定？ --&gt; VPS
+需要弹性/按量/云生态？ --&gt; 云服务器
+</code></pre>
+<hr>
+<h2>第四幕：验证与压力测试</h2>
+<h3>反事实：没有虚拟化就没有云服务器</h3>
+<p>云厂商的商业模式——买大物理机，切虚拟机分租——建立在虚拟化之上。没有 Hypervisor，就没有 VPS、没有 ECS、没有云计算产业。</p>
+<h3>边界</h3>
+<p><strong>多租户噪音</strong>：你和其他客户共享物理机，邻居跑满 CPU 可能影响你。极端场景需独占物理机。</p>
+<p><strong>厂商锁定</strong>：深度使用一家云的 ECS + CDN + 数据库 + SDK，迁移到另一家成本很高。</p>
+<h3>连接</h3>
+<p><strong>STS/AKSK</strong>：云服务器通过元数据接口获取 <a href="/knowledge/sts.html">STS</a> 临时凭证，用 <a href="/knowledge/aksk.html">AKSK</a> 签名调用云 API。</p>
+<p><strong>SSRF</strong>：云服务器的 <code>169.254.169.254</code> 元数据接口是 <a href="/knowledge/ssrf.html">SSRF</a> 最高危的攻击目标。</p>
+<p><strong>CDN</strong>：云服务器通常作为 <a href="/knowledge/cdn.html">CDN</a> 的源服务器。</p>
+<h3>路线图重建</h3>
+<pre><code>[问题：买大了浪费，买小了不够，不能随时调]
+    |
+    v
+[虚拟化：一台物理机切成多台虚拟机]
+    |
+    v
+[VPS：租一台虚拟机，便宜但固定配置]
+    |
+    v
+[云服务器：弹性 + 按量 + 自动化 + 生态]
+    |
+    v
+[ECS/CVM/EC2：不同厂商的产品名，本质相同]
+</code></pre>
+<h2>关联笔记</h2>
+<blockquote>
+<p><strong>相关原子概念</strong><br><a href="/knowledge/%E8%99%9A%E6%8B%9F%E5%8C%96.html">虚拟化</a> · <a href="/knowledge/%E5%AE%B9%E5%99%A8%E4%B8%8E%E8%99%9A%E6%8B%9F%E6%9C%BA.html">容器与虚拟机</a> · <a href="/knowledge/sts.html">STS</a> · <a href="/knowledge/aksk.html">AKSK</a> · <a href="/knowledge/cdn.html">CDN</a> · <a href="/knowledge/ssrf.html">SSRF</a> · <a href="/knowledge/sdk.html">SDK</a></p>
+</blockquote>
+<p><a href="/knowledge/%E8%99%9A%E6%8B%9F%E5%8C%96.html">虚拟化</a> 是 VPS/云服务器的技术地基。云服务器的元数据接口是 <a href="/knowledge/sts.html">STS</a> 机制的本地落地，也是 <a href="/knowledge/ssrf.html">SSRF</a> 最高危目标。云服务器作为 <a href="/knowledge/cdn.html">CDN</a> 源服务器，通过 <a href="/knowledge/sdk.html">SDK</a> + <a href="/knowledge/aksk.html">AKSK</a> 调用云 API。</p>
+
+        </div>
+      </article>
+
+      <section class="related-notes">
+  <h3>Related Notes</h3>
+  <div class="related-notes-grid">
+    <a href="虚拟化.html" class="related-note-card">
+      <div class="related-title">虚拟化</div>
+      <div class="related-category">Other</div>
+    </a>
+    <a href="容器与虚拟机.html" class="related-note-card">
+      <div class="related-title">容器与虚拟机</div>
+      <div class="related-category">Other</div>
+    </a>
+    <a href="sts.html" class="related-note-card">
+      <div class="related-title">STS</div>
+      <div class="related-category">Security</div>
+    </a>
+    <a href="aksk.html" class="related-note-card">
+      <div class="related-title">AKSK</div>
+      <div class="related-category">Security</div>
+    </a>
+    <a href="cdn.html" class="related-note-card">
+      <div class="related-title">CDN</div>
+      <div class="related-category">Network</div>
+    </a>
+    <a href="ssrf.html" class="related-note-card">
+      <div class="related-title">SSRF</div>
+      <div class="related-category">Security</div>
+    </a>
+    <a href="sdk.html" class="related-note-card">
+      <div class="related-title">SDK</div>
+      <div class="related-category">Other</div>
+    </a>
+  </div>
+</section>
+
+      <div class="post-nav">
+  <a href="ssrf.html">
+    <div class="post-nav-label"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg> Previous</div>
+    <div class="post-nav-title">SSRF</div>
+  </a>
+  <a href="容器与虚拟机.html">
+    <div class="post-nav-label">Next <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg></div>
+    <div class="post-nav-title">容器与虚拟机</div>
+  </a>
+</div>
+
+
+      <div style="padding-bottom:40px;">
+        <a href="/" class="back-link">Back to Home</a>
+      </div>
+    </div>
+
+    <!-- TOC sidebar (right) -->
+    <aside class="toc-sidebar" id="toc-sidebar">
+      <div class="toc-title">On This Page</div>
+      <ul class="toc-list" id="toc-list"></ul>
+    </aside>
+  </main>
+
+  <!-- Back to top -->
+  <button class="back-to-top" id="back-to-top" aria-label="Back to top">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="18 15 12 9 6 15"/></svg>
+  </button>
+
+  <footer>
+    <p>Designed &amp; Built by <a href="https://github.com/ChenSchenG">ChenSchenG</a></p>
+  </footer>
+
+  <script src="../js/main.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+  <script>
+    hljs.highlightAll();
+
+    // --- Generate TOC from headings ---
+    (function(){
+      var body = document.querySelector(".article-body");
+      var tocList = document.getElementById("toc-list");
+      if(!body || !tocList) return;
+      var headings = body.querySelectorAll("h1, h2, h3");
+      if(headings.length < 2){ document.getElementById("toc-sidebar").style.display="none"; return; }
+      headings.forEach(function(h, i){
+        if(!h.id) h.id = "heading-" + i;
+        var li = document.createElement("li");
+        var tag = h.tagName.toLowerCase();
+        li.className = "toc-" + tag;
+        var a = document.createElement("a");
+        a.href = "#" + h.id;
+        a.textContent = h.textContent;
+        li.appendChild(a);
+        tocList.appendChild(li);
+      });
+
+      // Scroll-spy: highlight active TOC item
+      var tocLinks = tocList.querySelectorAll("a");
+      var observer = new IntersectionObserver(function(entries){
+        entries.forEach(function(entry){
+          if(entry.isIntersecting){
+            tocLinks.forEach(function(l){ l.classList.remove("active"); });
+            var active = tocList.querySelector('a[href="#' + entry.target.id + '"]');
+            if(active) active.classList.add("active");
+          }
+        });
+      }, { rootMargin: "-80px 0px -70% 0px", threshold: 0 });
+      headings.forEach(function(h){ observer.observe(h); });
+    })();
+
+    // --- Code copy buttons ---
+    document.querySelectorAll(".article-body pre").forEach(function(pre){
+      var btn = document.createElement("button");
+      btn.className = "code-copy-btn";
+      btn.textContent = "Copy";
+      btn.addEventListener("click", function(){
+        var code = pre.querySelector("code");
+        navigator.clipboard.writeText(code.textContent).then(function(){
+          btn.textContent = "Copied!"; btn.classList.add("copied");
+          setTimeout(function(){ btn.textContent = "Copy"; btn.classList.remove("copied"); }, 2000);
+        });
+      });
+      pre.appendChild(btn);
+    });
+
+    // --- Back to top ---
+    (function(){
+      var btn = document.getElementById("back-to-top");
+      if(!btn) return;
+      window.addEventListener("scroll", function(){
+        btn.classList.toggle("visible", window.scrollY > 400);
+      });
+      btn.addEventListener("click", function(){
+        window.scrollTo({ top: 0, behavior: "smooth" });
+      });
+    })();
+  </script>
+</body>
+</html>

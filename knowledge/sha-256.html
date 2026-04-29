@@ -1,0 +1,529 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SHA-256 — ChenSchenG</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⚡</text></svg>">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../css/style.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github.min.css">
+</head>
+<body>
+  <nav id="nav">
+    <div class="nav-logo"><a href="/">ChenSchenG</a></div>
+    <div class="nav-links-wrapper">
+      <ul class="nav-links">
+        <li><a href="/">Home</a></li>
+        <li><a href="/#graph">Graph</a></li>
+        <li><a href="/about.html">About</a></li>
+      </ul>
+    </div>
+    <button class="hamburger" id="hamburger" aria-label="Menu"><span class="hamburger-inner"></span></button>
+  </nav>
+  <div class="mobile-menu-overlay" id="mobile-overlay"></div>
+  <aside class="mobile-menu" id="mobile-menu">
+    <ul>
+      <li><a href="/">Home</a></li>
+      <li><a href="/#graph">Graph</a></li>
+      <li><a href="/about.html">About</a></li>
+    </ul>
+  </aside>
+
+  <main class="article-page">
+    <!-- Main content column -->
+    <div class="article-main">
+      <article>
+        <header class="article-header">
+          <div class="article-breadcrumb">
+            <a href="/">Home</a>
+            <span class="separator">/</span>
+            <span>Security</span>
+          </div>
+          <h1>SHA-256</h1>
+          <div class="article-meta">
+            <span><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>Posted 2026-04-22</span>
+            <span><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 19a2 2 0 01-2 2H4a2 2 0 01-2-2V5a2 2 0 012-2h5l2 3h9a2 2 0 012 2z"/></svg>Security</span>
+            <span><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>31 min read</span>
+          </div>
+          <div class="article-tags">
+  <span class="tag">密码学与安全</span>
+  <span class="tag">算法</span>
+  <span class="tag">SHA-256</span>
+  <span class="tag">哈希</span>
+  <span class="tag">Merkle-Damgard</span>
+  <span class="tag">压缩函数</span>
+  <span class="tag">雪崩效应</span>
+  <span class="tag">单向性</span>
+</div>
+
+        </header>
+
+        <div class="article-body">
+          <h1>SHA-256</h1>
+<blockquote>
+<p><strong>一句话本质</strong><br>切块接力 + 64 轮非线性扩散 + 前馈，把任意输入搅成 256 比特不可逆指纹。</p>
+</blockquote>
+<h2>第一幕：问题感知</h2>
+<p>你面前有一盆清水和一滴红墨水。你拿筷子搅一下——墨滴在水里拉出一条红丝。再搅一下——红丝散开。搅几十下之后，整盆水变成均匀的淡粉色，你再也分不出哪里是原来的墨滴。</p>
+<p>现在把顺序倒过来：给你这盆淡粉色的水，你能还原出那滴墨水的位置和形状吗？</p>
+<p>你做不到。但麻烦的是——一台计算机面对的问题比这还狠。</p>
+<p>你要把一本 500 页的书变成 64 个字符的指纹。要求是：随便改这本书里的一个标点，指纹就要面目全非；任何两本不同的书都不许指纹相同；拿着指纹不许能倒推出哪怕一页内容。</p>
+<p>先试试最顺手的做法：把所有字母的编号加起来。问题来了——把&quot;good&quot;改成&quot;dogo&quot;，字母一样，顺序不同，加起来的和一模一样。</p>
+<p>那乘起来？还是一样。那一边加一边乘？稍微改一下输入，输出只是微调，你能摸着输出的变化倒推回输入。</p>
+<p>真正的&quot;搅水&quot;动作应该是什么样的？它必须让每一滴输入都扩散到整盆水的每一处，同时让还原变成数学上的噩梦——但又不能是随机的，因为同一本书两次算出的指纹必须完全相同。</p>
+<blockquote>
+<p><strong>可控的混沌，一步步怎么搅？</strong></p>
+</blockquote>
+<hr>
+<h2>第二幕：引导式构建</h2>
+<p>我们要造的这台&quot;搅拌机&quot;，正式名字叫 <strong>SHA-256</strong>（Secure Hash Algorithm 256-bit，安全散列算法 256 位）。不管你塞进去多长的东西——一个字、一本书、一部电影——它都吐出 256 个比特的指纹。</p>
+<p>先把尺寸感建立起来。256 个比特，分成 8 段，每段 32 个比特。32 比特是一个方便的单位——正好是老式 CPU 一次能处理的数据宽度，我们就叫它一个 <strong>字</strong>（word）。所以 SHA-256 的指纹就是 <strong>8 个字并在一起</strong>。</p>
+<pre><code>    256-bit 指纹 = 8 个 32-bit 的字
+    +----+----+----+----+----+----+----+----+
+    | W0 | W1 | W2 | W3 | W4 | W5 | W6 | W7 |
+    +----+----+----+----+----+----+----+----+
+</code></pre>
+<p>这 8 个字，会是整个算法从头到尾反复搅拌的对象。我们给它们起个名字叫 <strong>状态寄存器</strong>（state），八个字母分别叫 a、b、c、d、e、f、g、h。</p>
+<blockquote>
+<p>想一想：为什么输出是 8 个字，不是 1 个？如果只搅出一个 32 比特的字，为什么不够？</p>
+<p>（提示：32 比特一共才 $2^{32}$ ≈ 43 亿种值。两本随便挑的书，指纹撞上的概率有多大？）</p>
+</blockquote>
+<hr>
+<p>我们刚才说要把一本 500 页的书搅成 8 个字。但搅拌机的&quot;锅&quot;装不下整本书——它一次只能处理一小口。</p>
+<p>所以第一件事：把这本书切块。SHA-256 的规矩是：每块 <strong>512 比特</strong>（64 字节，大概就是一条英文短句那么长）。500 页的书大概要切成几十万块。</p>
+<p>然后一块一块地往搅拌机里喂。第一块喂进去，状态寄存器（那 8 个字）被搅一顿，变成新的 8 个字。第二块喂进去，基于上一次的 8 个字继续搅，又得到新的 8 个字。这样一直喂到最后一块，最后那 8 个字就是整本书的指纹。</p>
+<pre><code>    初始状态 -&gt; [块1 搅拌] -&gt; 状态1 -&gt; [块2 搅拌] -&gt; 状态2 -&gt; ... -&gt; 最终状态
+    (8 个字)                 (8 个字)                (8 个字)         (8 个字 = 指纹)
+</code></pre>
+<p>这种&quot;吃一口、搅一顿、再吃下一口、基于现状继续搅&quot;的模式，叫 <strong>Merkle–Damgård 结构</strong>（Merkle–Damgård construction，以两位发明者命名）。它的妙处在于：不管原文多长，状态的尺寸永远是 8 个字——搅拌机不会被撑爆。</p>
+<blockquote>
+<p>想一想：为什么第二块的搅拌<strong>必须基于第一块搅完后的状态</strong>，而不是各搅各的最后拼起来？</p>
+<p>（如果各搅各的再拼，有什么简单攻击能让两本不同的书指纹相同？）</p>
+</blockquote>
+<p>对了——如果各搅各的，把块的顺序调换一下，指纹就不变了。&quot;abc&quot;和&quot;cba&quot;切块后会一模一样。必须让每一块影响下一块，顺序才能被锁进指纹里。</p>
+<hr>
+<p>但最后一块通常填不满 512 比特。书的总字节数，几乎不可能正好被 64 整除。怎么办？</p>
+<p>补齐。不过这里有个陷阱：如果随便补 0，那 &quot;abc&quot; 和 &quot;abc&quot; 后面本来就有的 0 字节，补出来可能一模一样——两个不同的东西指纹相撞。</p>
+<p>SHA-256 的补齐规矩很讲究：先在原文末尾补一个 <code>1</code> 比特（这个 1 是标记&quot;原文到此为止&quot;），然后补若干个 <code>0</code>，最后用 <strong>64 比特</strong>写下原文的原始长度。</p>
+<pre><code>    原文: &quot;abc&quot; (24 比特)
+    
+    补齐后:
+    +--------+---+---------------+-----------------+
+    | &quot;abc&quot;  | 1 | 0000...000    | 原长 = 24       |
+    | 24 bit |1bit|  (补到对齐)    | 64 bit          |
+    +--------+---+---------------+-----------------+
+             总长 = 512 比特 (刚好一块)
+</code></pre>
+<p>这样两条原文就算前缀一样，只要长度不同，&quot;长度&quot;那 64 比特就不同，补齐后整块就不同。</p>
+<blockquote>
+<p>想一想：为什么一定要把&quot;原始长度&quot;记下来？只靠那个 <code>1</code> 比特做结束标记不够吗？</p>
+<p>（假设有两条消息：一条以 <code>1</code> 结尾，另一条以 <code>10</code> 结尾——它们补齐后会怎样？）</p>
+</blockquote>
+<p>第二条会在 <code>10</code> 之后补上那个&quot;结束标记 1&quot;变成 <code>101...</code>，而第一条本来就以 <code>1</code> 结尾的，后面再接&quot;结束标记 1&quot;变成 <code>11...</code>。不同。但如果两条消息的末尾恰好能拼成同样的结束模式呢？把长度也锁进去，这个漏洞就堵死了。</p>
+<hr>
+<p>到目前为止，我们有了&quot;切块 + 补齐 + 状态接力&quot;的骨架。但最关键的问题还没回答：<strong>一块 512 比特扔进搅拌机，到底怎么和那 8 个字搅的？</strong></p>
+<p>这就是 SHA-256 的核心。它的搅拌不是一次完成的——<strong>一块要搅 64 轮</strong>。每一轮都在修改那 8 个字。</p>
+<p>为什么是 64 轮？你搅一下墨水，墨滴只扩散了一点点。要搅到整盆水均匀，得搅很多下。对比特来说也是一样——每一轮只能做一点点混合，64 轮叠起来，才能让输入的每一个比特都&quot;扩散&quot;到状态的每一个位置。</p>
+<p>但这里有个新的需求。一块 512 比特，切成 16 个字；可我们要搅 64 轮。16 个字不够喂 64 轮——每轮要用一个新的字当&quot;调料&quot;。</p>
+<p>解决办法：把这 16 个字 <strong>扩展</strong> 成 64 个字。具体怎么扩展？前 16 个就是原块切出来的；从第 17 个开始，每个新字都由前面某些字按固定方式混合而来。这个扩展过程本身就是一种小规模的搅拌——它保证了这 64 个&quot;调料&quot;彼此相关又彼此不同。</p>
+<p>我们把这 64 个字叫做 <strong>消息调度</strong>（message schedule），记作 $W_0, W_1, ..., W_{63}$。</p>
+<blockquote>
+<p>想一想：为什么需要&quot;扩展&quot;？直接把那 16 个字循环用 4 遍（16 × 4 = 64）不行吗？</p>
+<p>（提示：如果循环用，第 1 轮和第 17 轮用的是同一个调料——这会不会让某些攻击变简单？）</p>
+</blockquote>
+<p>会。如果每隔 16 轮就出现同一个字，攻击者可以专门构造输入，让第 17 轮恰好&quot;抵消&quot;第 1 轮的效果。扩展是为了让 64 个调料没有这种可被利用的周期性。</p>
+<hr>
+<p>好，调料准备好了。现在看<strong>一轮</strong>里到底发生什么。</p>
+<p>每一轮的原材料是：当前的 8 个字 $a, b, c, d, e, f, g, h$，加上这一轮对应的调料 $W_i$，还有一个叫 <strong>轮常数</strong>（round constant）的固定数字 $K_i$——这个是事先规定好的 64 个常数，每轮用一个，纯粹为了打破对称。</p>
+<p>一轮做两件事——我们先看第一件：算出两个 32 比特的&quot;增量&quot;，准备注入状态。</p>
+<p>第一个增量，主要由 $e, f, g, h$ 这后半边算出，核心是下面这步混合：</p>
+<p>$$T_1 = h + \Sigma_1(e) + \mathrm{Ch}(e, f, g) + K_i + W_i$$</p>
+<p>这个式子看着吓人，但它就做一件事：<strong>把后半边的信息、调料、常数，全部加总起来，得到一个 32 比特的混合结果 $T_1$</strong>。里面的 $\Sigma_1$ 和 $\mathrm{Ch}$ 是两个小搅拌函数——我们马上拆开看。先记住 $T_1$ 是&quot;后半边揉出来的一团&quot;。</p>
+<p>（注意：所有加法都是 <strong>模 $2^{32}$</strong> 的——加完取低 32 位，高位直接丢掉。这样结果永远装得下 32 比特。）</p>
+<p>第二个增量，主要由前半边 $a, b, c$ 揉出来：</p>
+<p>$$T_2 = \Sigma_0(a) + \mathrm{Maj}(a, b, c)$$</p>
+<p>$T_2$ 是&quot;前半边揉出来的一团&quot;。里面的 $\Sigma_0$ 和 $\mathrm{Maj}$ 也是小搅拌函数。</p>
+<blockquote>
+<p>想一想：为什么一轮里要分成&quot;前半边揉一团&quot;和&quot;后半边揉一团&quot;两个单独的结果？一团不够吗？</p>
+<p>留意一下：$T_1$ 用了 $e, f, g, h$ 和外部输入（$W_i, K_i$），$T_2$ 只用了 $a, b, c$ 和没有外部输入。它们分工不同。</p>
+</blockquote>
+<p>$T_1$ 把外部新信息&quot;注入&quot;到状态里；$T_2$ 只在内部&quot;搅动&quot;。两团增量一个负责引入新东西、一个负责让老东西充分混合——下面那步更新就会看出这个分工。</p>
+<hr>
+<p>现在做<strong>第二件事</strong>：用这两团增量更新状态。SHA-256 的更新方式非常讲究——它<strong>把所有字整体往下挪一位</strong>，并在开头和中间注入增量。</p>
+<p>$$a_{\text{新}} = T_1 + T_2$$</p>
+<p>$$e_{\text{新}} = d + T_1$$</p>
+<p>其他的字，直接照抄前一个位置：</p>
+<p>$$b_{\text{新}} = a, \quad c_{\text{新}} = b, \quad d_{\text{新}} = c$$</p>
+<p>$$f_{\text{新}} = e, \quad g_{\text{新}} = f, \quad h_{\text{新}} = g$$</p>
+<p>用图看更直观：</p>
+<pre><code>    前:  a    b    c    d    e    f    g    h
+         |\   |    |    |    |\   |    |    |
+         | \  v    v    v    | \  v    v    v
+         |  --------&gt;-----  |  --------&gt;-----
+    注入 T1+T2          注入 T1 (加到 d 的位置)
+         v                   v
+    后:  a&#39;   b&#39;   c&#39;   d&#39;   e&#39;   f&#39;   g&#39;   h&#39;
+</code></pre>
+<p>看出来了吗？整个状态像个传送带——每一轮往下移一格，在开头（$a$ 位置）和中间（$e$ 位置）两个地方各注入一份&quot;新鲜搅拌物&quot;。移 64 轮之后，最早的那个字已经被推出去了，但它留下的混合痕迹已经扩散到了整个状态。</p>
+<blockquote>
+<p>想一想：为什么要在<strong>两个位置</strong>注入，而不是只在一个位置？</p>
+<p>（提示：如果只在 $a$ 位置注入，前半边和后半边之间就没有直接的&quot;混合通道&quot;——后半边只是被动地往下挪，永远碰不到新信息。）</p>
+</blockquote>
+<p>两处注入，让前后两半之间的信息能交叉流动。没有这个，状态就会分裂成两个互不相干的区块，搅拌就失效了。</p>
+<hr>
+<p>剩下的悬念是：前面出现的 $\Sigma_0, \Sigma_1, \mathrm{Ch}, \mathrm{Maj}$ 到底是什么？它们是四个&quot;小零件&quot;，每个都只做极简的比特操作——但正是它们让整个算法有了&quot;不可逆&quot;的性质。</p>
+<p>先看最简单的 $\mathrm{Ch}$（choose，选择函数）：</p>
+<p>$$\mathrm{Ch}(e, f, g) = (e \text{ AND } f) \text{ XOR } ((\text{NOT } e) \text{ AND } g)$$</p>
+<p>翻译成人话：<strong>$e$ 的每一位是 1，就选 $f$ 的对应位；$e$ 的每一位是 0，就选 $g$ 的对应位</strong>。$e$ 像个开关，决定每一位从 $f$ 还是 $g$ 来。</p>
+<p>（术语速记：AND 是&quot;两个都是 1 才是 1&quot;；XOR 是&quot;两个不同才是 1&quot;；NOT 是翻转。这三个就是计算机处理比特的最基本动作。）</p>
+<p>再看 $\mathrm{Maj}$（majority，多数函数）：</p>
+<p>$$\mathrm{Maj}(a, b, c) = (a \text{ AND } b) \text{ XOR } (a \text{ AND } c) \text{ XOR } (b \text{ AND } c)$$</p>
+<p>翻译：<strong>三个输入的每一位，谁多听谁的</strong>。三位里至少两个是 1，结果就是 1。</p>
+<p>这两个函数都是 <strong>非线性</strong> 的——&quot;非线性&quot;的意思是：你不能用简单的加减变换把它们倒推回去。线性的东西（比如纯加法）很容易逆向；非线性才是哈希&quot;不可逆&quot;的核心来源。</p>
+<blockquote>
+<p>想一想：$\mathrm{Ch}$ 和 $\mathrm{Maj}$ 都是&quot;选择型&quot;的操作，它们为什么天生难以逆向？</p>
+<p>（假设你知道 $\mathrm{Maj}(a,b,c)$ 的某一位是 1，你能反推出 $a, b, c$ 这一位各是什么吗？）</p>
+</blockquote>
+<p>不能。&quot;至少两个是 1&quot;这个条件，$(1,1,0), (1,0,1), (0,1,1), (1,1,1)$ 四种组合都满足。信息被<strong>多对一</strong>地压缩掉了——这正是不可逆的数学本质。</p>
+<hr>
+<p>最后两个零件 $\Sigma_0$ 和 $\Sigma_1$，是 <strong>比特旋转 + 异或</strong> 的组合。</p>
+<p>比特旋转（rotate right，记作 ROTR）的意思是：把一个 32 比特的字当成一个圆环，所有比特一起向右转几格，转出去的从左边转回来。比如 <code>1011 0000 ... 0000</code> 向右旋转 4 位，变成 <code>0000 1011 0000 ...</code>。</p>
+<p>$\Sigma_0$ 做三次不同角度的旋转，再把三个结果异或：</p>
+<p>$$\Sigma_0(a) = \mathrm{ROTR}^2(a) \oplus \mathrm{ROTR}^{13}(a) \oplus \mathrm{ROTR}^{22}(a)$$</p>
+<p>$\Sigma_1$ 同理，用的是另外三个角度（6、11、25）：</p>
+<p>$$\Sigma_1(e) = \mathrm{ROTR}^6(e) \oplus \mathrm{ROTR}^{11}(e) \oplus \mathrm{ROTR}^{25}(e)$$</p>
+<p>这俩函数在干什么？<strong>把一个字里的每一位&quot;摊开&quot;到另外几个位置，再叠加起来</strong>。原本在第 5 位的那个比特，现在同时出现在第 3、第 24、第 15 位——它的影响被涂抹到了整个字。</p>
+<p>这就是哈希里最重要的那个词：<strong>扩散</strong>（diffusion）。输入的 1 个比特变化，要在输出里引起大约一半比特的翻转（这就是<a href="/knowledge/%E5%93%88%E5%B8%8C.html">哈希</a>里讲过的&quot;雪崩效应&quot;）。扩散靠的就是这种&quot;把每位涂抹到多个位置&quot;的操作，配合多轮叠加。</p>
+<blockquote>
+<p>想一想：如果只用 $\mathrm{Ch}$ 和 $\mathrm{Maj}$（非线性但不扩散），没有 $\Sigma$（扩散但线性），会发生什么？反过来只有 $\Sigma$ 没有 $\mathrm{Ch}/\mathrm{Maj}$ 又会怎样？</p>
+<p>（两个零件各自缺了对方，哈希的哪个性质会垮掉？）</p>
+</blockquote>
+<p>只有非线性没有扩散——输入的某位变化只影响输出的固定几位，其他位纹丝不动，<strong>雪崩效应垮掉</strong>。</p>
+<p>只有扩散没有非线性——所有操作都是线性的（XOR 和旋转都是线性的），整个哈希可以写成一个巨大的线性方程组，<strong>单向性垮掉</strong>（线性方程组可解）。</p>
+<p>两个必须同时存在，缺一不可。这就是为什么 SHA-256 的每一轮里，非线性函数和扩散函数<strong>交替组合</strong>——一轮里既有 $\mathrm{Ch}/\mathrm{Maj}$ 的选择，也有 $\Sigma$ 的摊开，还有加法把它们揉在一起。</p>
+<hr>
+<h2>第三幕：完整组装</h2>
+<p>现在把所有零件拼起来，看一本 500 页的书从头到尾经历了什么。</p>
+<h3>全景图</h3>
+<pre><code>    原文 (任意长度)
+         |
+         | [补齐]  末尾加 1 比特 + 填 0 + 64 比特长度
+         v
+    对齐到 512 比特倍数的流
+         |
+         | [切块]  每块 512 比特
+         v
+    块1, 块2, 块3, ..., 块N
+         |
+         v
+    +------------------- 状态接力 (Merkle-Damgard) -----------------+
+    |                                                                |
+    | 初始状态 H0 (预定义 8 个字)                                      |
+    |     |                                                          |
+    |     v                                                          |
+    | +---------+   块1    +---------+   块2          +----+          |
+    | | 压缩函数 | &lt;------- | 压缩函数 | &lt;-------  ... | 块N |          |
+    | +---------+          +---------+                +----+          |
+    |     |                     |                        |            |
+    |     v                     v                        v            |
+    |  状态 H1               状态 H2                最终状态 (=指纹)    |
+    +----------------------------------------------------------------+
+    
+    
+    [压缩函数 内部] —— 一块的处理：
+    
+    一块 (512 bit) 
+         |
+         | [消息扩展]
+         v
+    16 字 -&gt; 扩展为 64 字 (W0..W63)
+                                                        轮常数 K0..K63
+                                                            |
+                                                            v
+    载入当前状态 a,b,c,d,e,f,g,h  &lt;----+
+                                      |
+                                      | 64 轮
+                                      |
+    每一轮:                            |
+      T1 = h + Sigma1(e) + Ch(e,f,g) + Ki + Wi   |
+      T2 = Sigma0(a) + Maj(a,b,c)                 |
+      (a,b,c,d,e,f,g,h) 右移一位                    |
+      a 位置注入 T1+T2;  e 位置注入 T1               |
+                                      |
+    64 轮之后                           |
+         |
+         v
+    搅后 a,b,c,d,e,f,g,h + 原输入状态 = 新状态  (逐字加回去, mod 2^32)
+</code></pre>
+<p>最后一步要注意：64 轮搅完的 8 个字，还要和<strong>进入这一块之前</strong>的那 8 个字按位相加，才是输出状态。这叫 <strong>前馈</strong>（feed-forward）——如果没有它，压缩函数就是可逆的（每轮都可以倒着跑），单向性会出问题。</p>
+<h3>端到端示例</h3>
+<p>输入：字符串 <code>&quot;abc&quot;</code>（24 比特）。SHA-256 的标准里，这是最经典的测试向量。</p>
+<p><strong>Step 1. 补齐</strong></p>
+<pre><code>&quot;abc&quot; = 0x61 0x62 0x63 = 01100001 01100010 01100011  (24 比特)
+
+补齐:
+01100001 01100010 01100011  1  000...000  0000...0000011000
+                            |             |
+                       结束标记       原长 = 24 (64 比特表示)
+
+总长 = 512 比特 (恰好一块)
+</code></pre>
+<p><strong>Step 2. 切块 + 初始状态</strong></p>
+<p>只有一块。初始状态是标准规定的 8 个常数（取自前 8 个素数平方根小数部分的前 32 位）：</p>
+<pre><code>H0 = 6a09e667
+H1 = bb67ae85
+H2 = 3c6ef372
+H3 = a54ff53a
+H4 = 510e527f
+H5 = 9b05688c
+H6 = 1f83d9ab
+H7 = 5be0cd19
+</code></pre>
+<p><strong>Step 3. 消息扩展</strong></p>
+<p>把这 512 比特切成 16 个字：</p>
+<pre><code>W0 = 61626380   (就是 &quot;abc&quot; + 结束标记 1 后面接的前 32 位)
+W1 = 00000000
+W2 = 00000000
+...
+W14 = 00000000
+W15 = 00000018  (24 的十六进制)
+</code></pre>
+<p>然后按规则扩展到 $W_{16}$ 到 $W_{63}$（每一个都由之前某几个字旋转异或加总而来）。</p>
+<p><strong>Step 4. 64 轮搅拌</strong></p>
+<p>第 0 轮：用 $K_0 = \text{428a2f98}$、$W_0 = \text{61626380}$ 算 $T_1, T_2$，更新 8 个字。</p>
+<p>第 1 轮：在新状态上，用 $K_1, W_1$ 再算一次……</p>
+<p>64 轮之后的搅拌结果，加回初始 $H_0 \sim H_7$。</p>
+<p><strong>Step 5. 输出</strong></p>
+<p>把最终的 8 个字首尾相连：</p>
+<pre><code>SHA-256(&quot;abc&quot;) = ba7816bf 8f01cfea 414140de 5dae2223
+                 b00361a3 96177a9c b410ff61 f20015ad
+</code></pre>
+<p>这就是 <code>&quot;abc&quot;</code> 的 256 比特指纹。换一个字符试试：</p>
+<pre><code>SHA-256(&quot;abd&quot;) = a52d159f 262b2c6d dc95baf6 9a38ab27
+                 8430c3e8 3bb6b2d5 97cacfae 88e2c2c9
+</code></pre>
+<p>两个指纹完全不同——这就是雪崩效应的实际演示。</p>
+<h3>组装检查</h3>
+<p>第二幕引入的每个零件，在全流程里都有位置：</p>
+<ul>
+<li><strong>256 比特分成 8 个字</strong>：状态寄存器 $a \sim h$</li>
+<li><strong>Merkle–Damgård 接力</strong>：块与块之间的状态传递</li>
+<li><strong>补齐 + 64 比特长度</strong>：Step 1</li>
+<li><strong>切块 + 消息扩展</strong>：Step 2、Step 3</li>
+<li><strong>一块 64 轮</strong>：Step 4</li>
+<li><strong>轮常数 $K_i$</strong>：每轮打破对称</li>
+<li><strong>$T_1, T_2$ 两团增量</strong>：每轮的核心混合</li>
+<li><strong>两处注入 + 整体移位</strong>：每轮的状态更新</li>
+<li><strong>$\mathrm{Ch}, \mathrm{Maj}$ 非线性</strong>：不可逆的来源</li>
+<li><strong>$\Sigma_0, \Sigma_1$ 扩散</strong>：雪崩效应的来源</li>
+<li><strong>前馈加回初始状态</strong>：Step 4 末尾，保证压缩函数不可逆</li>
+</ul>
+<hr>
+<h2>第四幕：验证与压力测试</h2>
+<h3>反事实</h3>
+<p><strong>Q1：如果去掉 $\mathrm{Ch}$ 和 $\mathrm{Maj}$，只留 $\Sigma$ 和加法呢？</strong></p>
+<p>整个哈希退化成线性运算。每一轮都能写成矩阵乘法，64 轮的叠加仍然是矩阵乘法。给你一个输出，解一个 256 元线性方程组就能反推输入。单向性彻底破产。</p>
+<p><strong>Q2：如果去掉 $\Sigma_0, \Sigma_1$，只留非线性函数呢？</strong></p>
+<p>没有旋转就没有扩散。输入第 5 位的变化，只会影响输出的第 5 位附近。雪崩效应消失——攻击者改一位输入，观察输出哪几位变了，就能定位影响范围，逐位构造碰撞。</p>
+<p><strong>Q3：如果不做&quot;前馈&quot;（64 轮搅完不加回初始状态），会怎样？</strong></p>
+<p>压缩函数每一轮的更新规则都是可逆的（你能从 $a_{\text{新}}, b_{\text{新}}, ..., h_{\text{新}}$ 倒推回 $a, b, ..., h$，因为更新规则是&quot;移位 + 加&quot;，减回去就行）。64 轮就算叠起来，也仍然可逆——给你一个输出状态，能反推这块输入。前馈那步&quot;加回初始状态&quot;才把整个压缩函数钉死成不可逆。</p>
+<p><strong>Q4：如果轮数从 64 减到 8，会怎样？</strong></p>
+<p>扩散还没彻底。输入一位的影响可能只扩散到输出的 30% 比特，攻击者可以对这 30% 做差分分析，碰撞比穷举快得多。历史上 SHA-0 就是因为轮函数设计有瑕疵被找到碰撞的。</p>
+<p><strong>Q5：如果初始状态 $H_0 \sim H_7$ 不是那 8 个素数平方根，而是全 0 呢？</strong></p>
+<p>全 0 初始状态加上消息里的全 0 块，某些轮次会产生&quot;低熵&quot;中间状态，给攻击者提供切入点。用&quot;素数平方根小数&quot;这种看起来没啥规律的常数，是为了声明&quot;这些常数没有后门&quot;——密码学里叫 <strong>nothing-up-my-sleeve numbers</strong>（袖子里没藏东西的数）。</p>
+<h3>边界</h3>
+<ul>
+<li><p><strong>SHA-256 不是永远安全的。</strong> 2005 年中国学者王小云攻破了 SHA-1 的碰撞抗性，2017 年 Google 实际算出了 SHA-1 碰撞。SHA-256 目前没有实际攻破，但<strong>量子计算机</strong>一旦成熟，Grover 算法会把碰撞穷举的成本从 $2^{128}$ 降到 $2^{85}$ 左右——届时 SHA-256 要退役，升级到 SHA-384 或 SHA-512。</p>
+</li>
+<li><p><strong>SHA-256 不是密码存储的正确选择。</strong> <a href="/knowledge/%E5%93%88%E5%B8%8C.html">哈希</a>笔记里讲过：SHA-256 算得太快，一块 GPU 每秒几十亿次。密码存储要用 bcrypt/Argon2——它们故意慢，原理不是搅拌轮数更多，而是引入<strong>大量内存访问</strong>，让 GPU 和 ASIC 加速失效。</p>
+</li>
+<li><p><strong>长度扩展攻击</strong>（length extension attack）。Merkle–Damgård 结构有个已知弱点：知道 $\mathrm{SHA256}(m)$ 和 $m$ 的长度，就能在不知道 $m$ 内容的情况下算出 $\mathrm{SHA256}(m | \text{padding} | x)$。所以 SHA-256 不能直接用作带密钥的认证码（MAC），要用 <strong>HMAC</strong> 结构包一层。SHA-3 用了完全不同的&quot;海绵结构&quot;才从根本上避开这个问题。</p>
+</li>
+</ul>
+<h3>连接</h3>
+<ul>
+<li><p><strong>与 HMAC 的关系：</strong> HMAC-SHA256 = $\mathrm{SHA256}(\text{key}<em>{\text{outer}} | \mathrm{SHA256}(\text{key}</em>{\text{inner}} | m))$。两次 SHA-256 夹一层密钥，堵死长度扩展。<a href="/knowledge/jwt.html">JWT</a> 的 HS256 签名和 <a href="/knowledge/aksk.html">AKSK</a> 的请求签名都是这么做的。</p>
+</li>
+<li><p><strong>与比特币挖矿的关系：</strong> 比特币的工作量证明就是找一个 nonce，使得 $\mathrm{SHA256}(\mathrm{SHA256}(\text{block header} | \text{nonce}))$ 的前 N 位全是 0。矿机干的事就是每秒跑几十万亿次 SHA-256——正是因为这个算法设计成&quot;算起来快但找不到结构&quot;，穷举是唯一办法，这才构成&quot;工作量&quot;。</p>
+</li>
+<li><p><strong>与区块链/默克尔树的关系：</strong> 默克尔树用 SHA-256 把一堆交易压成一个根哈希。只要根哈希不变，任何交易都无法被篡改——这是区块链不可篡改性的底层机制。</p>
+</li>
+<li><p><strong>与 SHA-3 的对比：</strong> SHA-3（Keccak）完全抛弃了 Merkle–Damgård，改用&quot;海绵结构&quot;——一个大状态（1600 比特）反复被输入&quot;吸收&quot;、被输出&quot;挤出&quot;，不需要前馈也天然抗长度扩展。两套设计哲学并存。</p>
+</li>
+</ul>
+<h3>终极挑战·空白重建</h3>
+<p>忘掉所有细节，只记得第一幕的问题——&quot;可控的混沌，一步步怎么搅？&quot;你能凭这张地图重新走回 SHA-256 吗？</p>
+<pre><code>[要把任意长度压成固定短指纹]
+    |
+    | 缺口1: 搅拌机的&quot;锅&quot;装不下整本书
+    v
+[切块 + 状态接力] -&gt; Merkle-Damgard 结构
+    |
+    | 缺口2: 最后一块填不满，不同输入可能撞到同一块
+    v
+[末尾补 1、补 0、补 64 比特长度]
+    |
+    | 缺口3: 一块怎么搅? 一下搅不开
+    v
+[搅 64 轮]
+    |
+    | 缺口4: 64 轮需要 64 份&quot;调料&quot;, 一块只切出 16 字
+    v
+[消息扩展: 16 字 -&gt; 64 字 Wi]
+    |
+    | 缺口5: 每轮如何扰动 8 个字?
+    v
+[两团增量 T1 (注入外部) + T2 (内部搅动)]
+[整体移位 + 两处注入 (a 位置和 e 位置)]
+    |
+    | 缺口6: 增量靠什么具体操作产生?
+    v
+[Ch, Maj: 非线性, 让单向性成立]
+[Sigma0, Sigma1: 旋转+异或, 扩散, 让雪崩成立]
+    |
+    | 缺口7: 轮函数本身还是可逆的
+    v
+[前馈: 搅完加回初始状态, 钉死不可逆]
+    |
+    v
+[完整的 SHA-256]
+</code></pre>
+<p>每一个缺口都在逼出下一个工具。没有一步是凭空冒出来的——每一个细节都是对&quot;可控的混沌&quot;这个原始需求的一步步具体化。</p>
+<hr>
+<h2>关联笔记</h2>
+<blockquote>
+<p><strong>相关原子概念</strong><br>暂无（仓库中 <code>1.原子笔记/</code> 目录未建立）</p>
+</blockquote>
+<ul>
+<li><a href="/knowledge/%E5%93%88%E5%B8%8C.html">哈希</a>：相关度 10/10——上位概念笔记。本笔记是&quot;哈希&quot;笔记中&quot;混合搅拌到底怎么搅&quot;这一诚实边界的具体打开。哈希笔记给出&quot;雪崩 + 单向 + 抗碰撞&quot;三大性质，本笔记展示 SHA-256 如何通过 Ch/Maj 的非线性（支撑单向性）+ Sigma 的扩散（支撑雪崩）+ 前馈（钉死不可逆）逐一实现这些性质。</li>
+</ul>
+<h3>应用延伸（非 frontmatter 关联，单向 mention）</h3>
+<ul>
+<li><a href="/knowledge/jwt.html">JWT</a>：HS256 签名算法本质是 HMAC-SHA256——JWT 的完整性验证建立在 SHA-256 的抗碰撞性之上</li>
+<li><a href="/knowledge/aksk.html">AKSK</a>：API 请求签名使用 HMAC-SHA256，防止请求在传输中被篡改</li>
+</ul>
+
+        </div>
+      </article>
+
+      <section class="related-notes">
+  <h3>Related Notes</h3>
+  <div class="related-notes-grid">
+    <a href="哈希.html" class="related-note-card">
+      <div class="related-title">哈希</div>
+      <div class="related-category">Security</div>
+    </a>
+    <a href="jwt.html" class="related-note-card">
+      <div class="related-title">JWT</div>
+      <div class="related-category">Security</div>
+    </a>
+    <a href="aksk.html" class="related-note-card">
+      <div class="related-title">AKSK</div>
+      <div class="related-category">Security</div>
+    </a>
+  </div>
+</section>
+
+      <div class="post-nav">
+  <a href="cookie.html">
+    <div class="post-nav-label"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg> Previous</div>
+    <div class="post-nav-title">Cookie</div>
+  </a>
+  <a href="oss.html">
+    <div class="post-nav-label">Next <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg></div>
+    <div class="post-nav-title">OSS</div>
+  </a>
+</div>
+
+
+      <div style="padding-bottom:40px;">
+        <a href="/" class="back-link">Back to Home</a>
+      </div>
+    </div>
+
+    <!-- TOC sidebar (right) -->
+    <aside class="toc-sidebar" id="toc-sidebar">
+      <div class="toc-title">On This Page</div>
+      <ul class="toc-list" id="toc-list"></ul>
+    </aside>
+  </main>
+
+  <!-- Back to top -->
+  <button class="back-to-top" id="back-to-top" aria-label="Back to top">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="18 15 12 9 6 15"/></svg>
+  </button>
+
+  <footer>
+    <p>Designed &amp; Built by <a href="https://github.com/ChenSchenG">ChenSchenG</a></p>
+  </footer>
+
+  <script src="../js/main.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+  <script>
+    hljs.highlightAll();
+
+    // --- Generate TOC from headings ---
+    (function(){
+      var body = document.querySelector(".article-body");
+      var tocList = document.getElementById("toc-list");
+      if(!body || !tocList) return;
+      var headings = body.querySelectorAll("h1, h2, h3");
+      if(headings.length < 2){ document.getElementById("toc-sidebar").style.display="none"; return; }
+      headings.forEach(function(h, i){
+        if(!h.id) h.id = "heading-" + i;
+        var li = document.createElement("li");
+        var tag = h.tagName.toLowerCase();
+        li.className = "toc-" + tag;
+        var a = document.createElement("a");
+        a.href = "#" + h.id;
+        a.textContent = h.textContent;
+        li.appendChild(a);
+        tocList.appendChild(li);
+      });
+
+      // Scroll-spy: highlight active TOC item
+      var tocLinks = tocList.querySelectorAll("a");
+      var observer = new IntersectionObserver(function(entries){
+        entries.forEach(function(entry){
+          if(entry.isIntersecting){
+            tocLinks.forEach(function(l){ l.classList.remove("active"); });
+            var active = tocList.querySelector('a[href="#' + entry.target.id + '"]');
+            if(active) active.classList.add("active");
+          }
+        });
+      }, { rootMargin: "-80px 0px -70% 0px", threshold: 0 });
+      headings.forEach(function(h){ observer.observe(h); });
+    })();
+
+    // --- Code copy buttons ---
+    document.querySelectorAll(".article-body pre").forEach(function(pre){
+      var btn = document.createElement("button");
+      btn.className = "code-copy-btn";
+      btn.textContent = "Copy";
+      btn.addEventListener("click", function(){
+        var code = pre.querySelector("code");
+        navigator.clipboard.writeText(code.textContent).then(function(){
+          btn.textContent = "Copied!"; btn.classList.add("copied");
+          setTimeout(function(){ btn.textContent = "Copy"; btn.classList.remove("copied"); }, 2000);
+        });
+      });
+      pre.appendChild(btn);
+    });
+
+    // --- Back to top ---
+    (function(){
+      var btn = document.getElementById("back-to-top");
+      if(!btn) return;
+      window.addEventListener("scroll", function(){
+        btn.classList.toggle("visible", window.scrollY > 400);
+      });
+      btn.addEventListener("click", function(){
+        window.scrollTo({ top: 0, behavior: "smooth" });
+      });
+    })();
+  </script>
+</body>
+</html>

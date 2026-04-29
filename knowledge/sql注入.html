@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SQL注入 — ChenSchenG</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⚡</text></svg>">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../css/style.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github.min.css">
+</head>
+<body>
+  <nav id="nav">
+    <div class="nav-logo"><a href="/">ChenSchenG</a></div>
+    <div class="nav-links-wrapper">
+      <ul class="nav-links">
+        <li><a href="/">Home</a></li>
+        <li><a href="/#graph">Graph</a></li>
+        <li><a href="/about.html">About</a></li>
+      </ul>
+    </div>
+    <button class="hamburger" id="hamburger" aria-label="Menu"><span class="hamburger-inner"></span></button>
+  </nav>
+  <div class="mobile-menu-overlay" id="mobile-overlay"></div>
+  <aside class="mobile-menu" id="mobile-menu">
+    <ul>
+      <li><a href="/">Home</a></li>
+      <li><a href="/#graph">Graph</a></li>
+      <li><a href="/about.html">About</a></li>
+    </ul>
+  </aside>
+
+  <main class="article-page">
+    <!-- Main content column -->
+    <div class="article-main">
+      <article>
+        <header class="article-header">
+          <div class="article-breadcrumb">
+            <a href="/">Home</a>
+            <span class="separator">/</span>
+            <span>Security</span>
+          </div>
+          <h1>SQL注入</h1>
+          <div class="article-meta">
+            <span><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>Posted 2026-04-08</span>
+            <span><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 19a2 2 0 01-2 2H4a2 2 0 01-2-2V5a2 2 0 012-2h5l2 3h9a2 2 0 012 2z"/></svg>Security</span>
+            <span><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>1 min read</span>
+          </div>
+          <div class="article-tags">
+  <span class="tag">密码学与安全</span>
+  <span class="tag">概念</span>
+  <span class="tag">SQL注入</span>
+  <span class="tag">攻击手法</span>
+  <span class="tag">参数化查询</span>
+  <span class="tag">盲注</span>
+  <span class="tag">ORM</span>
+  <span class="tag">最小权限</span>
+</div>
+
+        </header>
+
+        <div class="article-body">
+          <h1>SQL 注入（SQL Injection）</h1>
+<blockquote>
+<p><strong>一句话本质</strong><br>SQL 注入是用户输入篡改了 SQL 语义：数据和指令混在一条字符串里，攻击者闭合引号改写逻辑。防御靠参数化查询。</p>
+</blockquote>
+<p>（四幕正文见主对话输出）</p>
+<h2>关联笔记</h2>
+<blockquote>
+<p><strong>相关原子概念</strong><br><a href="/knowledge/xss.html">XSS</a> · <a href="/knowledge/csrf.html">CSRF</a> · <a href="/knowledge/ssrf.html">SSRF</a></p>
+</blockquote>
+<p>SQL 注入和 <a href="/knowledge/xss.html">XSS</a> 是同一个&quot;注入&quot;本质的不同投影——XSS 注入 HTML/JS，SQL 注入注入 SQL。<a href="/knowledge/ssrf.html">SSRF</a> 注入的是 URL/协议。统一防御原则：在每一层边界上将数据和指令分离。</p>
+
+        </div>
+      </article>
+
+      <section class="related-notes">
+  <h3>Related Notes</h3>
+  <div class="related-notes-grid">
+    <a href="xss.html" class="related-note-card">
+      <div class="related-title">XSS</div>
+      <div class="related-category">Security</div>
+    </a>
+    <a href="csrf.html" class="related-note-card">
+      <div class="related-title">CSRF</div>
+      <div class="related-category">Security</div>
+    </a>
+    <a href="ssrf.html" class="related-note-card">
+      <div class="related-title">SSRF</div>
+      <div class="related-category">Security</div>
+    </a>
+  </div>
+</section>
+
+      <div class="post-nav">
+  <a href="csrf.html">
+    <div class="post-nav-label"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg> Previous</div>
+    <div class="post-nav-title">CSRF</div>
+  </a>
+  <a href="cdn.html">
+    <div class="post-nav-label">Next <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg></div>
+    <div class="post-nav-title">CDN</div>
+  </a>
+</div>
+
+
+      <div style="padding-bottom:40px;">
+        <a href="/" class="back-link">Back to Home</a>
+      </div>
+    </div>
+
+    <!-- TOC sidebar (right) -->
+    <aside class="toc-sidebar" id="toc-sidebar">
+      <div class="toc-title">On This Page</div>
+      <ul class="toc-list" id="toc-list"></ul>
+    </aside>
+  </main>
+
+  <!-- Back to top -->
+  <button class="back-to-top" id="back-to-top" aria-label="Back to top">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="18 15 12 9 6 15"/></svg>
+  </button>
+
+  <footer>
+    <p>Designed &amp; Built by <a href="https://github.com/ChenSchenG">ChenSchenG</a></p>
+  </footer>
+
+  <script src="../js/main.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+  <script>
+    hljs.highlightAll();
+
+    // --- Generate TOC from headings ---
+    (function(){
+      var body = document.querySelector(".article-body");
+      var tocList = document.getElementById("toc-list");
+      if(!body || !tocList) return;
+      var headings = body.querySelectorAll("h1, h2, h3");
+      if(headings.length < 2){ document.getElementById("toc-sidebar").style.display="none"; return; }
+      headings.forEach(function(h, i){
+        if(!h.id) h.id = "heading-" + i;
+        var li = document.createElement("li");
+        var tag = h.tagName.toLowerCase();
+        li.className = "toc-" + tag;
+        var a = document.createElement("a");
+        a.href = "#" + h.id;
+        a.textContent = h.textContent;
+        li.appendChild(a);
+        tocList.appendChild(li);
+      });
+
+      // Scroll-spy: highlight active TOC item
+      var tocLinks = tocList.querySelectorAll("a");
+      var observer = new IntersectionObserver(function(entries){
+        entries.forEach(function(entry){
+          if(entry.isIntersecting){
+            tocLinks.forEach(function(l){ l.classList.remove("active"); });
+            var active = tocList.querySelector('a[href="#' + entry.target.id + '"]');
+            if(active) active.classList.add("active");
+          }
+        });
+      }, { rootMargin: "-80px 0px -70% 0px", threshold: 0 });
+      headings.forEach(function(h){ observer.observe(h); });
+    })();
+
+    // --- Code copy buttons ---
+    document.querySelectorAll(".article-body pre").forEach(function(pre){
+      var btn = document.createElement("button");
+      btn.className = "code-copy-btn";
+      btn.textContent = "Copy";
+      btn.addEventListener("click", function(){
+        var code = pre.querySelector("code");
+        navigator.clipboard.writeText(code.textContent).then(function(){
+          btn.textContent = "Copied!"; btn.classList.add("copied");
+          setTimeout(function(){ btn.textContent = "Copy"; btn.classList.remove("copied"); }, 2000);
+        });
+      });
+      pre.appendChild(btn);
+    });
+
+    // --- Back to top ---
+    (function(){
+      var btn = document.getElementById("back-to-top");
+      if(!btn) return;
+      window.addEventListener("scroll", function(){
+        btn.classList.toggle("visible", window.scrollY > 400);
+      });
+      btn.addEventListener("click", function(){
+        window.scrollTo({ top: 0, behavior: "smooth" });
+      });
+    })();
+  </script>
+</body>
+</html>

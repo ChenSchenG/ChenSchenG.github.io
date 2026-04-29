@@ -1,0 +1,417 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Cookie — ChenSchenG</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⚡</text></svg>">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../css/style.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github.min.css">
+</head>
+<body>
+  <nav id="nav">
+    <div class="nav-logo"><a href="/">ChenSchenG</a></div>
+    <div class="nav-links-wrapper">
+      <ul class="nav-links">
+        <li><a href="/">Home</a></li>
+        <li><a href="/#graph">Graph</a></li>
+        <li><a href="/about.html">About</a></li>
+      </ul>
+    </div>
+    <button class="hamburger" id="hamburger" aria-label="Menu"><span class="hamburger-inner"></span></button>
+  </nav>
+  <div class="mobile-menu-overlay" id="mobile-overlay"></div>
+  <aside class="mobile-menu" id="mobile-menu">
+    <ul>
+      <li><a href="/">Home</a></li>
+      <li><a href="/#graph">Graph</a></li>
+      <li><a href="/about.html">About</a></li>
+    </ul>
+  </aside>
+
+  <main class="article-page">
+    <!-- Main content column -->
+    <div class="article-main">
+      <article>
+        <header class="article-header">
+          <div class="article-breadcrumb">
+            <a href="/">Home</a>
+            <span class="separator">/</span>
+            <span>Network</span>
+          </div>
+          <h1>Cookie</h1>
+          <div class="article-meta">
+            <span><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>Posted 2026-04-20</span>
+            <span><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 19a2 2 0 01-2 2H4a2 2 0 01-2-2V5a2 2 0 012-2h5l2 3h9a2 2 0 012 2z"/></svg>Network</span>
+            <span><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>19 min read</span>
+          </div>
+          <div class="article-tags">
+  <span class="tag">计算机网络</span>
+  <span class="tag">概念</span>
+  <span class="tag">Cookie</span>
+  <span class="tag">Session</span>
+  <span class="tag">HTTP</span>
+  <span class="tag">状态管理</span>
+  <span class="tag">身份认证</span>
+  <span class="tag">HttpOnly</span>
+</div>
+
+        </header>
+
+        <div class="article-body">
+          <h1>Cookie</h1>
+<blockquote>
+<p><strong>一句话本质</strong><br>服务器发给浏览器、浏览器每次请求自动回传的&quot;认人纸条&quot;，补偿 HTTP 的健忘。</p>
+</blockquote>
+<h2>第一幕：问题感知</h2>
+<p>你打开淘宝，登录账号，挑了双鞋放进购物车。然后你点进商品详情页看了会儿评论，再点回购物车——</p>
+<p>鞋还在吗？</p>
+<p>你觉得这是废话。但对服务器来说，这是个天大的难题。</p>
+<p>HTTP 协议（HyperText Transfer Protocol，超文本传输协议）有一个你可能没意识到的性格：<strong>它是健忘的</strong>。每一次请求都是独立的、一次性的。你点&quot;加入购物车&quot;，服务器收到请求，处理完，回复你，然后——忘了你。下一秒你点&quot;查看购物车&quot;，服务器看到一个请求进来，但它根本不知道这是刚才那个人。</p>
+<p>你可能会想：那服务器按 IP 地址记住我不就行了？</p>
+<p>问题来了。你家里有 Wi-Fi，全家共用一个公网 IP。你在手机上加购物车，你爸在电脑上也在逛淘宝——服务器只看到一个 IP 发来两种不同的请求。到底是谁的购物车？更糟的是，你从家走到公司，IP 变了，你就不是你了？</p>
+<p>那在每个请求里都带上用户名密码呢？先不说每次请求都传密码多危险——你没登录的时候，连用户名都没有，购物车又怎么记住你？</p>
+<p>生活中有没有这种情况：两个人之前从没见过面，但第二次见面时，其中一个要立刻认出另一个？</p>
+<blockquote>
+<p><strong>健忘的服务器，怎么认出回头客？</strong></p>
+</blockquote>
+<hr>
+<h2>第二幕：引导式构建</h2>
+<h3>留一张&quot;认人凭证&quot;</h3>
+<p>想象你去一家不认识你的咖啡馆。第一次进去，老板给你一张小纸条，上面写着&quot;3 号客人&quot;。下次你再来，把纸条给他看，他就知道：&quot;哦，是 3 号。&quot;</p>
+<p>老板不用记住你长什么样，只需要认纸条。</p>
+<p>这就是 <strong>Cookie</strong>（原意&quot;小饼干&quot;，在 Web 里指&quot;服务器交给浏览器保管的一小块数据&quot;）的核心构思。它的工作方式简单到令人怀疑：</p>
+<pre><code>第一次访问：
+  浏览器 ---- GET /login ----&gt; 服务器
+  浏览器 &lt;-- 这是你的纸条 ---- 服务器
+                                (Set-Cookie: user=3)
+
+第二次访问：
+  浏览器 ---- GET /cart ------&gt; 服务器
+           (Cookie: user=3)      &quot;哦，3号来了，给他看他的购物车&quot;
+</code></pre>
+<p>服务器通过 HTTP 响应头里的 <code>Set-Cookie</code> 字段把纸条发下来，浏览器<strong>自动</strong>存起来。以后每次向这个服务器发请求，浏览器<strong>自动</strong>在请求头里带上 <code>Cookie</code> 字段，把纸条递回去。</p>
+<blockquote>
+<p>想一想：为什么必须是浏览器&quot;自动&quot;做这件事，而不是让网页的 JavaScript 代码每次手动附带？</p>
+<p>（提示：你从淘宝商品页跳到购物车页，中间浏览器重新加载了整个页面。旧页面的 JavaScript 变量全没了。）</p>
+</blockquote>
+<hr>
+<h3>纸条上该写什么？</h3>
+<p>这里有一个关键取舍。</p>
+<p>方案 A：纸条上直接写&quot;张三，余额 1024 元，VIP 等级 3&quot;。服务器收到纸条，一看就全知道了，不用查数据库。</p>
+<p>方案 B：纸条上只写一串没意义的乱码，比如 <code>abc123xyz</code>。服务器拿着这串乱码去数据库查：&quot;哦，<code>abc123xyz</code> 对应的是张三。&quot;</p>
+<p>A 快，B 慢（多一次查库）。但 A 有个致命问题：纸条是在用户的浏览器里。用户可以打开浏览器的开发者工具，把&quot;余额 1024&quot;改成&quot;余额 99999999&quot;，再递给服务器。服务器一看纸条，信了。</p>
+<p>B 就不会。乱码 <code>abc123xyz</code> 改成 <code>abc123xyy</code> 只会让服务器查库失败——&quot;这是谁？没见过。&quot;</p>
+<p>于是实践中演化出了 <strong>Session ID</strong>（会话标识符）这个概念：Cookie 里<strong>只存一个随机生成的 ID</strong>，真正的用户数据（登录状态、购物车、权限）保存在服务器的数据库或内存里，ID 是找到这些数据的钥匙。</p>
+<blockquote>
+<p>想一想：如果服务器必须通过查库才能认出你，那每次请求都要查一次库，性能不是很差吗？这个设计在什么场景下会成为瓶颈？</p>
+</blockquote>
+<hr>
+<h3>谁来递这张纸条？——&quot;同源&quot;的边界</h3>
+<p>假设你登录了银行网站 <code>bank.com</code>，银行给了你一张 Cookie 纸条。</p>
+<p>几分钟后，你打开一个钓鱼网站 <code>evil.com</code>。这个网站里藏了一段代码，偷偷向 <code>bank.com/transfer?to=hacker&amp;amount=10000</code> 发了个请求。</p>
+<p>如果浏览器老老实实把银行的 Cookie 纸条递过去——转账就完成了。你什么都没做。</p>
+<p>所以浏览器必须有一条铁律：<strong>Cookie 只会递给发它的那个网站</strong>。<code>bank.com</code> 发的纸条，只有访问 <code>bank.com</code> 时才会递出去。访问 <code>evil.com</code> 时，银行的纸条绝不出现。</p>
+<p>这条规则叫 <strong>同源策略</strong>（Same-Origin Policy）在 Cookie 上的体现。Cookie 有一个 <code>Domain</code>（域名）属性，决定它归谁所有。</p>
+<blockquote>
+<p>想一想：上面那个钓鱼攻击场景，即使有&quot;只递给同源网站&quot;的规则，其实还是可能成功。为什么？</p>
+<p>（提示：<code>evil.com</code> 上的代码发的请求，去向是 <code>bank.com</code>。浏览器判断&quot;该不该带 Cookie&quot;时，看的是<strong>请求去向</strong>，不是<strong>请求来源</strong>。）</p>
+</blockquote>
+<p>这个缺口暴露了 Cookie 机制的一个真实漏洞——<strong>CSRF</strong>（Cross-Site Request Forgery，跨站请求伪造）。为了堵住它，后来又给 Cookie 加了一个 <code>SameSite</code> 属性，告诉浏览器：&quot;只有用户当前正在访问我这个网站时，才递这张纸条；从别的网站发起的请求，别递。&quot;</p>
+<hr>
+<h3>纸条会过期吗？</h3>
+<p>你登录淘宝一次，半年不退出，淘宝还认你。但你登录网银，十分钟没操作就被踢出去了。</p>
+<p>差别在 Cookie 的&quot;寿命&quot;设置。</p>
+<p>一种叫 <strong>会话 Cookie</strong>（Session Cookie）——浏览器一关，纸条就丢。适合银行这种高安全场景。</p>
+<p>一种叫 <strong>持久 Cookie</strong>（Persistent Cookie）——纸条上写着&quot;2026 年 12 月 31 日前有效&quot;，浏览器关了、电脑重启了，纸条还在硬盘里。下次打开浏览器，继续用。</p>
+<p>实现方式就是 <code>Set-Cookie</code> 头里带一个 <code>Expires</code>（到期时间）或 <code>Max-Age</code>（存活秒数）属性。没带这俩属性的，就是会话 Cookie。</p>
+<blockquote>
+<p>想一想：淘宝&quot;下次自动登录&quot;是怎么做到的？如果 Cookie 里只存一个随机 Session ID，浏览器关了、服务器内存里的 Session 信息也可能被清了，下次打开怎么还能认识你？</p>
+</blockquote>
+<hr>
+<h3>不能让 JavaScript 看到的纸条</h3>
+<p>Cookie 默认情况下，网页里的 JavaScript 可以通过 <code>document.cookie</code> 读到。方便是方便，但——</p>
+<p>如果一个黑客在某个网站的评论区注入了一段恶意脚本（<strong>XSS</strong> 攻击，Cross-Site Scripting，跨站脚本攻击），这段脚本就能读到你的 Cookie，把你的 Session ID 发到黑客服务器。黑客拿着这个 ID，就能假装是你。</p>
+<p>解决办法是给 Cookie 加一个 <code>HttpOnly</code> 属性。加了这个属性的 Cookie，<strong>只有浏览器在发 HTTP 请求时会自动带上，JavaScript 读不到</strong>。黑客的脚本即使注入成功，也偷不走纸条。</p>
+<p>还有一个 <code>Secure</code> 属性——加了它的 Cookie，只在 HTTPS 连接里传输。走明文 HTTP 的时候，浏览器不递。防止中间人窃听。</p>
+<hr>
+<h2>第三幕：完整组装</h2>
+<p>现在把第二幕所有零件拼起来，看一个完整的&quot;登录淘宝—加购物车—关闭浏览器—次日重开&quot;的全流程。</p>
+<h3>全景图</h3>
+<pre><code>+--------+                                    +--------+
+|浏览器  |                                    |服务器  |
++--------+                                    +--------+
+    |                                             |
+    |  1. POST /login (username, password)        |
+    |--------------------------------------------&gt;|
+    |                                             |  [验证密码]
+    |                                             |  [生成 Session ID: abc123]
+    |                                             |  [数据库: abc123 -&gt; 用户张三]
+    |  2. 200 OK                                  |
+    |     Set-Cookie: SID=abc123;                 |
+    |                 Max-Age=2592000;            |
+    |                 HttpOnly; Secure;           |
+    |                 SameSite=Lax                |
+    |&lt;--------------------------------------------|
+    |                                             |
+    |  [浏览器存纸条到硬盘]                        |
+    |                                             |
+    |  3. POST /cart/add (item=shoes)             |
+    |     Cookie: SID=abc123  &lt;-- 自动带上        |
+    |--------------------------------------------&gt;|
+    |                                             |  [查库: abc123 -&gt; 张三]
+    |                                             |  [张三购物车 += shoes]
+    |  4. 200 OK                                  |
+    |&lt;--------------------------------------------|
+    |                                             |
+    |  [用户关闭浏览器]                            |
+    |  [纸条仍在硬盘]                              |
+    |                                             |
+    |  [次日打开浏览器，访问 taobao.com]           |
+    |                                             |
+    |  5. GET /                                   |
+    |     Cookie: SID=abc123  &lt;-- 自动带上        |
+    |--------------------------------------------&gt;|
+    |                                             |  [查库: abc123 仍有效]
+    |  6. 返回已登录的首页                         |
+    |&lt;--------------------------------------------|
+</code></pre>
+<h3>端到端示例</h3>
+<p><strong>Step 1. 登录请求</strong></p>
+<pre><code>POST /login HTTP/1.1
+Host: taobao.com
+Content-Type: application/x-www-form-urlencoded
+
+username=zhangsan&amp;password=xxx
+</code></pre>
+<p><strong>Step 2. 服务器响应（发纸条）</strong></p>
+<pre><code>HTTP/1.1 200 OK
+Set-Cookie: SID=abc123xyz; Max-Age=2592000; Path=/; Domain=taobao.com; HttpOnly; Secure; SameSite=Lax
+Content-Type: text/html
+
+&lt;html&gt;登录成功&lt;/html&gt;
+</code></pre>
+<p>服务器同时在自己的数据库里记下：</p>
+<pre><code>SID         | user_id | expires
+abc123xyz   | 1001    | 2026-05-20 14:00:00
+</code></pre>
+<p><strong>Step 3. 浏览器后续请求（递纸条）</strong></p>
+<pre><code>POST /cart/add HTTP/1.1
+Host: taobao.com
+Cookie: SID=abc123xyz
+
+item=shoes&amp;qty=1
+</code></pre>
+<p><strong>Step 4. 服务器识别</strong></p>
+<pre><code>收到 SID=abc123xyz
+查库 -&gt; user_id=1001 (张三)
+操作: 给张三的购物车加 shoes
+</code></pre>
+<h3>组装检查</h3>
+<ul>
+<li>Cookie 机制本身（Set-Cookie / Cookie 头）：Step 2, 3</li>
+<li>Session ID（而非直接存数据）：<code>SID=abc123xyz</code></li>
+<li>Domain 限定同源：<code>Domain=taobao.com</code></li>
+<li>Max-Age 持久化：<code>Max-Age=2592000</code>（30 天）</li>
+<li>HttpOnly 防 XSS：<code>HttpOnly</code></li>
+<li>Secure 防窃听：<code>Secure</code></li>
+<li>SameSite 防 CSRF：<code>SameSite=Lax</code></li>
+</ul>
+<p>每个零件在流程里都有位置。</p>
+<hr>
+<h2>第四幕：验证与压力测试</h2>
+<h3>反事实</h3>
+<p><strong>Q1：如果去掉 <code>HttpOnly</code> 会怎样？</strong><br>网站被 XSS 攻击时，攻击者的 JavaScript 能读到 Session ID，劫持会话。2010 年代大量社交网站账号被盗的根因之一。</p>
+<p><strong>Q2：如果去掉 <code>Secure</code>，只用 HTTP 会怎样？</strong><br>你在咖啡馆连公共 Wi-Fi，任何人用抓包工具都能看到你的 Cookie，拿着它就能冒充你。这就是著名的 <strong>Firesheep 插件</strong>（2010）引发的恐慌——它让任何人都能在公共 Wi-Fi 下一键劫持别人的 Facebook 会话。</p>
+<p><strong>Q3：如果服务器直接在 Cookie 里存 <code>user=zhangsan&amp;is_admin=true</code> 呢？</strong><br>用户改一个字符：<code>user=zhangsan&amp;is_admin=true</code> → 提权成功。这是初学者最常犯的错，也是为什么必须用不可预测的随机 ID。</p>
+<h3>边界</h3>
+<p><strong>什么场景下 Cookie 不够用？</strong></p>
+<ul>
+<li><strong>跨域共享登录态</strong>：a.com 和 b.com 想共用账号系统，Cookie 的同源限制让它们互相看不到。于是演化出 OAuth、SSO、JWT 等跨域方案。</li>
+<li><strong>移动 App</strong>：原生 App 没有浏览器那套 Cookie 自动管理机制，通常改用 <code>Authorization: Bearer &lt;token&gt;</code> 这种手动方式。</li>
+<li><strong>大小限制</strong>：单个 Cookie 通常 ≤ 4KB，每个域下 Cookie 总数也有限制（约 50 个）。复杂的前端状态不能塞进来。</li>
+<li><strong>隐私合规</strong>：GDPR、CCPA 之后，用于<strong>追踪用户行为</strong>的 Cookie（比如跨站广告追踪）必须显式征求同意。这就是为什么你现在打开每个网站都要点&quot;接受 Cookie&quot;。</li>
+</ul>
+<h3>连接</h3>
+<ul>
+<li><strong>与 JWT（JSON Web Token）的关系</strong>：JWT 是另一种无状态认证方案——把用户信息放在 token 里，用密码学签名防篡改。它解决了 Session 方案必须查库的性能问题，代价是无法主动吊销。Cookie 可以装 JWT，两者不是替代关系。</li>
+<li><strong>与 localStorage 的关系</strong>：localStorage 也能在浏览器存数据，但它不会自动随请求发送，也不受 <code>HttpOnly</code> 保护——不适合存认证凭证。</li>
+<li><strong>与 HTTPS 的关系</strong>：Cookie 里的 Session ID 在明文 HTTP 下是裸奔的。HTTPS 不是可选项，是前提。</li>
+</ul>
+<h3>终极挑战·空白重建</h3>
+<p>忘掉以上所有内容，只记住第一幕的那个问题——&quot;健忘的服务器，怎么认出回头客？&quot;你能凭这张地图重新推出 Cookie 吗？</p>
+<pre><code>[健忘的 HTTP]
+    |
+    | 缺口1: 服务器请求之间无记忆
+    v
+[工具1: 给每个客户留一张纸条] -&gt; Cookie 基本机制
+    |
+    | 缺口2: 纸条放在客户手里可被篡改
+    v
+[工具2: 纸条只写随机 ID，真数据在服务器] -&gt; Session ID 模式
+    |
+    | 缺口3: 恶意网站可能让浏览器递错纸条
+    v
+[工具3: 限定纸条的 Domain 和 SameSite] -&gt; 同源约束 + CSRF 防御
+    |
+    | 缺口4: 纸条在网络上传输可能被偷
+    v
+[工具4: Secure + HTTPS]
+    |
+    | 缺口5: 纸条在浏览器里可能被脚本读走
+    v
+[工具5: HttpOnly]
+    |
+    | 缺口6: 纸条该保存多久？
+    v
+[工具6: Expires / Max-Age]
+    |
+    v
+[完整的 Cookie 机制]
+</code></pre>
+<p>每一步都是前一步的必然回应。这就是 Cookie 三十年来加了这么多属性的根本原因——它不是一开始就完美，是被现实中一次次的攻击和问题推着长成现在这样的。</p>
+<hr>
+<h2>关联笔记</h2>
+<blockquote>
+<p><strong>相关原子概念</strong><br>暂无（仓库中 <code>1.原子笔记/</code> 目录未建立）</p>
+</blockquote>
+<ul>
+<li><a href="/knowledge/csrf.html">CSRF</a>：相关度 10/10——Cookie 的自动回传机制正是 CSRF 攻击的前提；SameSite 属性是 Cookie 对 CSRF 的直接响应</li>
+<li><a href="/knowledge/xss.html">XSS</a>：相关度 5/10——HttpOnly 属性专门防御 XSS 窃取 Cookie 的场景</li>
+<li><a href="/knowledge/jwt.html">JWT</a>：相关度 4/10——与 Cookie+Session 方案形成&quot;无状态 vs. 有状态&quot;认证对照</li>
+<li><a href="/knowledge/oidc.html">OIDC</a>：相关度 4/10——SSO/身份认证场景依赖 Cookie/Session 作为底层载体</li>
+<li><a href="/knowledge/oauth-2-0.html">OAuth 2.0</a>：相关度 3/10——授权委托机制与 Cookie 会话形成对照</li>
+</ul>
+
+        </div>
+      </article>
+
+      <section class="related-notes">
+  <h3>Related Notes</h3>
+  <div class="related-notes-grid">
+    <a href="csrf.html" class="related-note-card">
+      <div class="related-title">CSRF</div>
+      <div class="related-category">Security</div>
+    </a>
+    <a href="xss.html" class="related-note-card">
+      <div class="related-title">XSS</div>
+      <div class="related-category">Security</div>
+    </a>
+    <a href="jwt.html" class="related-note-card">
+      <div class="related-title">JWT</div>
+      <div class="related-category">Security</div>
+    </a>
+    <a href="oidc.html" class="related-note-card">
+      <div class="related-title">OIDC（OpenID Connect）</div>
+      <div class="related-category">Security</div>
+    </a>
+    <a href="oauth-2-0.html" class="related-note-card">
+      <div class="related-title">OAuth 2.0</div>
+      <div class="related-category">Security</div>
+    </a>
+  </div>
+</section>
+
+      <div class="post-nav">
+  <a href="哈希.html">
+    <div class="post-nav-label"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg> Previous</div>
+    <div class="post-nav-title">哈希</div>
+  </a>
+  <a href="sha-256.html">
+    <div class="post-nav-label">Next <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg></div>
+    <div class="post-nav-title">SHA-256</div>
+  </a>
+</div>
+
+
+      <div style="padding-bottom:40px;">
+        <a href="/" class="back-link">Back to Home</a>
+      </div>
+    </div>
+
+    <!-- TOC sidebar (right) -->
+    <aside class="toc-sidebar" id="toc-sidebar">
+      <div class="toc-title">On This Page</div>
+      <ul class="toc-list" id="toc-list"></ul>
+    </aside>
+  </main>
+
+  <!-- Back to top -->
+  <button class="back-to-top" id="back-to-top" aria-label="Back to top">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="18 15 12 9 6 15"/></svg>
+  </button>
+
+  <footer>
+    <p>Designed &amp; Built by <a href="https://github.com/ChenSchenG">ChenSchenG</a></p>
+  </footer>
+
+  <script src="../js/main.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+  <script>
+    hljs.highlightAll();
+
+    // --- Generate TOC from headings ---
+    (function(){
+      var body = document.querySelector(".article-body");
+      var tocList = document.getElementById("toc-list");
+      if(!body || !tocList) return;
+      var headings = body.querySelectorAll("h1, h2, h3");
+      if(headings.length < 2){ document.getElementById("toc-sidebar").style.display="none"; return; }
+      headings.forEach(function(h, i){
+        if(!h.id) h.id = "heading-" + i;
+        var li = document.createElement("li");
+        var tag = h.tagName.toLowerCase();
+        li.className = "toc-" + tag;
+        var a = document.createElement("a");
+        a.href = "#" + h.id;
+        a.textContent = h.textContent;
+        li.appendChild(a);
+        tocList.appendChild(li);
+      });
+
+      // Scroll-spy: highlight active TOC item
+      var tocLinks = tocList.querySelectorAll("a");
+      var observer = new IntersectionObserver(function(entries){
+        entries.forEach(function(entry){
+          if(entry.isIntersecting){
+            tocLinks.forEach(function(l){ l.classList.remove("active"); });
+            var active = tocList.querySelector('a[href="#' + entry.target.id + '"]');
+            if(active) active.classList.add("active");
+          }
+        });
+      }, { rootMargin: "-80px 0px -70% 0px", threshold: 0 });
+      headings.forEach(function(h){ observer.observe(h); });
+    })();
+
+    // --- Code copy buttons ---
+    document.querySelectorAll(".article-body pre").forEach(function(pre){
+      var btn = document.createElement("button");
+      btn.className = "code-copy-btn";
+      btn.textContent = "Copy";
+      btn.addEventListener("click", function(){
+        var code = pre.querySelector("code");
+        navigator.clipboard.writeText(code.textContent).then(function(){
+          btn.textContent = "Copied!"; btn.classList.add("copied");
+          setTimeout(function(){ btn.textContent = "Copy"; btn.classList.remove("copied"); }, 2000);
+        });
+      });
+      pre.appendChild(btn);
+    });
+
+    // --- Back to top ---
+    (function(){
+      var btn = document.getElementById("back-to-top");
+      if(!btn) return;
+      window.addEventListener("scroll", function(){
+        btn.classList.toggle("visible", window.scrollY > 400);
+      });
+      btn.addEventListener("click", function(){
+        window.scrollTo({ top: 0, behavior: "smooth" });
+      });
+    })();
+  </script>
+</body>
+</html>

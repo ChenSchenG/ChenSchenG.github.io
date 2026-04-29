@@ -1,0 +1,343 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SRC — ChenSchenG</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⚡</text></svg>">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../css/style.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github.min.css">
+</head>
+<body>
+  <nav id="nav">
+    <div class="nav-logo"><a href="/">ChenSchenG</a></div>
+    <div class="nav-links-wrapper">
+      <ul class="nav-links">
+        <li><a href="/">Home</a></li>
+        <li><a href="/#graph">Graph</a></li>
+        <li><a href="/about.html">About</a></li>
+      </ul>
+    </div>
+    <button class="hamburger" id="hamburger" aria-label="Menu"><span class="hamburger-inner"></span></button>
+  </nav>
+  <div class="mobile-menu-overlay" id="mobile-overlay"></div>
+  <aside class="mobile-menu" id="mobile-menu">
+    <ul>
+      <li><a href="/">Home</a></li>
+      <li><a href="/#graph">Graph</a></li>
+      <li><a href="/about.html">About</a></li>
+    </ul>
+  </aside>
+
+  <main class="article-page">
+    <!-- Main content column -->
+    <div class="article-main">
+      <article>
+        <header class="article-header">
+          <div class="article-breadcrumb">
+            <a href="/">Home</a>
+            <span class="separator">/</span>
+            <span>Security</span>
+          </div>
+          <h1>SRC</h1>
+          <div class="article-meta">
+            <span><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>Posted 2026-04-10</span>
+            <span><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 19a2 2 0 01-2 2H4a2 2 0 01-2-2V5a2 2 0 012-2h5l2 3h9a2 2 0 012 2z"/></svg>Security</span>
+            <span><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>17 min read</span>
+          </div>
+          <div class="article-tags">
+  <span class="tag">密码学与安全</span>
+  <span class="tag">概念</span>
+  <span class="tag">SRC</span>
+  <span class="tag">安全应急响应中心</span>
+  <span class="tag">漏洞奖励</span>
+  <span class="tag">Bug Bounty</span>
+  <span class="tag">白帽子</span>
+  <span class="tag">CVSS</span>
+</div>
+
+        </header>
+
+        <div class="article-body">
+          <h1>SRC（安全应急响应中心）</h1>
+<blockquote>
+<p><strong>一句话本质</strong><br>SRC 是企业与白帽子之间的正式通道，靠奖励+评级+披露规则让漏洞安全流转到修复者手中。</p>
+</blockquote>
+<h2>第一幕：问题感知</h2>
+<p>你是一家大型互联网公司的安全负责人。你的团队有 20 个安全工程师，负责保护公司上千个系统、几亿用户的数据。</p>
+<p>你们每天做代码审计、跑漏洞扫描工具、做渗透测试。但公司每周上线几十个新功能，每个功能可能引入新漏洞。20 个人，盯几千个系统，永远盯不完。</p>
+<p>某天，你在一个地下论坛看到有人在卖你公司的用户数据——50 万条，包含手机号和身份证。你们排查了三天，找到了漏洞：一个半年前上线的接口，参数没有校验，导致数据泄露。这个漏洞存在了六个月，你们的扫描工具没发现，人工审计没覆盖到。</p>
+<p>公司外面有几十万个懂安全的人——独立研究者、安全爱好者、高校学生。他们中有人可能三个月前就注意到了这个漏洞。但他不认识你，不知道该告诉谁，也不确定告诉你之后会不会被当成&quot;黑客&quot;抓起来。</p>
+<p>他面前有两条路：把漏洞卖给地下黑市，赚一笔钱；或者默默走开，当没看见。两条路里，都没有&quot;安全地告诉你&quot;这个选项。</p>
+<p>你缺人手找漏洞。外面有人能帮你找，但没有一条安全的通道把他们连起来。</p>
+<p><strong>怎么让外部的人安全地帮你找漏洞？</strong></p>
+<h2>第二幕：引导式构建</h2>
+<p>最直接的想法：公开一个邮箱，比如 <a href="mailto:security@company.com">security@company.com</a>，谁发现漏洞就发邮件过来。</p>
+<p>但马上遇到问题。一个白帽子发来邮件说&quot;你们的支付接口有 SQL 注入&quot;。你收到了，然后呢？谁来处理？转给哪个团队？多久修复？修好了要不要通知他？如果他等了一个月没回音，下次还会报吗？</p>
+<p>一个邮箱不够。你需要一套<strong>完整的流程</strong>：收到漏洞 -&gt; 确认是否真实 -&gt; 评估严重程度 -&gt; 分发给对应团队修复 -&gt; 跟踪进度 -&gt; 反馈给报告者。</p>
+<p>这套流程和围绕它运转的组织，就是 <strong>SRC（Security Response Center，安全应急响应中心）</strong>。它不是一个邮箱，不是一个网页，而是一个<strong>机制</strong>——一个企业与外部安全研究者之间的正式通道。</p>
+<blockquote>
+<p><strong>想一想</strong><br>为什么需要一个专门的&quot;中心&quot;而不是让现有的客服部门来处理漏洞报告？客服和安全团队处理漏洞的能力有什么根本区别？</p>
+</blockquote>
+<p>客服没有技术能力验证漏洞是否真实、评估影响范围、协调开发团队修复。漏洞报告不是投诉，是高度技术化的情报，需要安全专家来对接。</p>
+<hr>
+<p>通道建好了，但外面的人为什么愿意用它？</p>
+<p>找漏洞要花时间和精力。一个有能力找到支付系统 SQL 注入的人，他的时间是值钱的。如果报给你只换来一句&quot;谢谢&quot;，而卖到黑市能赚几万块——他为什么不卖？</p>
+<p>你需要给他一个理由。这就是<strong>漏洞奖励（Bug Bounty）</strong>。</p>
+<p>SRC 会制定明确的奖励标准：什么级别的漏洞值多少钱。严重漏洞（能窃取大量用户数据、能控制服务器）奖励最高，可能几千到几万元；中等漏洞（能影响部分功能但不涉及核心数据）次之；低危漏洞（信息泄露但影响有限）再次。</p>
+<p>奖励不一定能跟黑市价格持平，但它提供了黑市给不了的东西：<strong>合法性</strong>。卖到黑市是违法的，随时可能被抓。报给 SRC 是合法的，还能积累声誉。</p>
+<blockquote>
+<p><strong>想一想</strong><br>如果你是一个白帽子，发现了一家公司的严重漏洞。这家公司没有 SRC，你该怎么办？你面对的风险是什么？</p>
+</blockquote>
+<p>没有 SRC 意味着没有官方渠道。你可能找到某个员工的邮箱报过去，但对方可能不理解、不回复，甚至怀疑你是攻击者。更糟的是，你在测试漏洞的过程中可能已经&quot;未授权访问&quot;了系统——在法律上，这可能构成犯罪。没有 SRC 的明确授权，白帽子处于灰色地带。</p>
+<hr>
+<p>有了通道，有了奖励，白帽子开始提交漏洞了。新问题来了：怎么判断一个漏洞到底值多少钱？</p>
+<p>同一个漏洞，报告者可能觉得&quot;这能拿到所有用户数据，至少值五万&quot;，而你的评估是&quot;虽然理论上可以，但需要多个前置条件同时满足，实际利用难度很高，给两千&quot;。</p>
+<p>没有标准就会扯皮。扯皮多了，白帽子觉得不公平，不来了。</p>
+<p>所以 SRC 需要一套<strong>漏洞评级体系</strong>。业界最常用的是 <strong>CVSS（Common Vulnerability Scoring System，通用漏洞评分系统）</strong> 的思路，但大多数国内 SRC 会基于它做简化，按四个维度打分：<strong>影响范围</strong>（多少用户/系统受影响）、<strong>利用难度</strong>（需要什么前置条件）、<strong>危害程度</strong>（数据泄露/权限提升/服务瘫痪）、<strong>业务重要性</strong>（核心支付系统 vs 内部测试工具）。</p>
+<p>最终映射到<strong>严重、高危、中危、低危</strong>四个等级，每个等级对应一个奖励区间。规则提前公开，白帽子提交前就知道大概能拿到多少。</p>
+<blockquote>
+<p><strong>想一想</strong><br>为什么&quot;利用难度&quot;要纳入评级？一个理论上能窃取全部数据、但需要同时满足五个苛刻条件才能利用的漏洞，和一个只能泄露少量信息、但任何人一步就能触发的漏洞，哪个更该优先修？</p>
+</blockquote>
+<p>后者。因为利用门槛低意味着被实际攻击的概率更高。评级不是评&quot;最坏情况有多坏&quot;，而是评&quot;真实风险有多大&quot;——风险 = 危害 x 概率。</p>
+<hr>
+<p>评级解决了&quot;值多少钱&quot;，但还有一个更敏感的问题：<strong>时间</strong>。</p>
+<p>白帽子提交了一个严重漏洞。公司开始修复。但修复需要时间——修改代码、测试、上线，可能要一两周。在漏洞被修复之前，如果白帽子把漏洞细节公开了怎么办？所有人都知道了这个漏洞，但公司还没堵上，攻击者可以直接利用。</p>
+<p>反过来，如果公司收到漏洞后一直不修、拖上三个月，白帽子有没有权利公开？如果永远不公开，公司就没有紧迫感。</p>
+<p>这就是<strong>负责任披露（Responsible Disclosure）</strong> 的核心张力：白帽子需要给公司修复时间，但公司不能无限拖延。</p>
+<p>大多数 SRC 的规则是：白帽子提交后进入<strong>静默期（通常 90 天）</strong>，这段时间内不得公开漏洞细节。公司承诺在静默期内修复。修复完成后，白帽子可以公开漏洞（通常以技术文章的形式，作为自己的成果展示）。如果公司超过 90 天仍未修复，白帽子有权公开——这是对公司的倒逼。</p>
+<blockquote>
+<p><strong>想一想</strong><br>为什么是 90 天而不是 30 天或 365 天？这个数字是怎么来的？</p>
+</blockquote>
+<p>这是经验妥协。30 天对大公司的复杂系统来说太短，可能修不完。365 天太长，公司没有紧迫感。Google Project Zero 率先采用 90 天标准，逐渐成为行业惯例。但它不是法律——有些 SRC 用 60 天，有些用 180 天。</p>
+<hr>
+<p>流程、奖励、评级、披露规则都有了。最后一个问题：SRC 不是孤立存在的。</p>
+<p>中国的安全生态里，除了企业自建 SRC，还有<strong>第三方漏洞平台</strong>充当中间人。最典型的是<strong>补天（Butian）</strong> 和早年的 <strong>乌云（WooYun，已关闭）</strong>。白帽子在平台上提交漏洞，平台转交给企业，企业确认后通过平台发奖励。</p>
+<p>第三方平台的价值在于：小公司没有资源自建 SRC，但它们同样有漏洞。平台把&quot;收漏洞&quot;这件事标准化了——白帽子不需要知道每家公司的 SRC 在哪里，只需要去一个平台就能提交所有公司的漏洞。</p>
+<p>但第三方平台也带来了争议。乌云 2016 年关闭，导火索之一是平台上披露的漏洞是否越界——有些白帽子在&quot;测试&quot;过程中实际上访问了真实用户数据。测试和攻击的边界在哪里？平台有没有责任审核？这些问题至今没有完美答案。</p>
+<blockquote>
+<p><strong>想一想</strong><br>企业自建 SRC 和使用第三方平台各有什么优劣？如果你是一家中型互联网公司的 CTO，你会选哪种？</p>
+</blockquote>
+<p>自建 SRC：可控性强，能定制规则和奖励，但需要专人维护，成本高。第三方平台：零维护成本，白帽子覆盖面广，但对漏洞处理流程控制弱。中型公司通常先用第三方平台，等安全团队成熟后再自建。很多大公司两者并行。</p>
+<h2>第三幕：完整组装</h2>
+<p><strong>全景图</strong>：</p>
+<pre><code>                     SRC 运作全景
+
+[白帽子/安全研究者]                    [企业]
+       |                                  |
+       |  1.发现漏洞                       |
+       |                                  |
+       v                                  |
++------------------+                      |
+|   提交漏洞报告    | --- 直接提交 -------&gt; |
+| (SRC平台/邮件/    |                 +----+-----+
+|  第三方平台)      | -- 第三方转交 -&gt; | SRC 团队  |
++------------------+                 +----+-----+
+                                          |
+                               2.验证 + CVSS评级
+                               (严重/高危/中危/低危)
+                                          |
+                               3.分发给业务团队修复
+                                          |
+                               4.静默期内完成修复
+                                          |
+                                     +----+----+
+                                     v         v
+                               5a.发放奖励  5b.允许公开
+                               (按评级)    (修复后/90天)
+                                     |
+                                     v
+                              6.白帽子获得:
+                                合法性 + 收入 + 声誉
+
+
+  +--------------------------------------------------+
+  |              五大核心组件                           |
+  |                                                    |
+  |  通道：正式的提交入口和响应流程                      |
+  |  奖励：按漏洞等级付费，替代黑市激励                  |
+  |  评级：CVSS 思路，影响*难度*危害*业务 -&gt; 四级         |
+  |  披露：负责任披露，静默期 90 天                      |
+  |  生态：自建 SRC + 第三方平台并行                     |
+  +--------------------------------------------------+
+</code></pre>
+<p><strong>端到端示例</strong>：</p>
+<p>白帽子小王在使用某电商 App 时，发现&quot;修改收货地址&quot;的接口存在漏洞：把请求中的用户 ID 改成别人的，就能看到别人的收货地址（姓名、电话、住址）。这是一个典型的<strong>越权漏洞（IDOR, Insecure Direct Object Reference）</strong>。</p>
+<p><strong>第一步：提交。</strong> 小王登录该电商的 SRC 网站，填写漏洞报告：标题、影响接口、复现步骤（精确到 HTTP 请求）、影响范围估计。他在测试时只用了自己的两个账号互相验证，<strong>没有访问任何真实用户数据</strong>——这是合法测试的红线。</p>
+<p><strong>第二步：验证。</strong> SRC 团队收到报告，安全工程师按照复现步骤验证——确认漏洞真实存在。</p>
+<p><strong>第三步：评级。</strong> 影响范围：全部用户的收货地址（几千万条）。利用难度：极低（改一个参数就行）。危害程度：个人隐私泄露（姓名+电话+住址）。业务重要性：核心电商系统。综合评级：<strong>高危</strong>。对应奖励：5000 元。</p>
+<p><strong>第四步：修复。</strong> SRC 将漏洞工单转给电商后端团队。后端团队在接口中增加权限校验：请求中的用户 ID 必须与当前登录用户一致，否则拒绝。代码修改 + 测试 + 上线，耗时 5 天。</p>
+<p><strong>第五步：反馈。</strong> SRC 通知小王漏洞已修复，奖励 5000 元已发放。小王在 90 天静默期后，将这次漏洞发现写成技术博客，展示自己的安全能力（隐去了公司敏感细节）。</p>
+<p>从发现到闭环，每个组件都参与了：通道（SRC 网站）-&gt; 评级（CVSS 四维度）-&gt; 修复（业务团队）-&gt; 奖励（5000 元）-&gt; 披露（90 天后博客）。</p>
+<h2>第四幕：验证与压力测试</h2>
+<p><strong>反事实 1：如果没有奖励机制？</strong><br>白帽子没有经济激励，只剩&quot;做好事&quot;的道德驱动。部分人会坚持，但多数高水平研究者会转向黑市或放弃。SRC 收到的漏洞数量和质量都会大幅下降。奖励不是&quot;可有可无的激励&quot;，而是让整个通道运转的燃料。</p>
+<p><strong>反事实 2：如果没有评级体系？</strong><br>每次奖励都要单独谈判。白帽子不知道自己的漏洞值多少，提交前无法预期回报。SRC 团队也会陷入&quot;这个漏洞到底给多少&quot;的内部扯皮。评级体系的作用是<strong>降低交易成本</strong>——双方共享一套语言。</p>
+<p><strong>反事实 3：如果没有静默期？</strong><br>白帽子一发现漏洞就公开。公司还没来得及修复，攻击者先看到了漏洞细节。零日攻击立刻发生。没有静默期，SRC 反而成了漏洞扩散的渠道——比没有 SRC 更危险。</p>
+<p><strong>边界：SRC 在什么条件下失效？</strong></p>
+<ul>
+<li><strong>法律灰区</strong>：白帽子在测试过程中&quot;越界&quot;（比如访问了真实用户数据、测试造成了服务中断），即使出发点是善意的，也可能面临法律追责。中国《网络安全法》和《数据安全法》对&quot;未授权访问&quot;的定义仍然模糊，白帽子在 SRC 授权范围之外的测试行为风险很高</li>
+<li><strong>SRC 不响应</strong>：有些公司的 SRC 形同虚设——收漏洞但不修、不回复、不发奖。白帽子社区会用脚投票，不再给这些公司提交。SRC 的信誉一旦崩塌，很难恢复</li>
+<li><strong>内部漏洞</strong>：SRC 只能收到外部能发现的漏洞。需要内部权限才能触发的漏洞（配置错误、内网服务暴露）是 SRC 的盲区——这需要内部安全审计补位</li>
+<li><strong>零日市场竞争</strong>：国家级的漏洞收购项目（如美国的 Zerodium）出价远超 SRC 奖励。真正顶级的零日漏洞，SRC 接不住</li>
+</ul>
+<p><strong>连接：SRC 和 XSS/SQL 注入/DDoS 的关系？</strong><br><a href="/knowledge/xss.html">XSS</a>、<a href="/knowledge/sql%E6%B3%A8%E5%85%A5.html">SQL注入</a>、越权漏洞——这些就是白帽子提交给 SRC 的&quot;货物&quot;。SRC 本身不是一种攻击或防御技术，而是让漏洞从&quot;发现者&quot;安全流转到&quot;修复者&quot;手中的<strong>制度基础设施</strong>。没有 SRC，即使有人发现了 XSS 漏洞，也没有安全的通道送到你手上。</p>
+<p><strong>连接：SRC 和 <a href="/knowledge/ddos.html">DDoS</a> 的关系？</strong><br>DDoS 是资源耗尽攻击，不涉及代码漏洞，所以 SRC 对 DDoS 帮助有限——白帽子无法&quot;提交&quot;一个 DDoS 漏洞。但 DDoS 防御中的配置失误（比如 CDN 绕过、源站 IP 泄露）是 SRC 能覆盖的范畴。</p>
+<p><strong>终极挑战·空白重建</strong>：</p>
+<pre><code>[漏洞存在但没人安全地报告，怎么办？]
+    |
+    v
+[建通道：SRC -- 专业安全团队接收和处理漏洞]
+    |
+    v
+[缺动力：白帽子为什么帮你？-- 漏洞奖励，替代黑市激励]
+    |
+    v
+[缺标准：漏洞值多少钱？-- 评级体系，四维度 -&gt; 四等级]
+    |
+    v
+[缺规则：什么时候能公开？-- 负责任披露，90天静默期]
+    |
+    v
+[缺覆盖：小公司没资源自建？-- 第三方平台，标准化中介]
+    |
+    v
+[完整生态：通道 + 奖励 + 评级 + 披露 + 平台]
+</code></pre>
+<h2>关联笔记</h2>
+<blockquote>
+<p><strong>相关原子概念</strong><br><a href="/knowledge/xss.html">XSS</a> · <a href="/knowledge/sql%E6%B3%A8%E5%85%A5.html">SQL注入</a> · <a href="/knowledge/csrf.html">CSRF</a> · <a href="/knowledge/ssrf.html">SSRF</a> · <a href="/knowledge/ddos.html">DDoS</a></p>
+</blockquote>
+<p><a href="/knowledge/xss.html">XSS</a>、<a href="/knowledge/sql%E6%B3%A8%E5%85%A5.html">SQL注入</a>、<a href="/knowledge/csrf.html">CSRF</a>、<a href="/knowledge/ssrf.html">SSRF</a> 是白帽子通过 SRC 提交的典型漏洞类型——SRC 是让这些漏洞从发现者安全流转到修复者手中的制度通道。<a href="/knowledge/ddos.html">DDoS</a> 与 SRC 关系较弱（DDoS 不涉及代码漏洞），但 DDoS 防御中的配置失误（CDN 绕过、源站 IP 泄露）属于 SRC 可覆盖的范畴。</p>
+
+        </div>
+      </article>
+
+      <section class="related-notes">
+  <h3>Related Notes</h3>
+  <div class="related-notes-grid">
+    <a href="xss.html" class="related-note-card">
+      <div class="related-title">XSS</div>
+      <div class="related-category">Security</div>
+    </a>
+    <a href="sql注入.html" class="related-note-card">
+      <div class="related-title">SQL注入</div>
+      <div class="related-category">Security</div>
+    </a>
+    <a href="csrf.html" class="related-note-card">
+      <div class="related-title">CSRF</div>
+      <div class="related-category">Security</div>
+    </a>
+    <a href="ssrf.html" class="related-note-card">
+      <div class="related-title">SSRF</div>
+      <div class="related-category">Security</div>
+    </a>
+    <a href="ddos.html" class="related-note-card">
+      <div class="related-title">DDoS</div>
+      <div class="related-category">Security</div>
+    </a>
+  </div>
+</section>
+
+      <div class="post-nav">
+  <a href="xss.html">
+    <div class="post-nav-label"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg> Previous</div>
+    <div class="post-nav-title">XSS</div>
+  </a>
+  <a href="哈希.html">
+    <div class="post-nav-label">Next <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg></div>
+    <div class="post-nav-title">哈希</div>
+  </a>
+</div>
+
+
+      <div style="padding-bottom:40px;">
+        <a href="/" class="back-link">Back to Home</a>
+      </div>
+    </div>
+
+    <!-- TOC sidebar (right) -->
+    <aside class="toc-sidebar" id="toc-sidebar">
+      <div class="toc-title">On This Page</div>
+      <ul class="toc-list" id="toc-list"></ul>
+    </aside>
+  </main>
+
+  <!-- Back to top -->
+  <button class="back-to-top" id="back-to-top" aria-label="Back to top">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="18 15 12 9 6 15"/></svg>
+  </button>
+
+  <footer>
+    <p>Designed &amp; Built by <a href="https://github.com/ChenSchenG">ChenSchenG</a></p>
+  </footer>
+
+  <script src="../js/main.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+  <script>
+    hljs.highlightAll();
+
+    // --- Generate TOC from headings ---
+    (function(){
+      var body = document.querySelector(".article-body");
+      var tocList = document.getElementById("toc-list");
+      if(!body || !tocList) return;
+      var headings = body.querySelectorAll("h1, h2, h3");
+      if(headings.length < 2){ document.getElementById("toc-sidebar").style.display="none"; return; }
+      headings.forEach(function(h, i){
+        if(!h.id) h.id = "heading-" + i;
+        var li = document.createElement("li");
+        var tag = h.tagName.toLowerCase();
+        li.className = "toc-" + tag;
+        var a = document.createElement("a");
+        a.href = "#" + h.id;
+        a.textContent = h.textContent;
+        li.appendChild(a);
+        tocList.appendChild(li);
+      });
+
+      // Scroll-spy: highlight active TOC item
+      var tocLinks = tocList.querySelectorAll("a");
+      var observer = new IntersectionObserver(function(entries){
+        entries.forEach(function(entry){
+          if(entry.isIntersecting){
+            tocLinks.forEach(function(l){ l.classList.remove("active"); });
+            var active = tocList.querySelector('a[href="#' + entry.target.id + '"]');
+            if(active) active.classList.add("active");
+          }
+        });
+      }, { rootMargin: "-80px 0px -70% 0px", threshold: 0 });
+      headings.forEach(function(h){ observer.observe(h); });
+    })();
+
+    // --- Code copy buttons ---
+    document.querySelectorAll(".article-body pre").forEach(function(pre){
+      var btn = document.createElement("button");
+      btn.className = "code-copy-btn";
+      btn.textContent = "Copy";
+      btn.addEventListener("click", function(){
+        var code = pre.querySelector("code");
+        navigator.clipboard.writeText(code.textContent).then(function(){
+          btn.textContent = "Copied!"; btn.classList.add("copied");
+          setTimeout(function(){ btn.textContent = "Copy"; btn.classList.remove("copied"); }, 2000);
+        });
+      });
+      pre.appendChild(btn);
+    });
+
+    // --- Back to top ---
+    (function(){
+      var btn = document.getElementById("back-to-top");
+      if(!btn) return;
+      window.addEventListener("scroll", function(){
+        btn.classList.toggle("visible", window.scrollY > 400);
+      });
+      btn.addEventListener("click", function(){
+        window.scrollTo({ top: 0, behavior: "smooth" });
+      });
+    })();
+  </script>
+</body>
+</html>

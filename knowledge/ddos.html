@@ -1,0 +1,368 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>DDoS — ChenSchenG</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⚡</text></svg>">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../css/style.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github.min.css">
+</head>
+<body>
+  <nav id="nav">
+    <div class="nav-logo"><a href="/">ChenSchenG</a></div>
+    <div class="nav-links-wrapper">
+      <ul class="nav-links">
+        <li><a href="/">Home</a></li>
+        <li><a href="/#graph">Graph</a></li>
+        <li><a href="/about.html">About</a></li>
+      </ul>
+    </div>
+    <button class="hamburger" id="hamburger" aria-label="Menu"><span class="hamburger-inner"></span></button>
+  </nav>
+  <div class="mobile-menu-overlay" id="mobile-overlay"></div>
+  <aside class="mobile-menu" id="mobile-menu">
+    <ul>
+      <li><a href="/">Home</a></li>
+      <li><a href="/#graph">Graph</a></li>
+      <li><a href="/about.html">About</a></li>
+    </ul>
+  </aside>
+
+  <main class="article-page">
+    <!-- Main content column -->
+    <div class="article-main">
+      <article>
+        <header class="article-header">
+          <div class="article-breadcrumb">
+            <a href="/">Home</a>
+            <span class="separator">/</span>
+            <span>Security</span>
+          </div>
+          <h1>DDoS</h1>
+          <div class="article-meta">
+            <span><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>Posted 2026-04-09</span>
+            <span><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 19a2 2 0 01-2 2H4a2 2 0 01-2-2V5a2 2 0 012-2h5l2 3h9a2 2 0 012 2z"/></svg>Security</span>
+            <span><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>19 min read</span>
+          </div>
+          <div class="article-tags">
+  <span class="tag">密码学与安全</span>
+  <span class="tag">概念</span>
+  <span class="tag">DDoS</span>
+  <span class="tag">分布式拒绝服务</span>
+  <span class="tag">攻击手法</span>
+  <span class="tag">僵尸网络</span>
+  <span class="tag">Botnet</span>
+  <span class="tag">SYN Flood</span>
+</div>
+
+        </header>
+
+        <div class="article-body">
+          <h1>DDoS（分布式拒绝服务攻击）</h1>
+<blockquote>
+<p><strong>一句话本质</strong><br>DDoS 用海量分布式请求耗尽服务器资源，防御靠 CDN 稀释 + SYN Cookie + WAF 行为分析的纵深体系。</p>
+</blockquote>
+<h2>第一幕：问题感知</h2>
+<p>你经营一家网店。双十一前夜，网站突然打不开了。</p>
+<p>服务器没有宕机——CPU、内存、硬盘都正常。代码没有 bug。网线也是通的。但用户访问网站，浏览器一直转圈，最终显示&quot;无法连接&quot;。</p>
+<p>你查看日志，发现每秒涌入几十万个请求。来自巴西、越南、乌克兰、印度——成千上万个不同的地址。每个请求看起来都像正常用户在访问首页。</p>
+<p>你的第一反应：把这些地址拉黑。但它们有十万个，而且还在不断换。你刚封掉一批，新的一批又冒出来。</p>
+<p>第二个想法：限制每个地址的访问频率。但每个地址每秒只发了一两个请求——跟正常用户没区别。十万个地址同时发，汇成洪流，才把服务器淹了。</p>
+<p>每个人的行为都合理。但你的服务瘫痪了，真正的客人挤不进来。</p>
+<p><strong>合法请求被淹没，怎么办？</strong></p>
+<h2>第二幕：引导式构建</h2>
+<p>先想一个最基本的问题：为什么&quot;请求多了&quot;服务器就扛不住？</p>
+<p>服务器处理每个请求都要付出代价。接收请求，要占一个<strong>连接槽位</strong>（类似餐厅座位）。解析请求、查数据库、生成页面，要消耗 CPU 和内存。把结果发回去，要消耗<strong>带宽</strong>（类似餐厅门口的通道宽度）。这些资源都是有限的。连接槽位满了，新请求排不上队。带宽占满了，数据挤不进来。</p>
+<p>关键在于一个<strong>不对称性</strong>：发一个请求几乎不花钱——一个小数据包，几十个字节。但服务器处理这个请求，要分配连接、解析内容、查询数据、组装响应。攻击者不需要响应结果，只需要让服务器做白工。</p>
+<p>发起攻击的成本远低于防御成本。这就是<strong>拒绝服务（DoS, Denial of Service）</strong> 的根基。</p>
+<blockquote>
+<p><strong>想一想</strong><br>如果攻击只来自一台电脑、一个 IP 地址，防御起来难吗？</p>
+</blockquote>
+<p>不难。一台电脑的发送能力有限，很难独自压垮服务器。而且来源单一——直接封掉那个 IP 就完事了。</p>
+<p>所以攻击者需要更多帮手。</p>
+<hr>
+<p>一台电脑不够，十万台呢？</p>
+<p>互联网上有大量存在安全漏洞的设备——没打补丁的电脑、默认密码的摄像头、老旧的路由器。攻击者通过恶意软件悄悄控制这些设备，组成一个听话的&quot;军团&quot;。这就是<strong>僵尸网络（Botnet）</strong>：成千上万台被控制的设备，平时安静待命，一声令下同时发起请求。</p>
+<p>2016 年的 Mirai 僵尸网络就是典型案例：它感染了几十万台物联网设备（摄像头、DVR、路由器），发动了当时最大规模的攻击，让半个美国的互联网瘫痪了几个小时。</p>
+<p>&quot;拒绝服务&quot;加上&quot;分布式&quot;，就成了 <strong>DDoS（Distributed Denial of Service，分布式拒绝服务攻击）</strong>。来源分散到几十个国家、十万个 IP，每个地址行为正常，你封不过来，也分不清谁是真用户。</p>
+<blockquote>
+<p><strong>想一想</strong><br>僵尸网络里的设备主人知道自己的电脑在攻击别人吗？作为普通用户，你的电脑有没有可能正在参与 DDoS 而你毫不知情？</p>
+</blockquote>
+<p>完全可能。僵尸程序通常在后台静默运行，不影响日常使用。很多人的设备被感染多年而不自知。</p>
+<hr>
+<p>现在我们面对十万台机器同时涌来的请求。防御从哪里入手？</p>
+<p>最粗暴的攻击方式：不管请求内容是什么，就是往你的网络管道里灌数据。你的服务器接入互联网的带宽是 1 Gbps（每秒传 1 G 比特），攻击者的僵尸网络同时发出 100 Gbps 的垃圾数据。数据还没到你的服务器门口，通道就堵死了。就像一条双车道的公路，突然涌来一万辆车——不管车里坐的是谁，路本身就塞死了。</p>
+<p>这叫<strong>流量型攻击（Volumetric Attack）</strong>——纯粹靠数据量压垮带宽。</p>
+<p>能在服务器端防吗？不能。数据根本没机会到达服务器就被堵在管道里了。你在管道末端装再好的过滤器也没用——水根本流不到过滤器那里。</p>
+<p>那怎么办？你需要一根<strong>比攻击流量更粗的管道</strong>。</p>
+<p>这就是 <strong><a href="/knowledge/cdn.html">CDN</a>（Content Delivery Network，内容分发网络）</strong> 配合 <strong>Anycast（任播）</strong> 的防御思路。CDN 在全球部署了成百上千个节点，用 Anycast 技术让同一个 IP 地址指向多个物理服务器。当流量涌来时，不是全部灌向你那一台服务器，而是被自动分散到全球各地的节点上。</p>
+<p>100 Gbps 的攻击流量，分摊到 200 个节点，每个节点只承受 500 Mbps——完全扛得住。攻击者用洪水淹你，你把洪水引进了一百条河道。</p>
+<blockquote>
+<p><strong>想一想</strong><br>CDN/Anycast 的防御本质是什么？是&quot;挡住攻击&quot;还是&quot;稀释攻击&quot;？如果攻击者的流量大到连 CDN 的总带宽都不够呢？</p>
+</blockquote>
+<p>本质是稀释。理论上确实可能超过 CDN 总容量，但顶级 CDN 的全球带宽在数百 Tbps 量级，目前没有僵尸网络能超过这个上限。这是一场&quot;谁的管子更粗&quot;的军备竞赛。</p>
+<hr>
+<p>流量型攻击被 CDN 化解了。攻击者会善罢甘休吗？不会。他们换一个更聪明的打法。</p>
+<p>与其硬灌带宽，不如利用协议本身的弱点，让服务器花大力气却什么也做不成。</p>
+<p>回忆一下网络连接的建立过程。客户端要和服务器通信，首先要完成一次<strong>三次握手（Three-Way Handshake）</strong>：客户端发一个&quot;我想连接&quot;的信号（叫 <strong>SYN</strong>），服务器收到后回一个&quot;好的，我准备好了&quot;（<strong>SYN-ACK</strong>），客户端再回一个&quot;确认&quot;（<strong>ACK</strong>），连接建立。</p>
+<p>关键在于：服务器收到第一个 SYN 时，就必须<strong>分配内存</strong>来记住这个半完成的连接，等着对方的 ACK 回来。这块内存会占着，直到超时。</p>
+<p>攻击者发现了机会：疯狂发 SYN，但<strong>永远不回 ACK</strong>。而且把自己的地址伪造成随机的假地址——服务器的 SYN-ACK 发到假地址，当然收不到 ACK。</p>
+<p>每个假 SYN 让服务器分配一小块内存。几十万个假 SYN 涌来，服务器的连接表被塞满了。真正用户的 SYN 到达时，服务器说&quot;没有空位了&quot;，拒绝连接。</p>
+<p>这就是 <strong>SYN Flood（SYN 洪泛攻击）</strong>，属于<strong>协议型攻击（Protocol Attack）</strong>——不靠蛮力灌流量，而是利用协议规则中&quot;服务器先付出&quot;的不对称性。</p>
+<blockquote>
+<p><strong>想一想</strong><br>SYN Flood 的核心不对称在哪里？发送一个 SYN 包对攻击者的成本是多少？对服务器的成本呢？</p>
+</blockquote>
+<p>攻击者：几十字节的小包，几乎零成本。服务器：分配内存、记录状态、启动超时定时器、发送 SYN-ACK、等待回应。成本差了几个数量级。</p>
+<hr>
+<p>怎么防 SYN Flood？问题出在服务器&quot;收到 SYN 就分配内存&quot;这一步。如果<strong>收到 SYN 时不分配内存</strong>呢？</p>
+<p>这就是 <strong>SYN Cookie</strong> 的精妙之处。服务器收到 SYN 后，不存任何状态，而是把连接信息（对方地址、端口、时间戳）经过加密计算，编码进 SYN-ACK 包的序列号里。这个序列号就是&quot;Cookie&quot;——一个小饼干，里面藏着连接的全部秘密。</p>
+<p>如果对方是真正的用户，会正常回复 ACK，并把 Cookie 带回来。服务器从 ACK 里的序列号解码出连接信息，<strong>这时候才分配内存</strong>。如果对方是攻击者，永远不会回 ACK，服务器什么都没损失——因为什么也没存。</p>
+<p>不存状态 -&gt; 内存不会被耗尽 -&gt; SYN Flood 失效。</p>
+<blockquote>
+<p><strong>想一想</strong><br>SYN Cookie 有代价吗？信息编码进序列号意味着什么被牺牲了？（提示：正常的 TCP 握手中，SYN 包里还携带了一些可选参数，比如窗口缩放、最大段长度……）</p>
+</blockquote>
+<p>有代价。Cookie 的空间有限，无法保存所有 TCP 选项。使用 SYN Cookie 的连接可能丧失某些高级 TCP 特性，性能会略受影响。这是安全与性能的取舍。</p>
+<hr>
+<p>攻击者再次升级。流量灌不动（CDN 顶住了），协议漏洞堵上了（SYN Cookie 解决了）。还有什么办法？</p>
+<p>发送<strong>完全合法的、完整的请求</strong>。</p>
+<p>攻击者让僵尸网络里的每台机器正常完成 TCP 握手，正常发送 HTTP 请求，内容是：搜索一个超长的关键词，或者请求一个需要大量数据库查询的页面，或者上传一个大文件。每个请求都是合法的、正确的。但每个请求都迫使服务器做大量计算。</p>
+<p>这就是<strong>应用层攻击（Application Layer Attack）</strong>，也叫<strong>第七层攻击（Layer 7 Attack）</strong>——攻击发生在应用协议层面，和正常流量几乎无法区分。</p>
+<p>流量型攻击像在门口倒沙子堵路。协议型攻击像在门口塞假排队号码。应用层攻击呢？每个人都排了队、点了餐，只是每人都点了最复杂的那道菜，厨房崩溃了。</p>
+<p>怎么分辨真用户和攻击者？观察<strong>行为模式</strong>。</p>
+<p>真正的用户：打开首页 -&gt; 浏览几秒 -&gt; 点击链接 -&gt; 阅读 -&gt; 可能下单。请求之间有间隔，有浏览轨迹，有鼠标移动。</p>
+<p>僵尸机器：以固定节奏发送请求，没有页面停留，不加载图片和 CSS，请求路径单一且重复。</p>
+<p>基于这种差异，<strong>WAF（Web Application Firewall，Web 应用防火墙）</strong> 和<strong>行为分析系统</strong>可以识别异常模式并拦截。更进一步，还可以向可疑流量弹出<strong>验证挑战（Challenge）</strong>——最常见的就是 CAPTCHA 或 JavaScript 挑战：真正的浏览器能执行 JavaScript、通过验证，僵尸程序通常不能。</p>
+<p>但这场博弈在持续：攻击者也在让僵尸机器模拟真实浏览行为、使用无头浏览器执行 JavaScript。攻防之间永无终局。</p>
+<blockquote>
+<p><strong>想一想</strong><br>为什么应用层攻击比流量型攻击更难防？从&quot;可区分性&quot;的角度想——流量型攻击的数据包和正常数据包有什么明显区别？应用层攻击呢？</p>
+</blockquote>
+<p>流量型攻击的数据包往往是畸形的、重复的，特征明显。应用层攻击的每个请求都是完全合法的 HTTP 请求，和真用户的请求在协议层面没有区别，只能从频率、行为模式等统计特征去分辨。</p>
+<hr>
+<p>上面所有防御都是在&quot;分辨好坏流量&quot;上做文章。但有一种极端情况：攻击流量实在太大，分辨来不及，整个网络都快被拖垮了——不只是你的网站，你的机房邻居、你的上游运营商都受影响。</p>
+<p>这时候有两个&quot;最后手段&quot;。</p>
+<p>第一个是<strong>流量清洗（Traffic Scrubbing）</strong>。你的上游运营商或专业清洗服务商，把<strong>所有</strong>发往你 IP 的流量先接管过去，导入他们自己的清洗中心。清洗中心拥有巨大的带宽和专用硬件，在那里完成&quot;分好坏&quot;的工作，只把干净流量转发给你。你的服务器看到的流量已经是过滤后的了。</p>
+<p>第二个是<strong>黑洞路由（Blackholing / Null Routing）</strong>。上游路由器直接丢弃<strong>所有</strong>发往你 IP 的数据包——好的坏的一起扔。你的服务从外部完全消失。这听起来像自杀，但目的是<strong>保全大局</strong>：如果不黑洞，攻击流量会拖垮整个网段甚至上游链路，影响成千上万个无关的网站。牺牲一个，保全全部。</p>
+<blockquote>
+<p><strong>想一想</strong><br>黑洞路由意味着攻击者的目的（让你的服务不可用）达成了。那它到底算&quot;防御&quot;还是&quot;投降&quot;？</p>
+</blockquote>
+<p>两者都是。从你自己的服务看，是投降；从整体网络看，是止损。而且黑洞通常是临时的——等攻击消退后立即恢复。它争取的是时间，不是胜利。</p>
+<h2>第三幕：完整组装</h2>
+<p><strong>全景图</strong>：</p>
+<pre><code>           DDoS 攻击类型与对应防御
+
+  攻击层          攻击手法            防御手段
+  ========       ============       ==============
+  
+  带宽层          流量型攻击          CDN + Anycast
+  (管道)         灌满网络管道         (稀释到全球节点)
+                     |
+                     v 管道扛住了
+                     
+  协议层          SYN Flood           SYN Cookie
+  (握手)         耗尽连接表           (不存状态，
+                                      解码验证)
+                     |
+                     v 握手堵上了
+                     
+  应用层          合法请求轰炸         WAF + 行为分析
+  (业务)         消耗 CPU/DB          + 验证挑战
+                     |
+                     v 仍然扛不住
+                     
+  兜底            ---                 流量清洗中心
+                                     黑洞路由(止损)
+
+
+        +-----------------------------------+
+        |           僵尸网络 (Botnet)         |
+        |  十万+ 被控设备，全球分布，统一指挥   |
+        |  = DDoS 的 &quot;D&quot;（Distributed）       |
+        +-----------------------------------+
+                    |
+          为以上所有攻击提供&quot;兵力&quot;
+</code></pre>
+<p><strong>端到端示例</strong>：一次真实风格的 DDoS 攻击与防御对抗。</p>
+<p>攻击者控制着一个 5 万台设备的僵尸网络，目标是某电商网站 <code>shop.com</code>。</p>
+<p><strong>第一波：流量型攻击。</strong> 5 万台设备同时向 <code>shop.com</code> 发送大量 UDP 垃圾包，总流量 80 Gbps。<code>shop.com</code> 自身带宽只有 10 Gbps，管道瞬间堵死。</p>
+<p><strong>防御生效：</strong> <code>shop.com</code> 接入了 CDN 服务，DNS 解析指向 CDN 的 Anycast IP。80 Gbps 流量被分散到全球 150 个 CDN 节点，每个节点承受约 500 Mbps，轻松吸收。CDN 节点识别出 UDP 垃圾包，直接丢弃，只把正常 HTTP 流量回源给 <code>shop.com</code>。<strong>第一波化解。</strong></p>
+<p><strong>第二波：SYN Flood。</strong> 攻击者发现流量打不垮，改用 SYN Flood。僵尸机器以伪造的源 IP 发送海量 SYN 包，直接打向 <code>shop.com</code> 的源站 IP（绕过 CDN，因为攻击者通过历史 DNS 记录找到了真实 IP）。</p>
+<p><strong>防御生效：</strong> 服务器操作系统开启了 SYN Cookie。收到 SYN 不分配内存，把状态编进 SYN-ACK 序列号。伪造 IP 不会回 ACK，无内存消耗。真实用户正常完成握手。<strong>第二波化解。</strong></p>
+<p><strong>第三波：应用层攻击。</strong> 攻击者再升级。僵尸机器用无头浏览器模拟真实访问：完成 TCP 握手、发送合法 HTTP 请求，每台机器每秒请求搜索接口 <code>GET /search?q=aaaa...(超长关键词)</code>。每个请求触发全文搜索，消耗大量数据库资源。</p>
+<p><strong>防御生效：</strong> WAF 检测到搜索接口 QPS 异常飙升，且大量请求来自同一类 User-Agent、无 Cookie 历史、无页面间跳转。WAF 对可疑请求弹出 JavaScript 挑战。真实浏览器通过挑战继续访问；大部分僵尸程序无法执行复杂 JS，被拦截。剩余能通过挑战的流量，经行为分析后被限速。<strong>第三波基本化解，少量漏网但不影响服务。</strong></p>
+<p>三层防御各守其位，没有一层是&quot;万能的&quot;，但叠在一起构成了纵深。</p>
+<h2>第四幕：验证与压力测试</h2>
+<p><strong>反事实 1：如果没有 CDN/Anycast？</strong><br>流量型攻击直接灌满管道，后面的所有防御都毫无意义——数据根本到不了服务器。CDN 是对付流量型攻击的唯一有效手段，因为问题出在&quot;管道&quot;而不是&quot;服务器&quot;。</p>
+<p><strong>反事实 2：如果没有 SYN Cookie？</strong><br>服务器连接表被耗尽，真用户无法建立 TCP 连接。CDN 帮不上忙（SYN Flood 可以直接打源站 IP）。操作系统层的防御不可替代。</p>
+<p><strong>反事实 3：如果没有 WAF/行为分析？</strong><br>应用层攻击长驱直入。每个请求都合法，CDN 不会拦截（它只管分发，不懂业务逻辑），SYN Cookie 也无效（握手是完整的）。服务器 CPU 和数据库被合法请求压垮。</p>
+<p><strong>边界：DDoS 防御在什么条件下失效？</strong></p>
+<ul>
+<li>攻击者掌握了服务器的真实 IP，可以绕过 CDN 直接打源站——所以&quot;隐藏源站 IP&quot;是必修课</li>
+<li>攻击流量超过 CDN 总容量（目前技术上几乎不可能，但并非理论上不可能）</li>
+<li>应用层攻击者使用真实浏览器（而非简单脚本），行为模式与真人无异——这是当前最难防御的形态</li>
+<li><strong>经济边界</strong>：DDoS 防御是付费服务，高级清洗和 CDN 价格不菲。攻击者可以用低成本持续骚扰，逼你为防御持续烧钱。DDoS 有时不是技术战，是消耗战</li>
+</ul>
+<p><strong>连接：DDoS 和 XSS/SQL 注入有什么本质区别？</strong><br><a href="/knowledge/xss.html">XSS</a> 和 <a href="/knowledge/sql%E6%B3%A8%E5%85%A5.html">SQL注入</a> 是<strong>注入类攻击</strong>——利用输入和指令的边界混淆，核心是&quot;让系统执行了不该执行的代码&quot;。DDoS 完全不同——它不注入任何代码，不利用任何逻辑漏洞。它攻击的是<strong>资源有限性</strong>这一物理事实。你的代码可以写得无懈可击，数据库固若金汤，但面对十万台机器的洪水，照样瘫痪。DDoS 是蛮力，不是巧劲。</p>
+<p><strong>连接：DDoS 和 TCP 三次握手的关系？</strong><br>SYN Flood 正是利用了三次握手的设计：服务器在握手第二步就要付出内存代价，而客户端在第三步之前几乎零成本。SYN Cookie 的发明本质上是<strong>延迟服务器的承诺</strong>——把&quot;先付出再验证&quot;改为&quot;先验证再付出&quot;。</p>
+<p><strong>终极挑战·空白重建</strong>：</p>
+<pre><code>[合法请求被淹没，怎么办？]
+    |
+    v
+[为什么会被淹没？服务器资源有限，请求多了就扛不住]
+    |
+    v
+[为什么能发那么多请求？僵尸网络 -- 十万台设备同时攻击]
+    |
+    v
+[最粗暴：灌满管道（流量型）-- 防御：CDN/Anycast 稀释流量]
+    |
+    v
+[更聪明：耗尽连接表（SYN Flood）-- 防御：SYN Cookie 不存状态]
+    |
+    v
+[最聪明：发合法请求耗 CPU（应用层）-- 防御：WAF + 行为分析]
+    |
+    v
+[兜底：流量清洗 / 黑洞路由（止损）]
+    |
+    v
+[纵深防御：每层挡一类攻击，叠起来覆盖全部]
+</code></pre>
+<h2>关联笔记</h2>
+<blockquote>
+<p><strong>相关原子概念</strong><br><a href="/knowledge/xss.html">XSS</a> · <a href="/knowledge/sql%E6%B3%A8%E5%85%A5.html">SQL注入</a> · <a href="/knowledge/csrf.html">CSRF</a> · <a href="/knowledge/ssrf.html">SSRF</a> · <a href="/knowledge/cdn.html">CDN</a></p>
+</blockquote>
+<p>DDoS 和 <a href="/knowledge/xss.html">XSS</a>、<a href="/knowledge/sql%E6%B3%A8%E5%85%A5.html">SQL注入</a> 是完全不同的攻击范式：注入类攻击利用逻辑漏洞，DDoS 利用资源有限性，但都共享<strong>纵深防御</strong>的防御哲学。<a href="/knowledge/csrf.html">CSRF</a> 和 DDoS 有一个共同点：都是&quot;借别人的手做事&quot;——CSRF 借用户浏览器，DDoS 借僵尸网络。<a href="/knowledge/cdn.html">CDN</a> 是 DDoS 流量型攻击的核心防御基础设施，其全球分布式节点天然具备流量稀释能力。</p>
+
+        </div>
+      </article>
+
+      <section class="related-notes">
+  <h3>Related Notes</h3>
+  <div class="related-notes-grid">
+    <a href="xss.html" class="related-note-card">
+      <div class="related-title">XSS</div>
+      <div class="related-category">Security</div>
+    </a>
+    <a href="sql注入.html" class="related-note-card">
+      <div class="related-title">SQL注入</div>
+      <div class="related-category">Security</div>
+    </a>
+    <a href="csrf.html" class="related-note-card">
+      <div class="related-title">CSRF</div>
+      <div class="related-category">Security</div>
+    </a>
+    <a href="ssrf.html" class="related-note-card">
+      <div class="related-title">SSRF</div>
+      <div class="related-category">Security</div>
+    </a>
+    <a href="cdn.html" class="related-note-card">
+      <div class="related-title">CDN</div>
+      <div class="related-category">Network</div>
+    </a>
+  </div>
+</section>
+
+      <div class="post-nav">
+  <a href="cdn.html">
+    <div class="post-nav-label"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg> Previous</div>
+    <div class="post-nav-title">CDN</div>
+  </a>
+  <a href="xss.html">
+    <div class="post-nav-label">Next <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg></div>
+    <div class="post-nav-title">XSS</div>
+  </a>
+</div>
+
+
+      <div style="padding-bottom:40px;">
+        <a href="/" class="back-link">Back to Home</a>
+      </div>
+    </div>
+
+    <!-- TOC sidebar (right) -->
+    <aside class="toc-sidebar" id="toc-sidebar">
+      <div class="toc-title">On This Page</div>
+      <ul class="toc-list" id="toc-list"></ul>
+    </aside>
+  </main>
+
+  <!-- Back to top -->
+  <button class="back-to-top" id="back-to-top" aria-label="Back to top">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="18 15 12 9 6 15"/></svg>
+  </button>
+
+  <footer>
+    <p>Designed &amp; Built by <a href="https://github.com/ChenSchenG">ChenSchenG</a></p>
+  </footer>
+
+  <script src="../js/main.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+  <script>
+    hljs.highlightAll();
+
+    // --- Generate TOC from headings ---
+    (function(){
+      var body = document.querySelector(".article-body");
+      var tocList = document.getElementById("toc-list");
+      if(!body || !tocList) return;
+      var headings = body.querySelectorAll("h1, h2, h3");
+      if(headings.length < 2){ document.getElementById("toc-sidebar").style.display="none"; return; }
+      headings.forEach(function(h, i){
+        if(!h.id) h.id = "heading-" + i;
+        var li = document.createElement("li");
+        var tag = h.tagName.toLowerCase();
+        li.className = "toc-" + tag;
+        var a = document.createElement("a");
+        a.href = "#" + h.id;
+        a.textContent = h.textContent;
+        li.appendChild(a);
+        tocList.appendChild(li);
+      });
+
+      // Scroll-spy: highlight active TOC item
+      var tocLinks = tocList.querySelectorAll("a");
+      var observer = new IntersectionObserver(function(entries){
+        entries.forEach(function(entry){
+          if(entry.isIntersecting){
+            tocLinks.forEach(function(l){ l.classList.remove("active"); });
+            var active = tocList.querySelector('a[href="#' + entry.target.id + '"]');
+            if(active) active.classList.add("active");
+          }
+        });
+      }, { rootMargin: "-80px 0px -70% 0px", threshold: 0 });
+      headings.forEach(function(h){ observer.observe(h); });
+    })();
+
+    // --- Code copy buttons ---
+    document.querySelectorAll(".article-body pre").forEach(function(pre){
+      var btn = document.createElement("button");
+      btn.className = "code-copy-btn";
+      btn.textContent = "Copy";
+      btn.addEventListener("click", function(){
+        var code = pre.querySelector("code");
+        navigator.clipboard.writeText(code.textContent).then(function(){
+          btn.textContent = "Copied!"; btn.classList.add("copied");
+          setTimeout(function(){ btn.textContent = "Copy"; btn.classList.remove("copied"); }, 2000);
+        });
+      });
+      pre.appendChild(btn);
+    });
+
+    // --- Back to top ---
+    (function(){
+      var btn = document.getElementById("back-to-top");
+      if(!btn) return;
+      window.addEventListener("scroll", function(){
+        btn.classList.toggle("visible", window.scrollY > 400);
+      });
+      btn.addEventListener("click", function(){
+        window.scrollTo({ top: 0, behavior: "smooth" });
+      });
+    })();
+  </script>
+</body>
+</html>

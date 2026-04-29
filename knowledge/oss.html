@@ -1,0 +1,466 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>OSS — ChenSchenG</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⚡</text></svg>">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../css/style.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github.min.css">
+</head>
+<body>
+  <nav id="nav">
+    <div class="nav-logo"><a href="/">ChenSchenG</a></div>
+    <div class="nav-links-wrapper">
+      <ul class="nav-links">
+        <li><a href="/">Home</a></li>
+        <li><a href="/#graph">Graph</a></li>
+        <li><a href="/about.html">About</a></li>
+      </ul>
+    </div>
+    <button class="hamburger" id="hamburger" aria-label="Menu"><span class="hamburger-inner"></span></button>
+  </nav>
+  <div class="mobile-menu-overlay" id="mobile-overlay"></div>
+  <aside class="mobile-menu" id="mobile-menu">
+    <ul>
+      <li><a href="/">Home</a></li>
+      <li><a href="/#graph">Graph</a></li>
+      <li><a href="/about.html">About</a></li>
+    </ul>
+  </aside>
+
+  <main class="article-page">
+    <!-- Main content column -->
+    <div class="article-main">
+      <article>
+        <header class="article-header">
+          <div class="article-breadcrumb">
+            <a href="/">Home</a>
+            <span class="separator">/</span>
+            <span>Other</span>
+          </div>
+          <h1>OSS</h1>
+          <div class="article-meta">
+            <span><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>Posted 2026-04-29</span>
+            <span><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 19a2 2 0 01-2 2H4a2 2 0 01-2-2V5a2 2 0 012-2h5l2 3h9a2 2 0 012 2z"/></svg>Other</span>
+            <span><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>27 min read</span>
+          </div>
+          <div class="article-tags">
+  <span class="tag">云计算</span>
+  <span class="tag">概念</span>
+  <span class="tag">对象存储</span>
+  <span class="tag">OSS</span>
+  <span class="tag">S3</span>
+  <span class="tag">Bucket</span>
+  <span class="tag">HTTP API</span>
+  <span class="tag">冗余</span>
+</div>
+
+        </header>
+
+        <div class="article-body">
+          <h1>OSS（对象存储服务）</h1>
+<blockquote>
+<p><strong>一句话本质</strong><br>用扁平 Key-Value + HTTP 接口管理海量非结构化数据的分布式云存储方案。</p>
+</blockquote>
+<h2>第一幕：问题感知</h2>
+<p>你做了一个图片分享网站。用户上传照片，你存到服务器硬盘的 <code>/photos/</code> 目录下。</p>
+<p>一开始，几千张图，没问题。<code>ls /photos/</code> 一下就列出来了。</p>
+<p>用户多了。一个月下来，目录里躺着 500 万张图。你试着列一下目录——终端卡了 30 秒。打开文件也变慢了，因为文件系统要在庞大的目录索引里一层层查。</p>
+<p>你想到办法：按日期分子目录。<code>/photos/2026/04/29/xxx.jpg</code>。列目录快了。但硬盘装不下了——1 块 2TB 的盘，存满了。</p>
+<p>加硬盘？好，现在有 10 块盘。问题来了：用户传了一张图，你存到哪块盘？用户要取回这张图，你怎么知道它在哪块盘上？你开始写一个&quot;盘号映射表&quot;——但这张表本身放在哪？它坏了怎么办？</p>
+<p>更糟的是：一块硬盘突然坏了。上面 50 万张用户照片，永久丢失。用户发现自己的回忆没了，你收到了一封律师函。</p>
+<p>你赶紧做备份，每张图存两份到不同的盘。存储成本翻倍。而且你的服务器在上海——北京的用户下载一张图要 3 秒，洛杉矶的用户要 8 秒。</p>
+<p>你站在那里，面对 10 块硬盘、一台服务器、一个 <code>/photos/</code> 目录，和 1000 万张图片。每一天还在涌入 10 万张新的。</p>
+<p>生活中有没有这样一种仓库：东西往里扔就行，不用管放在哪个架子，报个名字就能取回来，还永远不会丢？</p>
+<p><strong>海量数据往哪放、怎么找、怎么不丢？</strong></p>
+<hr>
+<h2>第二幕：引导式构建</h2>
+<p>我们的起点很清楚：传统的&quot;目录 + 文件&quot;模式，在数据量暴涨时撞墙了。撞了三面墙：<strong>找不到</strong>（目录太深太慢）、<strong>放不下</strong>（一台机器的盘有限）、<strong>会丢失</strong>（硬盘是会坏的）。</p>
+<p>我们一面墙一面墙来推倒。</p>
+<hr>
+<p>先解决&quot;找&quot;的问题。</p>
+<p>目录树为什么慢？因为它是一棵<strong>树</strong>。你要找 <code>/photos/2026/04/29/cat.jpg</code>，系统要先打开根目录，找到 <code>photos</code>，再打开它，找到 <code>2026</code>，再打开，找到 <code>04</code>……每一层都是一次查找。层越深越慢，同层文件越多越慢。</p>
+<p>如果我们不要树呢？</p>
+<p>想象一个超大的储物柜。每个格子上贴着一个<strong>名字</strong>，你喊出名字，柜台直接把东西递给你。不需要&quot;先去 3 楼，再往左拐，第 5 排，第 8 个格子&quot;这种路径导航。</p>
+<p>这就是<strong>对象存储</strong>（Object Storage）的第一个核心思路：<strong>扁平命名空间</strong>（Flat Namespace）。没有目录树。每一份数据叫一个<strong>对象</strong>（Object），它有一个全局唯一的<strong>键</strong>（Key）——就是它的名字，比如 <code>photos/2026/04/29/cat.jpg</code>。</p>
+<p>注意那个 Key 里的斜杠 <code>/</code>。它<strong>不是</strong>真正的目录分隔符——整个字符串就是一个扁平的名字，跟 <code>photos-2026-04-29-cat.jpg</code> 没有本质区别。系统不需要一层层打开目录，拿着 Key 直接定位。</p>
+<blockquote>
+<p>想一想：如果 Key 只是一个扁平的字符串，那你在控制台里看到的&quot;文件夹结构&quot;是怎么回事？它真的存在吗？</p>
+</blockquote>
+<p>你大概猜到了——那是<strong>模拟</strong>出来的。控制台看到你有 <code>photos/2026/</code> 和 <code>photos/2025/</code> 两个&quot;文件夹&quot;，其实只是系统帮你按 Key 的前缀分了组显示而已。底层根本没有&quot;文件夹&quot;这个实体。</p>
+<hr>
+<p>有了 Key，对象本身还包含什么？除了名字，一个对象还携带两样东西：<strong>数据本体</strong>（Data）——比如图片的二进制内容；以及<strong>元数据</strong>（Metadata）——附属信息，比如文件大小、上传时间、内容类型。</p>
+<p>打个比方：Key 是快递单号，Data 是包裹里的东西，Metadata 是快递单上印的重量、寄件日期、收件人信息。三者绑在一起，就是一个完整的对象。</p>
+<blockquote>
+<p>想一想：一张 5MB 的照片上传后，它的 Key 可能是 <code>avatar/zhangsan.jpg</code>，Data 是 5MB 的二进制图片内容。Metadata 里可能包含哪些信息？试着猜三个。</p>
+</blockquote>
+<p>比如 <code>Content-Type: image/jpeg</code>（告诉浏览器这是张图片）、<code>Content-Length: 5242880</code>（字节数）、<code>Last-Modified: 2026-04-29</code>（最后修改时间）。你也可以自定义元数据，比如 <code>x-oss-meta-author: zhangsan</code>。</p>
+<hr>
+<p>现在你有了扁平命名空间，对象可以直接通过 Key 寻址。但新问题来了——你的照片站和同事的日志服务都在往同一个地方写对象。他写了一个 Key 叫 <code>data.json</code>，你也写了一个 <code>data.json</code>——直接覆盖了。怎么隔离？</p>
+<p>这就需要一个容器来划分边界。对象存储里，这个容器叫<strong>桶</strong>（Bucket）。</p>
+<p>你可以把 Bucket 想象成一个独立的命名空间——一个&quot;仓库&quot;。你可以建多个仓库：<code>user-avatars</code>、<code>product-images</code>、<code>log-archives</code>。每个 Bucket 内部，Key 必须唯一；不同 Bucket 之间，Key 可以重复。你的 <code>data.json</code> 在 <code>my-bucket</code> 里，同事的在 <code>his-bucket</code> 里，互不干扰。</p>
+<blockquote>
+<p>想一想：Bucket 解决了命名隔离。但如果你只有一个 Bucket 呢？所有用户的照片都扔进去，Key 用 <code>{用户ID}/{文件名}</code> 来区分——这样行不行？有什么缺点？</p>
+</blockquote>
+<p>技术上完全可行——Key 是扁平的，前缀不同就不会冲突。但缺点是权限管理困难：你没法对单个用户的&quot;文件夹&quot;设独立的访问规则。多 Bucket 让你可以对不同业务设置不同的权限和策略。</p>
+<hr>
+<p>好，对象有了 Key，Bucket 做了隔离。但一个 Bucket 里可能有几十亿个对象，物理上怎么存？</p>
+<p>一台机器装不下，就用很多台。但你面前摆着 1000 台机器，用户上传一个对象，存到哪台？用户取回时，怎么知道去哪台找？</p>
+<p>最朴素的想法：建一张大表，Key -&gt; 机器编号。但几十亿条记录的表，查询本身就是瓶颈，而且这张表本身存在哪？它就成了整个系统的命门——<strong>单点故障</strong>（Single Point of Failure）。</p>
+<p>对象存储系统的解法是：<strong>用算法代替查表</strong>。给定一个 Key，通过某种确定性的计算（通常基于哈希），直接算出它应该存在哪个节点。不需要查表，任何一台机器都能独立算出答案。</p>
+<blockquote>
+<p>想一想：如果用 <code>hash(Key) % N</code> 来分配（N 是机器总数），当你新加一台机器（N 变成 N+1），会发生什么？</p>
+</blockquote>
+<p>灾难。几乎所有对象的 <code>hash % N</code> 和 <code>hash % (N+1)</code> 结果都不一样——意味着几乎所有数据都要搬家。10 亿个对象，可能 9 亿个要挪位置。这不可接受。</p>
+<p>真实系统用更聪明的分配策略（比如<strong>一致性哈希</strong>，Consistent Hashing，或者<strong>分区映射表</strong>，Partition Map），核心思想是：加减机器时，只需要搬动<strong>一小部分</strong>数据，而不是推倒重来。具体实现超出今天的旅程，我们接受它为一个黑箱：<strong>系统能通过 Key 快速定位到存储节点，且扩缩容时数据迁移量很小</strong>。</p>
+<hr>
+<p>现在数据分散在很多台机器上了。但硬盘会坏、机器会宕机。第一幕里那个噩梦——50 万张照片随着一块硬盘的损坏永久消失——怎么解决？</p>
+<p>答案朴素但有效：<strong>冗余</strong>（Redundancy）。最直接的方式是<strong>多副本</strong>（Replication）：每个对象存 3 份，分散在不同的物理机器上，最好在不同的机房甚至不同的城市。一台机器挂了？另外两份还在。系统检测到副本数不足，自动在其他健康节点上补一份，恢复到 3 副本。</p>
+<blockquote>
+<p>想一想：3 副本意味着 3 倍的存储成本。你有 100TB 数据，实际要占用 300TB 的硬盘空间。有没有一种方式，既保证安全性，又不用花 3 倍的钱？</p>
+</blockquote>
+<p>有。这种方式叫<strong>纠删码</strong>（Erasure Coding）。它的思路是：把一个对象切成若干片，额外生成几片&quot;校验片&quot;，分散存储。只要收集到足够数量的片（不需要全部），就能还原出完整对象。</p>
+<p>打个比方：你把一本书的内容分成 4 页，然后用数学方法额外生成 2 页&quot;摘要页&quot;。6 页分散存放，任意丢失 2 页，剩下 4 页就能还原整本书。这样你只多存了 50%（6 页 vs 4 页），而不是 200%（12 页 vs 4 页）。</p>
+<p>典型配置下，纠删码用大约 1.5 倍存储就能达到和 3 副本相当的可靠性。代价是读取时要收集多个片再计算还原，延迟比直接读一份副本要高。</p>
+<blockquote>
+<p>想一想：经常被访问的数据（比如用户头像），和几乎没人看的数据（比如三年前的日志），应该分别用哪种冗余方式？为什么？</p>
+</blockquote>
+<p>多副本读取时直接取最近的一份，非常快——适合频繁访问的&quot;热数据&quot;。纠删码省空间但读取要计算还原——适合很少访问的&quot;冷数据&quot;。</p>
+<hr>
+<p>数据存好了、找得到、丢不了了。接下来的问题是：用户怎么存取这些对象？</p>
+<p>传统文件系统用的是操作系统的文件 API——<code>open()</code>、<code>read()</code>、<code>write()</code>、<code>close()</code>。这套接口强大但复杂：支持随机读写（跳到文件第 500 字节改一下）、支持文件锁、支持权限位……</p>
+<p>但对象存储面对的是什么？一张图片、一个视频、一份日志——它们的访问模式几乎都是：<strong>整个写入，整个读出</strong>。你不会&quot;打开一张图片，修改第 300 个像素，保存&quot;。你要么上传一张新的，要么下载整张。</p>
+<p>既然如此，用最通用、最简单的接口就好——<strong>HTTP</strong>。对象存储把每个对象暴露为一个 HTTP 资源。上传用 <strong>PUT</strong>，下载用 <strong>GET</strong>：</p>
+<pre><code>PUT  /{bucket}/{key}   -- 上传对象
+GET  /{bucket}/{key}   -- 下载对象
+</code></pre>
+<p>就这两个动作，覆盖了最核心的使用场景。此外还有 <strong>DELETE</strong>（删除对象）和 <strong>HEAD</strong>（只获取元数据，不下载数据本体）。四个 HTTP 动词，对应四种操作，干净利落。</p>
+<p>任何能发 HTTP 请求的东西——浏览器、手机 App、命令行 <code>curl</code>、Python 脚本——都能直接操作对象存储，不需要安装特殊驱动或客户端。</p>
+<blockquote>
+<p>想一想：传统文件系统支持&quot;打开文件，修改中间一段，保存&quot;。对象存储不支持这种部分修改——要改就得重新上传整个对象。这个限制在什么场景下会成问题？</p>
+</blockquote>
+<p>数据库文件就是典型的反例。数据库需要频繁地随机读写某个数据页——这恰恰是对象存储不擅长的。所以你不会把 MySQL 的数据文件直接放在 OSS 上。<strong>对象存储天生适合&quot;写一次、读多次、不修改&quot;的数据</strong>：图片、视频、备份、日志、静态网页。</p>
+<hr>
+<p>HTTP 接口意味着任何人只要知道 URL，就能向你的 Bucket 发请求。试试在浏览器里直接输入 <code>https://my-bucket.oss.com/user-photos/secret.jpg</code>——如果没有任何防护，所有人都能看到你的隐私照片。</p>
+<p>所以我们需要<strong>访问控制</strong>（Access Control）。</p>
+<p>最粗的一层：Bucket 可以设为<strong>私有</strong>（Private）或<strong>公开读</strong>（Public Read）。私有意味着所有请求必须携带身份凭证；公开读意味着任何人拿到 URL 就能下载。你的用户头像桶设为公开读，因为头像本来就要展示给所有人；而用户的私人相册桶设为私有。</p>
+<blockquote>
+<p>想一想：私有 Bucket 很安全，但如果你想让一个未登录的用户临时下载一个私有对象呢？比如&quot;分享一个下载链接，7 天内有效&quot;。只有公开和私有两档，够用吗？</p>
+</blockquote>
+<p>不够。这就需要<strong>签名 URL</strong>（Signed URL / Pre-signed URL）。你用自己的密钥对 URL 做一次签名，附上过期时间，生成一个带签名参数的特殊 URL。任何人拿着这个 URL 都能下载，但过期后签名失效，URL 就废了。</p>
+<p>它像一把&quot;有时效的钥匙&quot;。不过如果这把钥匙在有效期内被别人截获了，确实能被滥用。所以有效期要尽量短（比如 15 分钟而不是 7 天），结合 HTTPS 传输防止中间人窃取。这是安全性和便利性的取舍。</p>
+<blockquote>
+<p>想一想：公开/私有是 Bucket 级别的开关，签名 URL 是单个对象级别的临时授权。如果你想说&quot;只允许来自公司内网 IP 的请求访问这个 Bucket&quot;，用哪种方式？</p>
+</blockquote>
+<p>这就需要更细粒度的<strong>访问策略</strong>（Bucket Policy）——用 JSON 描述的规则，比如&quot;只允许来自 IP 段 10.0.0.0/8 的请求&quot;、&quot;只允许特定账号读取前缀为 <code>private/</code> 的对象&quot;。三层控制从粗到细：Bucket 公开/私有 -&gt; 签名 URL -&gt; Bucket Policy，覆盖了从&quot;完全开放&quot;到&quot;精确条件匹配&quot;的全部需求。</p>
+<hr>
+<p>权限问题解决了。但回到第一幕的另一个痛点：上海的服务器，北京的用户还行，洛杉矶的用户下载一张图要 8 秒。数据存在哪个区域，物理距离就摆在那里，光速也得跑几十毫秒。</p>
+<p>解决方案不在对象存储本身，而是在它前面加一层——<strong>CDN</strong>（Content Delivery Network，内容分发网络）。CDN 在全球各地部署缓存节点，把你的热门对象提前复制过去。洛杉矶的用户访问时，CDN 节点直接把缓存的副本给他，不需要跨越太平洋。</p>
+<p>对象存储做<strong>源站</strong>（Origin），负责持久存储；CDN 做<strong>边缘缓存</strong>（Edge Cache），负责加速分发。这是一对经典搭档。</p>
+<blockquote>
+<p>想一想：CDN 缓存了旧版本的图片，你在 OSS 上更新了新版本，用户看到的还是旧的。怎么办？</p>
+</blockquote>
+<p>常见做法是让文件名包含版本号或哈希（比如 <code>logo-v2.png</code> 或 <code>logo-a3f8b2.png</code>），新版本用新名字。新 URL 在 CDN 上不存在缓存，自然回源拉取新版本。这也是为什么很多网站的静态资源 URL 里带着一串哈希。</p>
+<hr>
+<p>速度和安全都搞定了。但一年下来，你的照片累积了 50TB——其中 80% 三个月没人看过。它们全都躺在最贵的高速存储上。你的账单开始比照片增长得更快。</p>
+<p>对象存储因此提供了<strong>存储类型</strong>（Storage Class）分级。核心思想很简单：<strong>访问越频繁的数据用越快（也越贵）的存储，访问越少的数据用越慢（也越便宜）的存储</strong>。</p>
+<p>最常用的两档：<strong>标准存储</strong>（Standard）——最快、最贵，毫秒级响应，适合用户头像、网站图片这类每天都在访问的数据；<strong>归档存储</strong>（Archive）——非常便宜，但取回需要等几分钟到几小时，适合法规要求保留但几乎不看的数据，比如三年前的交易流水。</p>
+<blockquote>
+<p>想一想：一张图片不是&quot;一直热&quot;也不是&quot;一直冷&quot;——它刚上传时访问很多，一个月后就没人看了。只有 Standard 和 Archive 两档，够用吗？</p>
+</blockquote>
+<p>不够，中间地带需要填充。所以还有<strong>低频访问</strong>（Infrequent Access, IA）——存储费比标准便宜，但每次读取额外收费，适合每月访问几次的数据；以及<strong>深度归档</strong>（Deep Archive）——最便宜，取回可能要 12 小时，适合&quot;可能永远不会再看，但万一需要必须还在&quot;的数据。</p>
+<p>四档从热到冷：Standard -&gt; IA -&gt; Archive -&gt; Deep Archive，价格递减，取回速度也递减。</p>
+<p>但你有 1000 万个对象，不可能一个个手动改存储类型。这就引出了<strong>生命周期规则</strong>（Lifecycle Rule）：你预先定义规则——&quot;创建 30 天后转为低频访问，90 天后转为归档，365 天后删除&quot;。系统自动执行，你不需要写一行代码来管理这件事。</p>
+<blockquote>
+<p>想一想：生命周期规则只能按时间触发。如果一张图片虽然上传了 90 天，但最近一周突然又火了（比如成了热门表情包），按规则它会被转为归档——这合理吗？怎么办？</p>
+</blockquote>
+<p>不合理。有些对象存储服务提供了&quot;智能分层&quot;（Intelligent Tiering）：系统自动监控每个对象的访问频率，动态调整存储类型。但这是额外功能，最基础的生命周期规则确实只看时间。这是规则简单性和精确性之间的取舍。</p>
+<hr>
+<h2>第三幕：完整组装</h2>
+<p>把第二幕中一个个冒出来的组件，拼成一张完整的地图：</p>
+<pre><code>                          用户 / 应用
+                             |
+                         HTTP(S) API
+                      PUT / GET / DELETE / HEAD
+                             |
+                    +--------+--------+
+                    |                 |
+                  [CDN]          [签名URL]
+              (边缘缓存加速)    (临时授权访问)
+                    |                 |
+                    +--------+--------+
+                             |
+                    +--[访问控制层]--+
+                    |  Bucket Policy  |
+                    |  公开/私有      |
+                    +--------+-------+
+                             |
+                      +------+------+
+                      |   Bucket    |
+                      | (逻辑命名空间)|
+                      +------+------+
+                             |
+               +-------------+-------------+
+               |             |             |
+          Object A      Object B      Object C
+        Key+Data+Meta Key+Data+Meta Key+Data+Meta
+               |             |             |
+               |  [存储类型 + 生命周期规则]
+               |  Standard / IA / Archive / Deep Archive
+               |             |             |
+        +------+-------------+-------------+------+
+        |          分布式存储引擎                    |
+        |  哈希分配 -&gt; 多节点分布 -&gt; 冗余保障        |
+        |  (多副本 / 纠删码)                        |
+        +----+-------+-------+-------+----+-------+
+             |       |       |       |
+          节点1   节点2   节点3   节点N ...
+         (机房A) (机房B) (机房A) (机房C)
+</code></pre>
+<h3>端到端示例：一张图片的一生</h3>
+<p>场景：用户小明上传了一张猫的照片到你的 App。</p>
+<p><strong>上传阶段</strong></p>
+<p>小明的手机拍了一张 <code>cat.jpg</code>（2MB）。App 调用后端接口，后端向 OSS 发送：</p>
+<pre><code>PUT /user-photos/ming/2026/04/29/cat.jpg HTTP/1.1
+Host: my-bucket.oss-cn-shanghai.aliyuncs.com
+Content-Type: image/jpeg
+Authorization: OSS &lt;AccessKeyId&gt;:&lt;Signature&gt;
+
+[2MB 二进制图片数据]
+</code></pre>
+<p>OSS 收到请求后：验证签名（确认请求者有权限写入这个 Bucket）-&gt; 计算 Key 的哈希确定存储节点 -&gt; 将数据写入主节点，同时复制到另外两个节点（3 副本）-&gt; 三副本确认后返回 <code>200 OK</code>。</p>
+<p>对象现在以 Key = <code>user-photos/ming/2026/04/29/cat.jpg</code> 存在于 <code>my-bucket</code> 中，存了 3 份，分布在不同机房。</p>
+<p><strong>访问阶段</strong></p>
+<p>小明的朋友小红想看这张照片。App 请求后端获取图片 URL。因为这是私人照片，Bucket 是私有的，后端生成一个 15 分钟有效的签名 URL：</p>
+<pre><code>https://my-bucket.oss-cn-shanghai.aliyuncs.com
+  /user-photos/ming/2026/04/29/cat.jpg
+  ?Expires=1745932800
+  &amp;Signature=a3f8b2...
+</code></pre>
+<p>小红的浏览器拿着这个 URL 请求 -&gt; CDN 节点发现没有缓存 -&gt; 回源到 OSS -&gt; OSS 验证签名和过期时间 -&gt; 返回图片 -&gt; CDN 缓存一份 -&gt; 小红看到了猫。</p>
+<p>15 分钟后，这个 URL 失效。</p>
+<p><strong>老化阶段</strong></p>
+<p>30 天后，生命周期规则自动将这张图从&quot;标准存储&quot;转为&quot;低频访问&quot;——存储费降低了，小明也很少翻旧照片了。</p>
+<p>1 年后，规则将它转为&quot;归档存储&quot;。如果小明某天突然想看，需要先发起一个&quot;解冻&quot;请求，等几分钟后才能下载。</p>
+<p><strong>组装检查</strong></p>
+<table>
+<thead>
+<tr>
+<th>第二幕组件</th>
+<th>在流程中的位置</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>对象（Key+Data+Metadata）</td>
+<td>上传时创建，全程通过 Key 寻址</td>
+</tr>
+<tr>
+<td>桶（Bucket）</td>
+<td><code>my-bucket</code>，作为命名空间隔离</td>
+</tr>
+<tr>
+<td>扁平命名空间</td>
+<td>Key 中的 <code>/</code> 不是目录，只是字符串</td>
+</tr>
+<tr>
+<td>哈希分配</td>
+<td>上传时决定存储节点</td>
+</tr>
+<tr>
+<td>多副本冗余</td>
+<td>写入 3 份到不同机房</td>
+</tr>
+<tr>
+<td>HTTP API（PUT/GET）</td>
+<td>上传和下载的接口</td>
+</tr>
+<tr>
+<td>访问控制（私有 Bucket）</td>
+<td>上传和下载都验证签名</td>
+</tr>
+<tr>
+<td>签名 URL</td>
+<td>小红用临时链接访问私有对象</td>
+</tr>
+<tr>
+<td>CDN</td>
+<td>加速小红的下载</td>
+</tr>
+<tr>
+<td>存储类型 + 生命周期</td>
+<td>30 天转 IA，1 年转归档</td>
+</tr>
+</tbody></table>
+<p>每个组件都找到了自己的位置。</p>
+<hr>
+<h2>第四幕：验证与压力测试</h2>
+<h3>反事实：去掉某个组件会怎样？</h3>
+<p><strong>如果去掉扁平命名空间，回到目录树？</strong> 几十亿对象的目录树会极其庞大，元数据本身就成为瓶颈。每次访问都要遍历路径，性能随深度和宽度恶化。扁平空间让寻址复杂度与&quot;总共有多少对象&quot;脱钩。</p>
+<p><strong>如果去掉 Bucket？</strong> 所有用户、所有业务的对象挤在一个全局空间里。命名冲突、权限无法隔离——你没法对&quot;用户头像&quot;和&quot;内部日志&quot;设不同的访问规则。Bucket 提供了逻辑隔离的边界。</p>
+<p><strong>如果去掉冗余？</strong> 省了 2 倍存储，但任何一块硬盘故障都会导致永久数据丢失。商用对象存储宣称的 99.999999999%（11 个 9）数据持久性，就是靠冗余撑起来的。</p>
+<p><strong>如果去掉签名 URL？</strong> 你只能在&quot;完全公开&quot;和&quot;完全私有&quot;之间二选一。想分享一个临时下载链接？做不到——要么让所有人都能下载，要么谁都下载不了。签名 URL 填补了中间地带。</p>
+<p><strong>如果去掉存储类型分级？</strong> 所有数据都用标准存储，成本可能高出 5-10 倍。100PB 的归档数据用标准存储，每月多花数十万。</p>
+<h3>边界：OSS 在什么条件下不行？</h3>
+<p><strong>需要随机读写</strong>——数据库、虚拟机磁盘映像、频繁修改的文件。这些需要<strong>块存储</strong>（Block Storage，如 EBS）或本地磁盘。</p>
+<p><strong>需要 POSIX 文件系统语义</strong>——比如文件锁、原子重命名、目录链接。传统应用如果写死了用 <code>open/read/write/close</code> 操作文件，不能直接迁移到对象存储。需要<strong>文件存储</strong>（File Storage，如 NAS/NFS）。</p>
+<p><strong>需要极低延迟的小对象随机访问</strong>——比如缓存系统。对象存储的 HTTP 往返 + 路由开销，延迟通常在几十毫秒级，远比不上 Redis 的亚毫秒。</p>
+<p><strong>对象存储的甜蜜区是：大量的、非结构化的、写入后很少修改的数据。</strong></p>
+<h3>连接：OSS 与其他存储的关系</h3>
+<pre><code>              存储世界
+         /       |       \
+    块存储     文件存储    对象存储
+   (Block)    (File)    (Object)
+      |          |          |
+  随机读写    目录树+共享  海量+HTTP+便宜
+  虚拟机盘    多机挂载     图片/视频/备份
+  数据库      共享文档     日志/静态资源
+</code></pre>
+<p>三者不是替代关系，而是互补。一个典型应用可能同时用到三种：数据库跑在块存储上，应用代码从文件存储加载，用户上传的图片和日志存在对象存储里。</p>
+<p><strong>连接 2：OSS 与数据湖（Data Lake）</strong></p>
+<p>对象存储因为便宜且容量无上限，成了构建<strong>数据湖</strong>的首选底座。把所有原始数据（日志、JSON、Parquet 文件）扔进 OSS，再用 Spark、Presto 等计算引擎直接在上面跑分析。&quot;存储与计算分离&quot;——这正是对象存储扁平、简单、海量的特性使然。</p>
+<h3>终极挑战：空白重建路线图</h3>
+<p>如果忘掉一切，只记得第一幕的问题——&quot;海量数据往哪放、怎么找、怎么不丢？&quot;——你能重新发明出 OSS 吗？</p>
+<pre><code>[海量数据找不到、放不下、会丢失]
+        |
+    目录树太慢 --&gt; 扁平命名空间：Key-Value 直接寻址
+        |
+    命名冲突 --&gt; 桶(Bucket)逻辑隔离
+        |
+    一台机器装不下 --&gt; 哈希分配到多节点
+        |
+    硬盘会坏 --&gt; 多副本 / 纠删码冗余
+        |
+    怎么访问 --&gt; HTTP API（PUT/GET/DELETE/HEAD）
+        |
+    谁能访问 --&gt; 访问控制（公开/私有 + 签名URL + Bucket Policy）
+        |
+    远处访问慢 --&gt; CDN 边缘缓存加速
+        |
+    全都用贵存储 --&gt; 存储类型分级 + 生命周期规则自动流转
+        |
+    = 完整的对象存储服务 (OSS)
+</code></pre>
+<p>每一步都是：<strong>撞墙 -&gt; 找工具 -&gt; 推进 -&gt; 撞下一面墙</strong>。</p>
+<p>只要记住那条路线，你就能从第一幕的困境出发，一步步把 OSS 重新造出来。</p>
+<h2>关联笔记</h2>
+<blockquote>
+<p><strong>相关概念</strong><br><a href="/knowledge/cdn.html">CDN</a>：OSS 的经典搭档，做边缘缓存加速静态资源分发</p>
+</blockquote>
+
+        </div>
+      </article>
+
+      <section class="related-notes">
+  <h3>Related Notes</h3>
+  <div class="related-notes-grid">
+    <a href="cdn.html" class="related-note-card">
+      <div class="related-title">CDN</div>
+      <div class="related-category">Network</div>
+    </a>
+  </div>
+</section>
+
+      <div class="post-nav">
+  <a href="sha-256.html">
+    <div class="post-nav-label"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg> Previous</div>
+    <div class="post-nav-title">SHA-256</div>
+  </a>
+  <a href="子网.html">
+    <div class="post-nav-label">Next <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg></div>
+    <div class="post-nav-title">子网</div>
+  </a>
+</div>
+
+
+      <div style="padding-bottom:40px;">
+        <a href="/" class="back-link">Back to Home</a>
+      </div>
+    </div>
+
+    <!-- TOC sidebar (right) -->
+    <aside class="toc-sidebar" id="toc-sidebar">
+      <div class="toc-title">On This Page</div>
+      <ul class="toc-list" id="toc-list"></ul>
+    </aside>
+  </main>
+
+  <!-- Back to top -->
+  <button class="back-to-top" id="back-to-top" aria-label="Back to top">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="18 15 12 9 6 15"/></svg>
+  </button>
+
+  <footer>
+    <p>Designed &amp; Built by <a href="https://github.com/ChenSchenG">ChenSchenG</a></p>
+  </footer>
+
+  <script src="../js/main.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+  <script>
+    hljs.highlightAll();
+
+    // --- Generate TOC from headings ---
+    (function(){
+      var body = document.querySelector(".article-body");
+      var tocList = document.getElementById("toc-list");
+      if(!body || !tocList) return;
+      var headings = body.querySelectorAll("h1, h2, h3");
+      if(headings.length < 2){ document.getElementById("toc-sidebar").style.display="none"; return; }
+      headings.forEach(function(h, i){
+        if(!h.id) h.id = "heading-" + i;
+        var li = document.createElement("li");
+        var tag = h.tagName.toLowerCase();
+        li.className = "toc-" + tag;
+        var a = document.createElement("a");
+        a.href = "#" + h.id;
+        a.textContent = h.textContent;
+        li.appendChild(a);
+        tocList.appendChild(li);
+      });
+
+      // Scroll-spy: highlight active TOC item
+      var tocLinks = tocList.querySelectorAll("a");
+      var observer = new IntersectionObserver(function(entries){
+        entries.forEach(function(entry){
+          if(entry.isIntersecting){
+            tocLinks.forEach(function(l){ l.classList.remove("active"); });
+            var active = tocList.querySelector('a[href="#' + entry.target.id + '"]');
+            if(active) active.classList.add("active");
+          }
+        });
+      }, { rootMargin: "-80px 0px -70% 0px", threshold: 0 });
+      headings.forEach(function(h){ observer.observe(h); });
+    })();
+
+    // --- Code copy buttons ---
+    document.querySelectorAll(".article-body pre").forEach(function(pre){
+      var btn = document.createElement("button");
+      btn.className = "code-copy-btn";
+      btn.textContent = "Copy";
+      btn.addEventListener("click", function(){
+        var code = pre.querySelector("code");
+        navigator.clipboard.writeText(code.textContent).then(function(){
+          btn.textContent = "Copied!"; btn.classList.add("copied");
+          setTimeout(function(){ btn.textContent = "Copy"; btn.classList.remove("copied"); }, 2000);
+        });
+      });
+      pre.appendChild(btn);
+    });
+
+    // --- Back to top ---
+    (function(){
+      var btn = document.getElementById("back-to-top");
+      if(!btn) return;
+      window.addEventListener("scroll", function(){
+        btn.classList.toggle("visible", window.scrollY > 400);
+      });
+      btn.addEventListener("click", function(){
+        window.scrollTo({ top: 0, behavior: "smooth" });
+      });
+    })();
+  </script>
+</body>
+</html>

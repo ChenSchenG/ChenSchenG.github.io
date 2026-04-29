@@ -1,0 +1,698 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>哈希搜索结果报告 — ChenSchenG</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⚡</text></svg>">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../css/style.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github.min.css">
+</head>
+<body>
+  <nav id="nav">
+    <div class="nav-logo"><a href="/">ChenSchenG</a></div>
+    <div class="nav-links-wrapper">
+      <ul class="nav-links">
+        <li><a href="/">Home</a></li>
+        <li><a href="/#graph">Graph</a></li>
+        <li><a href="/about.html">About</a></li>
+      </ul>
+    </div>
+    <button class="hamburger" id="hamburger" aria-label="Menu"><span class="hamburger-inner"></span></button>
+  </nav>
+  <div class="mobile-menu-overlay" id="mobile-overlay"></div>
+  <aside class="mobile-menu" id="mobile-menu">
+    <ul>
+      <li><a href="/">Home</a></li>
+      <li><a href="/#graph">Graph</a></li>
+      <li><a href="/about.html">About</a></li>
+    </ul>
+  </aside>
+
+  <main class="article-page">
+    <!-- Main content column -->
+    <div class="article-main">
+      <article>
+        <header class="article-header">
+          <div class="article-breadcrumb">
+            <a href="/">Home</a>
+            <span class="separator">/</span>
+            <span>Other</span>
+          </div>
+          <h1>哈希搜索结果报告</h1>
+          <div class="article-meta">
+            <span><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>Posted </span>
+            <span><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 19a2 2 0 01-2 2H4a2 2 0 01-2-2V5a2 2 0 012-2h5l2 3h9a2 2 0 012 2z"/></svg>Other</span>
+            <span><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>13 min read</span>
+          </div>
+          
+        </header>
+
+        <div class="article-body">
+          <h1>哈希相关笔记搜索结果报告</h1>
+<h2>搜索时间</h2>
+<p>2026-04-09</p>
+<h2>搜索范围</h2>
+<ul>
+<li>路径：<code>/Users/chensicheng/Desktop/csc_knowledge_repository</code></li>
+<li>文件类型：<code>**/*.md</code>（所有 Markdown 文件）</li>
+<li>关键词：哈希, Hash, SHA-256, MD5, 摘要, digest, 单向函数, 碰撞, collision, 盐, salt, bcrypt, 密码存储, 数字签名, HMAC, RSA</li>
+</ul>
+<h2>搜索结果总览</h2>
+<h3>找到的文件数：14 个</h3>
+<p>其中<strong>直接相关的核心文件 3 个</strong>，间接相关的文件 11 个</p>
+<hr>
+<h2>🎯 直接相关的核心笔记</h2>
+<h3>1. <strong>密码学与安全/协议/AKSK.md</strong> ⭐⭐⭐</h3>
+<p><strong>标题</strong>：AKSK (Access Key + Secret Key)</p>
+<p><strong>相关性</strong>：<strong>最直接相关</strong></p>
+<p><strong>包含的哈希相关内容</strong>：</p>
+<ul>
+<li>HMAC（Hash-based Message Authentication Code）概念详解</li>
+<li>HMAC-SHA256 实战应用（API 签名认证）</li>
+<li>SHA-256 作为单向哈希函数</li>
+<li>内容摘要（Body 哈希）的计算</li>
+<li>签名验证流程</li>
+</ul>
+<p><strong>关键摘录</strong>：</p>
+<pre><code>HMAC 是 Hash-based Message Authentication Code（基于哈希的消息认证码）
+输入：密钥（SK）+ 消息（请求内容）
+输出：固定长度的摘要（签名）
+使用算法：HMAC-SHA256
+</code></pre>
+<p><strong>为什么相关</strong>：</p>
+<ul>
+<li>详细讲解了 HMAC 作为&quot;带密钥的哈希&quot;如何用于签名和认证</li>
+<li>包含 AWS Signature Version 4、阿里云 HMAC-SHA256 等实际工程应用</li>
+<li>展示哈希在 API 安全中的角色</li>
+</ul>
+<p><strong>AKSK.md 中的哈希概念分布</strong>：</p>
+<ul>
+<li>HMAC 概念：第 82-94 行</li>
+<li>HMAC-SHA256 签名实例：第 198 行、第 227 行、第 233 行、第 255 行</li>
+<li>哈希应用（Body 摘要）：第 178 行、第 227 行</li>
+</ul>
+<hr>
+<h3>2. <strong>密码学与安全/概念/JWT.md</strong> ⭐⭐⭐</h3>
+<p><strong>标题</strong>：JWT (JSON Web Token)</p>
+<p><strong>相关性</strong>：<strong>直接相关</strong></p>
+<p><strong>包含的哈希相关内容</strong>：</p>
+<ul>
+<li>HMAC-SHA256 签名（对称认证）</li>
+<li>RSA-SHA256 签名（非对称认证）</li>
+<li>Base64URL 编码与 HMAC 结合</li>
+<li>签名验证的完整流程</li>
+<li>对称 HMAC vs 非对称签名的对比</li>
+</ul>
+<p><strong>关键摘录</strong>：</p>
+<pre><code>算法字段 alg：
+- HS256 = HMAC-SHA256（对称）
+- RS256 = RSA-SHA256（非对称）
+
+验证流程：
+1. 拆分 JWT 成三段
+2. 用密钥重算 HMAC(Secret, Header.Payload)
+3. 与第三段（Signature）比对
+</code></pre>
+<p><strong>为什么相关</strong>：</p>
+<ul>
+<li>展示 HMAC 在身份认证中的具体应用</li>
+<li>涉及对称和非对称加密中的哈希算法选择（HS256 vs RS256）</li>
+<li>重点讲解签名生成和验证机制</li>
+</ul>
+<p><strong>JWT.md 中的哈希概念分布</strong>：</p>
+<ul>
+<li>HMAC 概念：第 11、90 行</li>
+<li>HS256/RS256：第 117 行（标准头）</li>
+<li>HMAC-SHA256 验证：第 159、186、196、231、249、263 行</li>
+<li>签名工作原理：第 318-333 行</li>
+</ul>
+<hr>
+<h3>3. <strong>密码学与安全/概念/XSS.md</strong> ⭐⭐</h3>
+<p><strong>标题</strong>：XSS（跨站脚本攻击）</p>
+<p><strong>相关性</strong>：<strong>间接相关（防御机制）</strong></p>
+<p><strong>包含的哈希相关内容</strong>：</p>
+<ul>
+<li>CSP（内容安全策略）中的哈希检查（script-src &#39;sha256-...&#39;）</li>
+<li>Cookie 的 HttpOnly 标志（虽未直接涉及哈希，但相关安全话题）</li>
+</ul>
+<p><strong>为什么相关</strong>：</p>
+<ul>
+<li>涉及哈希在内容完整性检查中的应用</li>
+<li>CSP 中使用 SHA-256 验证脚本来源的合法性</li>
+<li>虽然主要讲安全攻击，但展示哈希在防御策略中的角色</li>
+</ul>
+<hr>
+<h2>📚 间接相关的笔记</h2>
+<h3>支持性文件（间接包含哈希概念）</h3>
+<table>
+<thead>
+<tr>
+<th>文件路径</th>
+<th>主要内容</th>
+<th>哈希相关性</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>密码学与安全/协议/OIDC.md</td>
+<td>OpenID Connect 协议</td>
+<td>提及哈希碰撞防护（sub 字段去重）</td>
+</tr>
+<tr>
+<td>密码学与安全/协议/OAuth 2.0.md</td>
+<td>OAuth 2.0 授权</td>
+<td>间接（令牌管理）</td>
+</tr>
+<tr>
+<td>其他/概念/SDK.md</td>
+<td>SDK 集成</td>
+<td>提及哈希签名计算流程</td>
+</tr>
+<tr>
+<td>计算机网络/概念/CDN.md</td>
+<td>内容分发网络</td>
+<td>提及&quot;内容哈希&quot;文件命名（如 app.3f8a2b.js）</td>
+</tr>
+</tbody></table>
+<h3>相关但无直接哈希内容的文件</h3>
+<ul>
+<li>密码学与安全/协议/STS.md</li>
+<li>密码学与安全/概念/SQL注入.md</li>
+<li>密码学与安全/概念/CSRF.md</li>
+<li>密码学与安全/概念/SSRF.md</li>
+<li>密码学与安全/概念/DDoS.md</li>
+<li>密码学与安全/概念/SRC.md</li>
+</ul>
+<hr>
+<h2>🔍 关键词匹配统计</h2>
+<h3>在核心笔记中的出现频率</h3>
+<table>
+<thead>
+<tr>
+<th>关键词</th>
+<th>AKSK 中</th>
+<th>JWT 中</th>
+<th>XSS 中</th>
+<th>总计</th>
+<th>使用场景</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>HMAC</strong></td>
+<td>✅ 23次</td>
+<td>✅ 12次</td>
+<td>✗</td>
+<td>35次+</td>
+<td>签名认证、消息验证码</td>
+</tr>
+<tr>
+<td><strong>Hash</strong></td>
+<td>✅ 3次</td>
+<td>✗</td>
+<td>✅ (CSP)</td>
+<td>4次+</td>
+<td>泛指、文件命名、CSP</td>
+</tr>
+<tr>
+<td><strong>SHA-256</strong></td>
+<td>✅ 5次</td>
+<td>✅ 2次</td>
+<td>✗</td>
+<td>7次</td>
+<td>哈希算法</td>
+</tr>
+<tr>
+<td><strong>Signature</strong></td>
+<td>✅</td>
+<td>✅</td>
+<td>✗</td>
+<td>多次</td>
+<td>签名等同于摘要</td>
+</tr>
+<tr>
+<td><strong>RSA</strong></td>
+<td>✗</td>
+<td>✅ 3次</td>
+<td>✗</td>
+<td>3次</td>
+<td>JWT 的非对称签名</td>
+</tr>
+<tr>
+<td><strong>摘要 / Digest</strong></td>
+<td>✅ (Body摘要)</td>
+<td>✗</td>
+<td>✗</td>
+<td>1次+</td>
+<td>内容摘要</td>
+</tr>
+<tr>
+<td><strong>碰撞 / Collision</strong></td>
+<td>✗</td>
+<td>✗</td>
+<td>✗</td>
+<td>—</td>
+<td>仅在 OIDC 提及</td>
+</tr>
+<tr>
+<td><strong>盐 / Salt</strong></td>
+<td>✗</td>
+<td>✗</td>
+<td>✗</td>
+<td>—</td>
+<td><strong>缺失</strong></td>
+</tr>
+<tr>
+<td><strong>bcrypt</strong></td>
+<td>✗</td>
+<td>✗</td>
+<td>✗</td>
+<td>—</td>
+<td><strong>缺失</strong></td>
+</tr>
+<tr>
+<td><strong>MD5</strong></td>
+<td>✗</td>
+<td>✗</td>
+<td>✗</td>
+<td>—</td>
+<td><strong>缺失</strong></td>
+</tr>
+<tr>
+<td><strong>密码存储</strong></td>
+<td>✗</td>
+<td>✗</td>
+<td>✗</td>
+<td>—</td>
+<td><strong>缺失</strong></td>
+</tr>
+<tr>
+<td><strong>单向函数</strong></td>
+<td>✗</td>
+<td>✗</td>
+<td>✗</td>
+<td>—</td>
+<td><strong>缺失</strong></td>
+</tr>
+</tbody></table>
+<hr>
+<h2>📋 笔记知识覆盖总结</h2>
+<h3>✅ 已有覆盖的哈希话题</h3>
+<ol>
+<li><p><strong>HMAC 签名机制</strong>（AKSK 和 JWT）</p>
+<ul>
+<li>工作原理：密钥 + 消息 → 固定长度摘要</li>
+<li>实际应用：API 签名、JWT 验证</li>
+</ul>
+</li>
+<li><p><strong>SHA-256 算法</strong>（AKSK 和 JWT）</p>
+<ul>
+<li>用于 HMAC-SHA256 组合</li>
+<li>AWS Signature Version 4 中的应用</li>
+</ul>
+</li>
+<li><p><strong>RSA 非对称签名中的哈希</strong>（JWT）</p>
+<ul>
+<li>RS256 = RSA-SHA256 对比 HS256 = HMAC-SHA256</li>
+<li>非对称 vs 对称签名的选择</li>
+</ul>
+</li>
+<li><p><strong>内容完整性检查</strong>（CDN、CSP）</p>
+<ul>
+<li>文件哈希命名（内容一致则缓存永不更新）</li>
+<li>CSP 脚本哈希验证</li>
+</ul>
+</li>
+<li><p><strong>签名生成与验证流程</strong>（AKSK 和 JWT）</p>
+<ul>
+<li>四步工作流：规范化 → 哈希 → 签名 → 验证</li>
+</ul>
+</li>
+</ol>
+<h3>❌ 明显缺失的哈希话题</h3>
+<ol>
+<li><strong>MD5 / SHA-1</strong>（过时算法讨论）</li>
+<li><strong>盐值（Salt）</strong>（密码安全的关键）</li>
+<li><strong>bcrypt / Argon2</strong>（密码存储最佳实践）</li>
+<li><strong>哈希碰撞</strong>（密码学理论基础）</li>
+<li><strong>单向函数本质</strong>（数学基础）</li>
+<li><strong>哈希表</strong>（数据结构）</li>
+<li><strong>区块链中的哈希</strong>（PoW、Merkle 树）</li>
+<li><strong>文件校验和</strong>（checksum、CRC32）</li>
+</ol>
+<hr>
+<h2>📍 具体文件位置和行号</h2>
+<h3>AKSK.md 中的哈希相关内容</h3>
+<table>
+<thead>
+<tr>
+<th>主题</th>
+<th>行号</th>
+<th>内容</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>HMAC 定义</td>
+<td>第 10、82-94 行</td>
+<td>&quot;基于哈希的消息认证码&quot;概念</td>
+</tr>
+<tr>
+<td>签名计算</td>
+<td>第 112 行</td>
+<td>哈希计算生成签名</td>
+</tr>
+<tr>
+<td>HMAC 性质</td>
+<td>第 94 行</td>
+<td>HMAC 两个关键性质</td>
+</tr>
+<tr>
+<td>规范化</td>
+<td>第 144-153 行</td>
+<td>HTTP 请求规范化用于哈希</td>
+</tr>
+<tr>
+<td>Body 哈希</td>
+<td>第 178、227 行</td>
+<td>请求 Body 的 SHA256 摘要</td>
+</tr>
+<tr>
+<td>HMAC-SHA256 实例</td>
+<td>第 198、233、255 行</td>
+<td>具体签名计算示例</td>
+</tr>
+<tr>
+<td>对比</td>
+<td>第 287 行</td>
+<td>HMAC vs 数字签名对比</td>
+</tr>
+</tbody></table>
+<h3>JWT.md 中的哈希相关内容</h3>
+<table>
+<thead>
+<tr>
+<th>主题</th>
+<th>行号</th>
+<th>内容</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>HMAC 简介</td>
+<td>第 11、90 行</td>
+<td>标签和快速提及</td>
+</tr>
+<tr>
+<td>签名算法</td>
+<td>第 117 行</td>
+<td>HS256、RS256 算法标记</td>
+</tr>
+<tr>
+<td>验证流程</td>
+<td>第 159 行</td>
+<td>HMAC 验证的完整步骤</td>
+</tr>
+<tr>
+<td>签名示意</td>
+<td>第 176-186、196 行</td>
+<td>图表展示 HMAC-SHA256 过程</td>
+</tr>
+<tr>
+<td>实例代码</td>
+<td>第 231、249 行</td>
+<td>Signature = HMAC-SHA256(...)</td>
+</tr>
+<tr>
+<td>改签检测</td>
+<td>第 263 行</td>
+<td>篡改导致 HMAC 不同</td>
+</tr>
+<tr>
+<td>工作原理</td>
+<td>第 318-333 行</td>
+<td>标记 HMAC 作为防伪工具</td>
+</tr>
+</tbody></table>
+<hr>
+<h2>💡 建议</h2>
+<h3>如果要补充哈希知识体系，建议新增笔记：</h3>
+<ol>
+<li><p><strong>密码学与安全/概念/哈希函数.md</strong></p>
+<ul>
+<li>单向函数的数学原理和性质</li>
+<li>SHA 家族对比（SHA-256, SHA-512 vs MD5, SHA-1）</li>
+<li>哈希碰撞的理论与实际攻击</li>
+</ul>
+</li>
+<li><p><strong>密码学与安全/概念/密码存储.md</strong></p>
+<ul>
+<li>为什么不能直接 hash(password)</li>
+<li>盐值（Salt）的必要性和使用</li>
+<li>bcrypt / Argon2 的工作原理和对比</li>
+</ul>
+</li>
+<li><p><strong>数据结构/概念/哈希表.md</strong></p>
+<ul>
+<li>分离链式 vs 开放寻址冲突解决</li>
+<li>哈希函数的设计原则</li>
+<li>防止哈希碰撞的工程策略</li>
+</ul>
+</li>
+<li><p><strong>区块链/概念/默克尔树与哈希.md</strong></p>
+<ul>
+<li>区块链中的哈希应用</li>
+<li>Merkle 树结构与性质</li>
+<li>PoW（工作量证明）中的哈希计算</li>
+</ul>
+</li>
+</ol>
+<h3>与现有笔记的关联建议</h3>
+<ul>
+<li>在 AKSK.md 和 JWT.md 中添加反向链接到&quot;哈希函数&quot;理论笔记</li>
+<li>在 XSS.md 中补充 CSP 脚本哈希的详细例子</li>
+<li>创建 MOC（内容地图）整合密码学相关笔记</li>
+</ul>
+<hr>
+<h2>查询统计总结</h2>
+<table>
+<thead>
+<tr>
+<th>统计项</th>
+<th>数量</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>总扫描文件数</td>
+<td>33 个 markdown 文件</td>
+</tr>
+<tr>
+<td>包含任意关键词的文件</td>
+<td>14 个</td>
+</tr>
+<tr>
+<td>直接相关的核心文件</td>
+<td>3 个</td>
+</tr>
+<tr>
+<td>关键词 HMAC 命中数</td>
+<td>35+ 次</td>
+</tr>
+<tr>
+<td>关键词 SHA-256 命中数</td>
+<td>7 次</td>
+</tr>
+<tr>
+<td>关键词 RSA 命中数</td>
+<td>8 次</td>
+</tr>
+<tr>
+<td>关键词总命中数</td>
+<td>50+ 次</td>
+</tr>
+</tbody></table>
+<hr>
+<h2>结论</h2>
+<p>✅ <strong>现状</strong>：知识库中 <strong>HMAC 和 SHA-256 的应用</strong> 覆盖较好，特别是在 API 认证（AKSK）和身份验证（JWT）场景。</p>
+<p>❌ <strong>缺口</strong>：<strong>密码学基础理论</strong>（单向函数、碰撞）和<strong>密码安全实践</strong>（盐值、bcrypt）严重缺失。</p>
+<p>💬 <strong>建议方向</strong>：补充&quot;哈希函数&quot;和&quot;密码存储&quot;两个基础笔记，形成从理论到实践的完整链路。</p>
+<hr>
+<h2>附录：快速查询表</h2>
+<h3>按场景快速找笔记</h3>
+<table>
+<thead>
+<tr>
+<th>我想学...</th>
+<th>推荐阅读</th>
+<th>相关行号</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>API 签名认证</strong></td>
+<td>AKSK.md</td>
+<td>全篇（重点：第 82-198 行）</td>
+</tr>
+<tr>
+<td><strong>JWT 工作原理</strong></td>
+<td>JWT.md</td>
+<td>全篇（重点：第 159-263 行）</td>
+</tr>
+<tr>
+<td><strong>HMAC-SHA256 计算</strong></td>
+<td>AKSK.md / JWT.md</td>
+<td>AKSK 第 233-255 行 / JWT 第 231-263 行</td>
+</tr>
+<tr>
+<td><strong>对称 vs 非对称签名</strong></td>
+<td>JWT.md</td>
+<td>第 117 行、第 287 行（AKSK 对比）</td>
+</tr>
+<tr>
+<td><strong>安全防御中的哈希</strong></td>
+<td>XSS.md</td>
+<td>CSP 相关段落</td>
+</tr>
+<tr>
+<td><strong>文件缓存优化</strong></td>
+<td>CDN.md</td>
+<td>第 99 行</td>
+</tr>
+<tr>
+<td><strong>AWS 签名机制</strong></td>
+<td>AKSK.md</td>
+<td>第 153 行、第 198 行</td>
+</tr>
+</tbody></table>
+<h3>按关键词快速导航</h3>
+<p><strong>HMAC</strong></p>
+<ul>
+<li>✅ AKSK.md（第 10、82-94、112 行）</li>
+<li>✅ JWT.md（第 11、90、117 行）</li>
+</ul>
+<p><strong>SHA-256</strong></p>
+<ul>
+<li>✅ AKSK.md（第 178、227、233 行）</li>
+<li>✅ JWT.md（第 117 行）</li>
+</ul>
+<p><strong>RSA</strong></p>
+<ul>
+<li>✅ JWT.md（第 117 行）</li>
+<li>⚠️ 需要专项笔记深入讲解</li>
+</ul>
+<p><strong>签名（Signature）</strong></p>
+<ul>
+<li>✅ AKSK.md（第 82-198 行完整流程）</li>
+<li>✅ JWT.md（第 90-263 行完整流程）</li>
+</ul>
+<hr>
+<h2>使用建议</h2>
+<ol>
+<li><strong>快速入门</strong>：先读 JWT.md 理解签名概念，再读 AKSK.md 看实际应用</li>
+<li><strong>深度学习</strong>：结合 AKSK.md 和 JWT.md，对比对称/非对称签名</li>
+<li><strong>补充理论</strong>：知识库缺少哈希函数基础理论，建议外部学习后回来补充笔记</li>
+<li><strong>日常参考</strong>：AKSK.md 是 API 签名的快速查询手册</li>
+</ol>
+<hr>
+<p><em>报告生成于 2026-04-09 | 基于关键词匹配和内容分析</em></p>
+
+        </div>
+      </article>
+
+      
+      <div class="post-nav">
+  <span></span>
+  <a href="transformer.html">
+    <div class="post-nav-label">Next <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg></div>
+    <div class="post-nav-title">Transformer</div>
+  </a>
+</div>
+
+
+      <div style="padding-bottom:40px;">
+        <a href="/" class="back-link">Back to Home</a>
+      </div>
+    </div>
+
+    <!-- TOC sidebar (right) -->
+    <aside class="toc-sidebar" id="toc-sidebar">
+      <div class="toc-title">On This Page</div>
+      <ul class="toc-list" id="toc-list"></ul>
+    </aside>
+  </main>
+
+  <!-- Back to top -->
+  <button class="back-to-top" id="back-to-top" aria-label="Back to top">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="18 15 12 9 6 15"/></svg>
+  </button>
+
+  <footer>
+    <p>Designed &amp; Built by <a href="https://github.com/ChenSchenG">ChenSchenG</a></p>
+  </footer>
+
+  <script src="../js/main.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+  <script>
+    hljs.highlightAll();
+
+    // --- Generate TOC from headings ---
+    (function(){
+      var body = document.querySelector(".article-body");
+      var tocList = document.getElementById("toc-list");
+      if(!body || !tocList) return;
+      var headings = body.querySelectorAll("h1, h2, h3");
+      if(headings.length < 2){ document.getElementById("toc-sidebar").style.display="none"; return; }
+      headings.forEach(function(h, i){
+        if(!h.id) h.id = "heading-" + i;
+        var li = document.createElement("li");
+        var tag = h.tagName.toLowerCase();
+        li.className = "toc-" + tag;
+        var a = document.createElement("a");
+        a.href = "#" + h.id;
+        a.textContent = h.textContent;
+        li.appendChild(a);
+        tocList.appendChild(li);
+      });
+
+      // Scroll-spy: highlight active TOC item
+      var tocLinks = tocList.querySelectorAll("a");
+      var observer = new IntersectionObserver(function(entries){
+        entries.forEach(function(entry){
+          if(entry.isIntersecting){
+            tocLinks.forEach(function(l){ l.classList.remove("active"); });
+            var active = tocList.querySelector('a[href="#' + entry.target.id + '"]');
+            if(active) active.classList.add("active");
+          }
+        });
+      }, { rootMargin: "-80px 0px -70% 0px", threshold: 0 });
+      headings.forEach(function(h){ observer.observe(h); });
+    })();
+
+    // --- Code copy buttons ---
+    document.querySelectorAll(".article-body pre").forEach(function(pre){
+      var btn = document.createElement("button");
+      btn.className = "code-copy-btn";
+      btn.textContent = "Copy";
+      btn.addEventListener("click", function(){
+        var code = pre.querySelector("code");
+        navigator.clipboard.writeText(code.textContent).then(function(){
+          btn.textContent = "Copied!"; btn.classList.add("copied");
+          setTimeout(function(){ btn.textContent = "Copy"; btn.classList.remove("copied"); }, 2000);
+        });
+      });
+      pre.appendChild(btn);
+    });
+
+    // --- Back to top ---
+    (function(){
+      var btn = document.getElementById("back-to-top");
+      if(!btn) return;
+      window.addEventListener("scroll", function(){
+        btn.classList.toggle("visible", window.scrollY > 400);
+      });
+      btn.addEventListener("click", function(){
+        window.scrollTo({ top: 0, behavior: "smooth" });
+      });
+    })();
+  </script>
+</body>
+</html>

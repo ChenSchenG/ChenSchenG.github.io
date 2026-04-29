@@ -1,0 +1,383 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CDN — ChenSchenG</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⚡</text></svg>">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../css/style.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github.min.css">
+</head>
+<body>
+  <nav id="nav">
+    <div class="nav-logo"><a href="/">ChenSchenG</a></div>
+    <div class="nav-links-wrapper">
+      <ul class="nav-links">
+        <li><a href="/">Home</a></li>
+        <li><a href="/#graph">Graph</a></li>
+        <li><a href="/about.html">About</a></li>
+      </ul>
+    </div>
+    <button class="hamburger" id="hamburger" aria-label="Menu"><span class="hamburger-inner"></span></button>
+  </nav>
+  <div class="mobile-menu-overlay" id="mobile-overlay"></div>
+  <aside class="mobile-menu" id="mobile-menu">
+    <ul>
+      <li><a href="/">Home</a></li>
+      <li><a href="/#graph">Graph</a></li>
+      <li><a href="/about.html">About</a></li>
+    </ul>
+  </aside>
+
+  <main class="article-page">
+    <!-- Main content column -->
+    <div class="article-main">
+      <article>
+        <header class="article-header">
+          <div class="article-breadcrumb">
+            <a href="/">Home</a>
+            <span class="separator">/</span>
+            <span>Network</span>
+          </div>
+          <h1>CDN</h1>
+          <div class="article-meta">
+            <span><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>Posted 2026-04-08</span>
+            <span><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 19a2 2 0 01-2 2H4a2 2 0 01-2-2V5a2 2 0 012-2h5l2 3h9a2 2 0 012 2z"/></svg>Network</span>
+            <span><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>14 min read</span>
+          </div>
+          <div class="article-tags">
+  <span class="tag">计算机网络</span>
+  <span class="tag">概念</span>
+  <span class="tag">CDN</span>
+  <span class="tag">内容分发</span>
+  <span class="tag">边缘节点</span>
+  <span class="tag">缓存</span>
+  <span class="tag">DNS调度</span>
+  <span class="tag">回源</span>
+</div>
+
+        </header>
+
+        <div class="article-body">
+          <h1>CDN（内容分发网络）</h1>
+<blockquote>
+<p><strong>一句话本质</strong><br>CDN 在全球部署边缘节点缓存内容，通过智能 DNS 将用户调度到最近节点，用缓存和回源机制平衡速度与新鲜度。</p>
+</blockquote>
+<h2>第一幕：问题感知</h2>
+<p>你在北京做了一个视频网站，服务器放在北京的机房。</p>
+<p>北京的用户打开一个视频，秒开。</p>
+<p>乌鲁木齐的用户打开同一个视频，转圈……转圈……5 秒后才开始播放。</p>
+<p>你查了一下：北京到乌鲁木齐，直线距离 2500 公里。数据包在光纤里跑一个来回，光是物理传输就要几十毫秒——再加上沿途十几个路由器的排队转发，实际延迟远不止这些。</p>
+<p>视频文件很大。一个 5 分钟的视频，可能有 50MB。这 50MB 要从北京的服务器出发，穿越半个中国，到达乌鲁木齐用户的手机。沿途的网络带宽有限，走到某段拥挤的骨干网就堵住了。</p>
+<p>更要命的是：如果一万个乌鲁木齐用户同时在看这个视频，这 50MB 要从北京发一万次。同一个文件，走同一条路，重复一万遍。</p>
+<p>你加了更多带宽？钱花了不少，乌鲁木齐还是慢——因为距离没变，路由跳数没变，物理延迟是花钱买不掉的。</p>
+<p>超市的做法是：总仓库在北京，但全国各地开分店，货提前铺到离顾客最近的地方。</p>
+<p><strong>怎么把内容放到离用户最近的地方？</strong></p>
+<hr>
+<h2>第二幕：引导式构建</h2>
+<p>超市的分店思路很直接：北京有总仓，乌鲁木齐也放一个仓库，提前把热门商品运过去。顾客来买东西，直接从本地仓库拿，不用从北京发货。</p>
+<p>把这个思路搬到网络上：在乌鲁木齐也放一台服务器，提前把视频文件复制过去。乌鲁木齐的用户看视频，直接从本地的那台服务器取，不用跑到北京。</p>
+<p>这台放在乌鲁木齐的服务器，就叫做 <strong>边缘节点</strong>（Edge Node）——它不是你的源服务器，只是一个存放副本的&quot;分店&quot;。</p>
+<blockquote>
+<p>想一想：如果你在全国 30 个城市各放一台这样的服务器，任何用户都能就近获取内容。但问题来了——用户怎么知道应该去哪台服务器取？</p>
+</blockquote>
+<p>用户在浏览器里输入的是你的域名，比如 <code>video.example.com</code>。正常情况下，这个域名会解析到你北京的源服务器 IP。现在全国有 30 个节点，你需要一种机制：根据用户的位置，把域名解析到离他最近的那个节点。</p>
+<p>这个机制靠 <strong>智能 DNS 调度</strong>实现。</p>
+<p>普通的 DNS 解析是固定的：无论谁来问 <code>video.example.com</code> 的 IP，都返回同一个地址。智能 DNS 不同——它会看&quot;这次查询是从哪个地区的 DNS 服务器发来的&quot;，然后返回离那个地区最近的边缘节点 IP。</p>
+<p>北京用户查询 → 返回北京节点的 IP。<br>乌鲁木齐用户查询 → 返回乌鲁木齐节点的 IP。</p>
+<p>用户完全感知不到这个过程。他输入的还是同一个网址，但背后拿到的 IP 已经被悄悄替换成了离他最近的服务器。</p>
+<blockquote>
+<p>想一想：智能 DNS 根据&quot;查询来自哪个地区的 DNS&quot;来判断用户位置——这个判断一定准吗？如果用户用了一个外地的公共 DNS（比如北京用户用了上海的 DNS 服务器），会发生什么？</p>
+</blockquote>
+<p>会判断错。用户在北京，但 DNS 查询从上海发出，智能 DNS 以为用户在上海，返回上海节点的 IP。用户从北京访问上海的节点，反而比直接访问北京源服务器更远了。</p>
+<p>这是智能 DNS 的已知缺陷。现实中有一些补救方案（比如 EDNS Client Subnet 协议，把用户真实 IP 的前缀带上），但不是所有 DNS 服务器都支持。</p>
+<hr>
+<p>好，用户被调度到了最近的边缘节点。但这个节点上有他要的内容吗？</p>
+<p>视频网站可能有几百万个视频。你不可能把所有视频都提前复制到全国 30 个节点——存储成本会炸。</p>
+<p>所以边缘节点不会存所有内容，只存<strong>最近被请求过的</strong>——这就是 <strong>缓存</strong>（Cache）。</p>
+<p>第一个乌鲁木齐用户请求某个视频时，乌鲁木齐节点上还没有这个文件。节点发现自己没有，就去北京的源服务器取一份，交给用户，同时把这份文件存下来。</p>
+<p>第二个乌鲁木齐用户再请求同一个视频，节点已经有了，直接返回，不再去北京取。</p>
+<p>这个&quot;第一次没有就去源站取，取完存一份留给后面的人&quot;的动作，叫做 <strong>回源</strong>（Origin Pull）。</p>
+<blockquote>
+<p>想一想：缓存存了一份副本，但源站的原文件可能会更新。视频的封面图换了，标题改了——缓存里还是旧的。怎么办？</p>
+</blockquote>
+<p>这就涉及到 <strong>缓存过期</strong> 的问题。</p>
+<p>每一份缓存都有一个寿命，叫做 <strong>TTL</strong>（Time To Live，存活时间）。TTL 到期之后，边缘节点下次收到请求时，不会直接返回缓存，而是先去源站问一下：&quot;我手里这份还是最新的吗？&quot;</p>
+<p>源站有两种回答。如果内容没变——返回一个&quot;没变，继续用你那份&quot;的轻量响应（状态码 304），节点不用重新下载，直接续期。如果内容变了——返回新内容，节点用新的替换旧的。</p>
+<blockquote>
+<p>想一想：TTL 设多长合适？设太短，节点频繁回源，源站压力大，CDN 的意义被削弱。设太长，用户看到的内容可能过时。你会怎么权衡？</p>
+</blockquote>
+<p>取决于内容类型。视频文件一旦上传很少改——TTL 可以设很长，一天甚至一周。首页 HTML 经常变——TTL 设几分钟。CSS/JS 文件可以用&quot;内容哈希&quot;做文件名（比如 <code>app.3f8a2b.js</code>），内容变了文件名也变，TTL 直接设一年——因为旧文件名的缓存永远不会被请求到。</p>
+<hr>
+<p>还有一个场景：你刚发现某个视频有版权问题，需要立刻下架。但全国 30 个节点上都缓存了这个视频，TTL 还没到期。等它自然过期？可能要一天。</p>
+<p>这就需要 <strong>缓存刷新</strong>（Purge）——你主动通知 CDN：&quot;立刻删除所有节点上关于这个 URL 的缓存&quot;。CDN 收到指令后，向所有边缘节点广播删除命令，下次用户再请求这个 URL 时，节点发现缓存已被清除，就会回源取最新内容。</p>
+<blockquote>
+<p>想一想：缓存刷新是&quot;全局广播删除&quot;——如果你不小心刷新了整个网站的缓存，会发生什么？</p>
+</blockquote>
+<p>所有节点的所有缓存全部失效，下一波用户请求全部回源。你的源服务器瞬间承受全国所有用户的直接请求——可能直接被打垮。这叫 <strong>缓存雪崩</strong>。所以缓存刷新要精确到 URL，不要轻易全量刷新。</p>
+<hr>
+<h2>第三幕：完整组装</h2>
+<p><strong>CDN 的完整架构</strong></p>
+<pre><code>用户（乌鲁木齐）                用户（广州）
+      |                              |
+      | 1. DNS查询                    | 1. DNS查询
+      v                              v
++------------------------------------------+
+|           智能 DNS 调度                    |
+|  根据查询来源，返回最近的边缘节点 IP         |
++------------------------------------------+
+      |                              |
+      | 返回乌鲁木齐节点IP              | 返回广州节点IP
+      v                              v
++-----------------+          +-----------------+
+| 边缘节点（乌鲁木齐）|          | 边缘节点（广州）   |
+|  缓存命中? -&gt; 返回 |          |  缓存命中? -&gt; 返回 |
+|  缓存未命中?      |          |  缓存未命中?      |
++-----------------+          +-----------------+
+      |                              |
+      | 回源                          | 回源
+      v                              v
++------------------------------------------+
+|           源服务器（北京）                  |
+|     存放原始内容，是唯一的&quot;真相源&quot;           |
++------------------------------------------+
+</code></pre>
+<p><strong>各组件职责</strong></p>
+<table>
+<thead>
+<tr>
+<th>组件</th>
+<th>职责</th>
+<th>关键参数</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>智能 DNS</td>
+<td>把用户调度到最近的节点</td>
+<td>用户地理位置 / 节点负载</td>
+</tr>
+<tr>
+<td>边缘节点</td>
+<td>缓存并返回内容</td>
+<td>TTL / 缓存容量</td>
+</tr>
+<tr>
+<td>回源</td>
+<td>缓存未命中时去源站取</td>
+<td>回源带宽 / 源站承受能力</td>
+</tr>
+<tr>
+<td>缓存刷新</td>
+<td>主动清除过期/违规内容</td>
+<td>刷新粒度（URL级/目录级）</td>
+</tr>
+<tr>
+<td>源服务器</td>
+<td>存放原始内容</td>
+<td>内容更新频率</td>
+</tr>
+</tbody></table>
+<p><strong>端到端示例：乌鲁木齐用户看北京网站上的视频</strong></p>
+<p>第一个用户请求（缓存冷启动）：</p>
+<pre><code>1. 用户输入 video.example.com/cat.mp4
+2. DNS 查询 -&gt; 智能 DNS 检测到查询来自乌鲁木齐
+3. 返回乌鲁木齐边缘节点 IP：47.96.x.x
+4. 用户连接 47.96.x.x，请求 /cat.mp4
+5. 边缘节点检查本地缓存 -&gt; 没有（MISS）
+6. 边缘节点回源：向北京源服务器请求 /cat.mp4
+7. 源服务器返回 cat.mp4（50MB），携带响应头 Cache-Control: max-age=86400
+8. 边缘节点把 cat.mp4 交给用户，同时存入本地缓存（TTL=86400秒=1天）
+</code></pre>
+<p>第二个用户请求（缓存命中）：</p>
+<pre><code>1. 另一个乌鲁木齐用户请求 video.example.com/cat.mp4
+2. DNS -&gt; 同样返回乌鲁木齐节点 IP
+3. 边缘节点检查本地缓存 -&gt; 有，且未过期（HIT）
+4. 直接返回缓存的 cat.mp4，不回源
+5. 延迟：几毫秒（本地传输），而不是几十毫秒+传输50MB（跨越半个中国）
+</code></pre>
+<p>紧急下架场景：</p>
+<pre><code>1. 运营发现 cat.mp4 有版权问题
+2. 调用 CDN API：purge(&quot;video.example.com/cat.mp4&quot;)
+3. CDN 向全国 30 个节点广播删除指令
+4. 各节点删除 /cat.mp4 的缓存
+5. 下一个用户请求 -&gt; MISS -&gt; 回源 -&gt; 源站已删除该文件 -&gt; 返回 404
+</code></pre>
+<hr>
+<h2>第四幕：验证与压力测试</h2>
+<h3>反事实：如果没有 CDN，只有源服务器</h3>
+<p>乌鲁木齐用户每次看视频都要从北京取 50MB。一万个用户同时看 = 源服务器同时发出 500GB 数据。物理延迟无法消除，带宽成本线性增长，用户体验随距离恶化。</p>
+<p>CDN 之后：50MB 只从北京传到乌鲁木齐一次（第一个用户触发回源），之后九千九百九十九个用户都从本地节点拿。源服务器几乎无感。</p>
+<h3>反事实：如果没有缓存过期机制</h3>
+<p>内容永远不更新。视频封面改了，用户看到的还是旧封面。网站改版了，CSS 缓存还是旧的，页面显示错乱。没有过期机制的 CDN，只适合从不修改的内容。</p>
+<h3>边界：CDN 擅长什么，不擅长什么</h3>
+<p><strong>擅长静态内容</strong>：图片、视频、CSS、JS、字体文件——这些文件对所有用户都一样，缓存效率极高。</p>
+<p><strong>不擅长个性化内容</strong>：用户 A 的购物车页面和用户 B 完全不同，无法缓存共享。动态 API 的返回值因请求参数不同而不同——缓存命中率很低。</p>
+<p><strong>不擅长实时交互</strong>：在线游戏、视频会议——延迟要求在毫秒级，且数据是双向实时流，不存在&quot;缓存复用&quot;的可能。</p>
+<p><strong>CDN 不加速&quot;计算&quot;，只加速&quot;搬运&quot;</strong>。如果你的网站慢是因为数据库查询花了 3 秒，CDN 帮不了你——它只能让查询结果更快地送到用户手里，但查询本身还是 3 秒。</p>
+<h3>连接：CDN 与已学知识的关系</h3>
+<p><strong>CDN 与 SSRF</strong>：边缘节点也是服务器，如果节点上跑的服务有 SSRF 漏洞，攻击者可能借边缘节点访问 CDN 内部网络或回源通道。CDN 厂商的节点安全加固，是防御 SSRF 的重要环节。</p>
+<p><strong>CDN 与 SDK</strong>：云厂商的 CDN 通常通过 <a href="/knowledge/sdk.html">SDK</a> 来管理——刷新缓存、查询流量统计、配置 HTTPS 证书，都是调用 CDN SDK 的 API。Client / Signer / Retry 那套机制，在 CDN 管理场景里同样适用。</p>
+<p><strong>CDN 与 AKSK</strong>：调用 CDN 的管理 API（比如刷新缓存），需要用 <a href="/knowledge/aksk.html">AKSK</a> 签名来证明&quot;是你在操作&quot;。如果 AKSK 泄露，攻击者可以刷新你所有缓存（制造缓存雪崩）、修改你的 CDN 配置，甚至把用户流量劫持到恶意服务器。</p>
+<h3>终极挑战：路线图重建</h3>
+<pre><code>[问题：内容离用户太远，物理延迟 + 带宽瓶颈导致慢]
+    |
+    v
+[工具1：边缘节点——在用户附近放服务器，存放内容副本]
+    |
+    v
+[缺口1：用户怎么知道去哪个节点？]
+    |
+    v
+[工具2：智能 DNS 调度——根据用户位置返回最近节点 IP]
+    |
+    v
+[缺口2：节点不可能存所有内容]
+    |
+    v
+[工具3：缓存 + 回源——热门内容缓存在节点，冷门内容回源取]
+    |
+    v
+[缺口3：源站内容更新了，缓存还是旧的]
+    |
+    v
+[工具4：TTL + 缓存验证——过期后回源确认，变了就更新]
+    |
+    v
+[缺口4：紧急情况需要立刻让缓存失效]
+    |
+    v
+[工具5：缓存刷新（Purge）——主动通知全部节点删除指定缓存]
+    |
+    v
+[完整方案：边缘节点 + 智能DNS + 缓存/回源 + TTL + Purge = CDN]
+</code></pre>
+<h2>关联笔记</h2>
+<blockquote>
+<p><strong>相关原子概念</strong><br><a href="/knowledge/ssrf.html">SSRF</a> · <a href="/knowledge/sdk.html">SDK</a> · <a href="/knowledge/aksk.html">AKSK</a></p>
+</blockquote>
+<p>CDN 的管理 API 通过 <a href="/knowledge/sdk.html">SDK</a> 调用，需要 <a href="/knowledge/aksk.html">AKSK</a> 签名鉴权。边缘节点的安全加固与 <a href="/knowledge/ssrf.html">SSRF</a> 防御直接相关——节点被 SSRF 利用可能暴露回源通道和内网资源。</p>
+
+        </div>
+      </article>
+
+      <section class="related-notes">
+  <h3>Related Notes</h3>
+  <div class="related-notes-grid">
+    <a href="ssrf.html" class="related-note-card">
+      <div class="related-title">SSRF</div>
+      <div class="related-category">Security</div>
+    </a>
+    <a href="sdk.html" class="related-note-card">
+      <div class="related-title">SDK</div>
+      <div class="related-category">Other</div>
+    </a>
+    <a href="aksk.html" class="related-note-card">
+      <div class="related-title">AKSK</div>
+      <div class="related-category">Security</div>
+    </a>
+  </div>
+</section>
+
+      <div class="post-nav">
+  <a href="sql注入.html">
+    <div class="post-nav-label"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg> Previous</div>
+    <div class="post-nav-title">SQL注入</div>
+  </a>
+  <a href="ddos.html">
+    <div class="post-nav-label">Next <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg></div>
+    <div class="post-nav-title">DDoS</div>
+  </a>
+</div>
+
+
+      <div style="padding-bottom:40px;">
+        <a href="/" class="back-link">Back to Home</a>
+      </div>
+    </div>
+
+    <!-- TOC sidebar (right) -->
+    <aside class="toc-sidebar" id="toc-sidebar">
+      <div class="toc-title">On This Page</div>
+      <ul class="toc-list" id="toc-list"></ul>
+    </aside>
+  </main>
+
+  <!-- Back to top -->
+  <button class="back-to-top" id="back-to-top" aria-label="Back to top">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="18 15 12 9 6 15"/></svg>
+  </button>
+
+  <footer>
+    <p>Designed &amp; Built by <a href="https://github.com/ChenSchenG">ChenSchenG</a></p>
+  </footer>
+
+  <script src="../js/main.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+  <script>
+    hljs.highlightAll();
+
+    // --- Generate TOC from headings ---
+    (function(){
+      var body = document.querySelector(".article-body");
+      var tocList = document.getElementById("toc-list");
+      if(!body || !tocList) return;
+      var headings = body.querySelectorAll("h1, h2, h3");
+      if(headings.length < 2){ document.getElementById("toc-sidebar").style.display="none"; return; }
+      headings.forEach(function(h, i){
+        if(!h.id) h.id = "heading-" + i;
+        var li = document.createElement("li");
+        var tag = h.tagName.toLowerCase();
+        li.className = "toc-" + tag;
+        var a = document.createElement("a");
+        a.href = "#" + h.id;
+        a.textContent = h.textContent;
+        li.appendChild(a);
+        tocList.appendChild(li);
+      });
+
+      // Scroll-spy: highlight active TOC item
+      var tocLinks = tocList.querySelectorAll("a");
+      var observer = new IntersectionObserver(function(entries){
+        entries.forEach(function(entry){
+          if(entry.isIntersecting){
+            tocLinks.forEach(function(l){ l.classList.remove("active"); });
+            var active = tocList.querySelector('a[href="#' + entry.target.id + '"]');
+            if(active) active.classList.add("active");
+          }
+        });
+      }, { rootMargin: "-80px 0px -70% 0px", threshold: 0 });
+      headings.forEach(function(h){ observer.observe(h); });
+    })();
+
+    // --- Code copy buttons ---
+    document.querySelectorAll(".article-body pre").forEach(function(pre){
+      var btn = document.createElement("button");
+      btn.className = "code-copy-btn";
+      btn.textContent = "Copy";
+      btn.addEventListener("click", function(){
+        var code = pre.querySelector("code");
+        navigator.clipboard.writeText(code.textContent).then(function(){
+          btn.textContent = "Copied!"; btn.classList.add("copied");
+          setTimeout(function(){ btn.textContent = "Copy"; btn.classList.remove("copied"); }, 2000);
+        });
+      });
+      pre.appendChild(btn);
+    });
+
+    // --- Back to top ---
+    (function(){
+      var btn = document.getElementById("back-to-top");
+      if(!btn) return;
+      window.addEventListener("scroll", function(){
+        btn.classList.toggle("visible", window.scrollY > 400);
+      });
+      btn.addEventListener("click", function(){
+        window.scrollTo({ top: 0, behavior: "smooth" });
+      });
+    })();
+  </script>
+</body>
+</html>

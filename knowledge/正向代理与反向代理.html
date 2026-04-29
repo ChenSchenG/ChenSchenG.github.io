@@ -1,0 +1,367 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>正向代理与反向代理 — ChenSchenG</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⚡</text></svg>">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../css/style.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github.min.css">
+</head>
+<body>
+  <nav id="nav">
+    <div class="nav-logo"><a href="/">ChenSchenG</a></div>
+    <div class="nav-links-wrapper">
+      <ul class="nav-links">
+        <li><a href="/">Home</a></li>
+        <li><a href="/#graph">Graph</a></li>
+        <li><a href="/about.html">About</a></li>
+      </ul>
+    </div>
+    <button class="hamburger" id="hamburger" aria-label="Menu"><span class="hamburger-inner"></span></button>
+  </nav>
+  <div class="mobile-menu-overlay" id="mobile-overlay"></div>
+  <aside class="mobile-menu" id="mobile-menu">
+    <ul>
+      <li><a href="/">Home</a></li>
+      <li><a href="/#graph">Graph</a></li>
+      <li><a href="/about.html">About</a></li>
+    </ul>
+  </aside>
+
+  <main class="article-page">
+    <!-- Main content column -->
+    <div class="article-main">
+      <article>
+        <header class="article-header">
+          <div class="article-breadcrumb">
+            <a href="/">Home</a>
+            <span class="separator">/</span>
+            <span>Network</span>
+          </div>
+          <h1>正向代理与反向代理</h1>
+          <div class="article-meta">
+            <span><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>Posted 2026-04-29</span>
+            <span><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 19a2 2 0 01-2 2H4a2 2 0 01-2-2V5a2 2 0 012-2h5l2 3h9a2 2 0 012 2z"/></svg>Network</span>
+            <span><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>16 min read</span>
+          </div>
+          <div class="article-tags">
+  <span class="tag">计算机网络</span>
+  <span class="tag">概念</span>
+  <span class="tag">正向代理</span>
+  <span class="tag">反向代理</span>
+  <span class="tag">负载均衡</span>
+  <span class="tag">缓存</span>
+  <span class="tag">SSL终结</span>
+  <span class="tag">CDN</span>
+</div>
+
+        </header>
+
+        <div class="article-body">
+          <h1>正向代理与反向代理</h1>
+<blockquote>
+<p><strong>一句话本质</strong><br>正向代理站客户端一侧隐藏客户端，反向代理站服务端一侧隐藏服务器。</p>
+</blockquote>
+<h2>第一幕：问题感知</h2>
+<p>你在公司上班。打开浏览器，想搜点东西——打不开。公司网络屏蔽了这个网站。</p>
+<p>你的同事告诉你一个办法：把请求先发给一台&quot;中间服务器&quot;，让它帮你去访问那个网站，再把结果传回来。公司防火墙只看到你在跟那台中间服务器通信，不知道你最终访问了什么。</p>
+<p>这招好使。你藏在中间人背后，绕过了限制。</p>
+<hr>
+<p>换个场景。你经营一个购物网站，地址栏有一把小绿锁（加密连接）。每天有 100 万人来访问。一台服务器扛不住——CPU 跑满，响应越来越慢，最后直接崩了。</p>
+<p>你加到 5 台服务器，每台都装了加密证书。但用户的浏览器只认一个域名 <code>shop.com</code>。100 万个请求涌向 <code>shop.com</code>——它们怎么知道该去哪台服务器？你不可能让用户自己选&quot;请访问 server3.shop.com&quot;。</p>
+<p>你需要一个中间人，接住所有请求，再分发给后面的 5 台服务器。用户只看到这个中间人，不知道背后有几台机器。</p>
+<hr>
+<p>两个场景，都需要一个&quot;中间人&quot;。但仔细看——它们帮的人不一样。第一个中间人站在<strong>你</strong>这边，帮你藏身份。第二个中间人站在<strong>网站</strong>那边，帮网站扛压力。</p>
+<p>生活中有没有类似的角色：同样叫&quot;代理人&quot;，但一个替买方跑腿，一个替卖方挡驾？</p>
+<p><strong>中间人站哪边，替谁办事？</strong></p>
+<hr>
+<h2>第二幕：引导式构建</h2>
+<p>我们的起点是两个场景：一个中间人帮客户端隐藏自己，一个中间人帮服务器端扛住流量。它们都叫&quot;代理&quot;，但方向相反。我们先把第一种搞清楚。</p>
+<hr>
+<p>回到公司那个场景。你的浏览器不直接找目标网站了，而是把请求交给一台中间服务器，由它替你去访问。目标网站看到的请求来自那台中间服务器，不知道你的存在。</p>
+<p>这台中间服务器就叫<strong>正向代理</strong>（Forward Proxy）。&quot;正向&quot;是说它站在客户端这边，顺着请求发出的方向走。</p>
+<p>画出来是这样的：</p>
+<pre><code>你的电脑 ---请求---&gt; [正向代理] ---请求---&gt; 目标网站
+你的电脑 &lt;--响应---- [正向代理] &lt;--响应---- 目标网站
+</code></pre>
+<p>关键特征：<strong>目标网站不知道真正的客户端是谁</strong>。它只看到正向代理的 IP 地址。你藏在代理背后。</p>
+<blockquote>
+<p>想一想：在这个结构里，谁知道正向代理的存在？是你（客户端），还是目标网站（服务端）？</p>
+</blockquote>
+<p>是你。你的浏览器要主动配置&quot;使用代理服务器&quot;，把请求显式地交给代理。目标网站完全不知道你用了代理——它收到的请求看起来就像代理自己发的。</p>
+<hr>
+<p>正向代理能做的不只是绕过屏蔽。你和同事用了同一个正向代理后，发现一件怪事：第二次打开同一个网页，速度快了很多——中间人似乎记住了上次的内容。</p>
+<p>确实如此。100 个员工都访问同一个首页，正向代理只需要从外面取一次，然后把记住的结果返回给另外 99 个人。</p>
+<p>另一个意外发现：目标网站的日志里显示的访问者 IP，全是正向代理的地址，不是你的真实 IP。你获得了匿名性。</p>
+<blockquote>
+<p>想一想：正向代理替客户端隐藏了身份。如果反过来——要隐藏的不是客户端，而是服务端呢？什么场景下，服务端需要躲在中间人后面？</p>
+</blockquote>
+<hr>
+<p>这就回到了第二个场景。你的购物网站有 5 台服务器，但用户只认一个域名 <code>shop.com</code>。你需要一个中间人，面朝用户，接住所有请求，然后决定把每个请求转给后面哪台服务器。</p>
+<p>这个中间人就叫<strong>反向代理</strong>（Reverse Proxy）。&quot;反向&quot;是说它站在服务端这边，面对着请求到来的方向。</p>
+<pre><code>用户 ---请求---&gt; [反向代理] ---请求---&gt; 服务器A / 服务器B / 服务器C
+用户 &lt;--响应---- [反向代理] &lt;--响应---- 服务器A / 服务器B / 服务器C
+</code></pre>
+<p>关键特征：<strong>用户不知道真正的服务器是谁</strong>。用户只跟反向代理打交道，以为它就是 <code>shop.com</code>。背后有几台机器、请求被发给了哪一台，用户完全不知道。</p>
+<blockquote>
+<p>想一想：正向代理是客户端主动配置的——你要在浏览器里设置代理地址。反向代理呢？用户需要做任何配置吗？</p>
+</blockquote>
+<p>不需要。用户根本不知道反向代理的存在。用户输入 <code>shop.com</code>，DNS 解析到反向代理的 IP，请求自然就到了反向代理手上。对用户来说，反向代理就是 <code>shop.com</code> 本身。</p>
+<hr>
+<p>现在两个方向都清楚了。我们来看反向代理最核心的一个能力——它之所以能&quot;扛住 100 万请求&quot;，靠的是什么。</p>
+<p>5 台服务器摆在那里，一个请求进来，反向代理要决定发给谁。这个决策叫<strong>负载均衡</strong>（Load Balancing）。</p>
+<p>最直觉的策略：<strong>轮询</strong>（Round Robin）——按顺序来。第 1 个请求给 A，第 2 个给 B，第 3 个给 C，第 4 个又给 A……像发扑克牌一样依次分发。</p>
+<blockquote>
+<p>想一想：轮询的前提假设是什么？如果服务器 A 是一台 2 核的老机器，服务器 B 是一台 32 核的新机器，轮询分给它们同样多的请求，会怎样？</p>
+</blockquote>
+<p>A 很快就被压垮了，B 却在闲着。轮询假设每台服务器处理能力一样——现实里往往不是。</p>
+<p>怎么办？给强的机器多分一些。这就是<strong>加权轮询</strong>（Weighted Round Robin）：给 B 分配更大的权重，比如 B 接 8 个请求 A 才接 1 个。配置时就把每台机器的能力差异告诉反向代理。</p>
+<blockquote>
+<p>想一想：加权轮询靠的是你事先配好的权重。但如果 B 虽然是 32 核，此刻正好在跑一个吃 CPU 的大任务，实际已经很吃力了呢？静态的权重能反映这种实时状况吗？</p>
+</blockquote>
+<p>不能。所以有更动态的策略：<strong>最少连接</strong>（Least Connections）——谁手上正在处理的请求最少，新请求就给谁。不看配置，看实际负载。</p>
+<p>这三种策略是工程取舍的三个点——从简单到精确，从零配置到需要实时监控。实际系统里还有更多变种，但核心逻辑都是同一个：<strong>反向代理通过负载均衡把流量分散到多台服务器，任何一台挂了，流量自动绕开它，用户无感知</strong>。</p>
+<hr>
+<p>即使负载均衡做到了完美分配，100 万个请求仍然全部打到后端。但其中 60 万人看的是首页——内容完全一样。每次都让后端服务器重新生成首页的 HTML，值得吗？</p>
+<p>反向代理可以把首页的响应<strong>缓存</strong>（Cache）起来。下次再有人请求首页，直接从缓存返回，根本不需要打扰后端服务器。后端的压力从 100 万降到了 40 万。</p>
+<p>还记得正向代理那边的发现吗——员工第二次打开同一个网页变快了。那是正向代理在客户端侧做的缓存。现在反向代理在服务端侧也做缓存。同样的机制，方向不同。</p>
+<blockquote>
+<p>想一想：正向代理的缓存减少了客户端的等待和带宽消耗；反向代理的缓存减轻了后端服务器的压力。如果一个请求同时经过正向代理和反向代理，它可能被缓存几次？</p>
+</blockquote>
+<p>两次。正向代理缓存一份（下次你再请求就不用出公司网络），反向代理缓存一份（下次任何用户请求同样内容就不用打扰后端）。双层缓存，各自为自己那一侧的&quot;主人&quot;服务。</p>
+<hr>
+<p>反向代理现在负责分发流量和缓存热门内容。但还有一个运维上的麻烦：5 台后端服务器，每台都要处理 HTTPS 加解密，每台都装了加密证书。证书有有效期——一台的证书过期了，那台服务器对外就会报&quot;不安全&quot;警告。管 5 套证书的更新周期，头疼。</p>
+<p>能不能把证书统一交给反向代理？</p>
+<p>可以。这叫<strong>SSL 终结</strong>（SSL Termination）。用户到反向代理这一段用 HTTPS（加密），反向代理到后端服务器这一段用 HTTP（不加密，因为在内网里，可信）。证书只装在反向代理一个地方，后端服务器完全不用管加密的事。</p>
+<blockquote>
+<p>想一想：反向代理到后端服务器之间不加密，安全吗？如果有人能窃听内网流量呢？</p>
+</blockquote>
+<p>如果内网环境完全可信（比如同一个机房的私有网络），不加密是合理的——省掉了加解密的 CPU 开销。但如果内网也不可信（比如跨数据中心通信），就应该内网也加密。这是安全性和性能的取舍，不是&quot;一定不加密&quot;。</p>
+<hr>
+<h2>第三幕：完整组装</h2>
+<p>把第二幕中散落的组件拼成一张对比全景图：</p>
+<pre><code>                    正向代理                          反向代理
+                 (Forward Proxy)                  (Reverse Proxy)
+
+  [客户端A]--+                              用户 -----&gt; [反向代理] --+--&gt; [服务器A]
+  [客户端B]--+--&gt; [正向代理] ---&gt; 目标网站                           +--&gt; [服务器B]
+  [客户端C]--+                                                      +--&gt; [服务器C]
+
+  站位：客户端一侧                           站位：服务端一侧
+  谁配置它：客户端主动配置                   谁配置它：服务端部署，客户端无感
+  隐藏谁：隐藏客户端身份                     隐藏谁：隐藏服务器身份和数量
+  典型能力：                                 典型能力：
+    - 突破访问限制                             - 负载均衡
+    - 客户端侧缓存                             - 服务端侧缓存
+    - 匿名访问                                 - SSL 终结
+</code></pre>
+<h3>端到端示例：一次请求的完整旅程</h3>
+<p>场景：你在公司电脑上通过正向代理访问 <code>shop.com</code>，而 <code>shop.com</code> 背后有反向代理。两种代理同时存在于一次请求中。</p>
+<p><strong>第一段：请求从你的电脑出发，穿过正向代理，进入互联网</strong></p>
+<p>你的浏览器配置了正向代理（<code>10.0.0.1</code>）。你输入 <code>shop.com</code>，请求先发给正向代理。正向代理检查缓存——没有命中。它用自己的 IP 向 <code>shop.com</code> 发出请求，穿过互联网。</p>
+<blockquote>
+<p>此刻，<code>shop.com</code> 能看到你的真实 IP 吗？——不能。它看到的是正向代理 <code>10.0.0.1</code> 的出口 IP。</p>
+</blockquote>
+<p><strong>第二段：请求到达反向代理，被分发到后端服务器</strong></p>
+<p><code>shop.com</code> 的反向代理（<code>203.0.113.1</code>）收到请求。它先解密 HTTPS（SSL 终结），然后执行负载均衡——当前服务器 B 连接数最少，选它。用 HTTP 把请求转发给服务器 B（内网 <code>192.168.1.12</code>）。服务器 B 生成响应。</p>
+<blockquote>
+<p>此刻，用户知道后端有几台服务器吗？——不知道。用户只跟 <code>203.0.113.1</code> 打交道。</p>
+</blockquote>
+<p><strong>第三段：响应原路返回，经过双层缓存</strong></p>
+<p>反向代理收到服务器 B 的响应，缓存一份（下次同样请求直接返回），加密后发回互联网。正向代理收到响应，也缓存一份（下次你再请求就不用出公司网络），返回给你的浏览器。页面显示出来了。</p>
+<p>整个过程中：</p>
+<ul>
+<li>服务器 B 看到的请求来源是反向代理的内网 IP，不知道任何客户端的信息</li>
+<li>你的浏览器看到的对端是 <code>203.0.113.1</code>（反向代理），不知道服务器 B 的存在</li>
+<li>每一层代理都在做同一件事：<strong>隔离两端，让一端对另一端透明</strong></li>
+</ul>
+<h3>组装检查</h3>
+<table>
+<thead>
+<tr>
+<th>第二幕组件</th>
+<th>在流程中的位置</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>正向代理</td>
+<td>第一段：客户端侧，隐藏真实客户端 IP</td>
+</tr>
+<tr>
+<td>反向代理</td>
+<td>第二段：服务端侧，隐藏真实服务器</td>
+</tr>
+<tr>
+<td>负载均衡</td>
+<td>第二段：反向代理选择后端服务器 B</td>
+</tr>
+<tr>
+<td>缓存（正向）</td>
+<td>第三段：正向代理缓存响应</td>
+</tr>
+<tr>
+<td>缓存（反向）</td>
+<td>第三段：反向代理缓存响应</td>
+</tr>
+<tr>
+<td>SSL 终结</td>
+<td>第二段：反向代理统一处理加解密</td>
+</tr>
+</tbody></table>
+<p>每个组件都找到了自己的位置。</p>
+<hr>
+<h2>第四幕：验证与压力测试</h2>
+<h3>反事实：去掉某个组件会怎样？</h3>
+<p><strong>如果去掉正向代理？</strong> 你的浏览器直接连接 <code>shop.com</code>。公司防火墙看到你在访问什么——如果被屏蔽，你就打不开了。目标网站也能看到你的真实 IP。正向代理提供的是客户端侧的隐私和自由度。</p>
+<p><strong>如果去掉反向代理？</strong> 5 台服务器的 IP 直接暴露在公网上。你要让 DNS 返回 5 个 IP 地址，靠客户端随机选一个（DNS 轮询）——但如果其中一台挂了，DNS 不会立刻知道，用户还是会被导向那台死机器。而且每台服务器都要自己处理 SSL、自己扛全部流量中分到的那份。反向代理提供的是服务端侧的弹性和统一管控。</p>
+<p><strong>如果去掉负载均衡？</strong> 反向代理把所有请求都发给同一台服务器——回到了&quot;一台机器扛所有流量&quot;的老路。其他 4 台服务器闲置。负载均衡让多台服务器成为一个整体。</p>
+<p><strong>如果去掉 SSL 终结？</strong> 5 台后端服务器各自处理 HTTPS。每台都要装证书、每台都消耗 CPU 做加解密。证书到期时要更新 5 个地方而不是 1 个。SSL 终结让加密管理集中化。</p>
+<h3>边界：在什么条件下失效？</h3>
+<p><strong>反向代理本身成为瓶颈。</strong> 所有流量都经过它——如果反向代理只有一台，它崩了整个服务就挂了。这就是<strong>单点故障</strong>（Single Point of Failure）。解决方案是反向代理本身也做冗余：部署两台以上，用 keepalived 或云服务商的负载均衡器做主备切换。</p>
+<p><strong>正向代理处理 HTTPS 流量的局限。</strong> HTTPS 是端到端加密的——正向代理看不到请求的内容（只能看到你要连接的域名）。如果公司想审查 HTTPS 内容，需要在员工电脑上安装公司的根证书，让正向代理做&quot;中间人解密&quot;——这涉及隐私和信任问题，是有争议的做法。</p>
+<p><strong>WebSocket 和长连接。</strong> 传统的反向代理针对&quot;一问一答&quot;的 HTTP 请求优化。对于 WebSocket 这种长时间保持的双向连接，反向代理需要额外配置才能正确处理——否则可能超时断开。</p>
+<h3>连接：它跟其他知识的关系</h3>
+<p><strong>与 CDN 的关系。</strong> CDN 本质上就是一种特殊的反向代理——只不过不是部署在你的机房门口，而是分布在全球各地。CDN 节点接住用户请求，缓存静态资源，把动态请求回源到你的服务器。反向代理的&quot;缓存 + 转发&quot;逻辑，CDN 做到了地理维度上。</p>
+<p><strong>与 VPN 的关系。</strong> VPN 和正向代理都能隐藏客户端身份、突破网络限制。区别是：正向代理工作在应用层（HTTP），只代理浏览器的流量；VPN 工作在网络层，代理整台电脑的所有流量（浏览器、邮件客户端、SSH……）。VPN 是&quot;全局正向代理&quot;。</p>
+<p><strong>与网关（Gateway）的关系。</strong> 在微服务架构里，<strong>API 网关</strong>（API Gateway）就是反向代理的升级版——除了负载均衡和 SSL 终结，还做认证、限流、协议转换。反向代理是 API 网关的祖先。</p>
+<h3>终极挑战：空白重建路线图</h3>
+<p>如果忘掉一切，只记得第一幕的问题——&quot;中间人站哪边，替谁办事？&quot;——你能重新发明出来吗？</p>
+<pre><code>[需要一个中间人代替自己通信]
+        |
+    中间人替客户端办事 --&gt; 正向代理：隐藏客户端，客户端主动配置
+        |
+    中间人替服务端办事 --&gt; 反向代理：隐藏服务器，客户端无感知
+        |
+    多台服务器怎么分流 --&gt; 负载均衡：轮询 -&gt; 加权轮询 -&gt; 最少连接
+        |
+    重复请求浪费后端 --&gt; 缓存：正向缓存利客户端，反向缓存利服务端
+        |
+    每台服务器都管证书太累 --&gt; SSL 终结：反向代理统一加解密
+        |
+    = 正向代理（客户端侧）+ 反向代理（服务端侧）完整体系
+</code></pre>
+<p>每一步：<strong>谁的问题 -&gt; 中间人站到那一侧 -&gt; 用恰好的工具解决</strong>。</p>
+<p>记住方向，就记住了一切。</p>
+<h2>关联笔记</h2>
+<blockquote>
+<p><strong>相关概念</strong><br><a href="/knowledge/cdn.html">CDN</a>：CDN 本质是分布在全球各地的反向代理，将&quot;缓存+转发&quot;扩展到地理维度<br><a href="/knowledge/gateway.html">网关</a>：API 网关是反向代理的升级版，增加了认证、限流、协议转换能力</p>
+</blockquote>
+
+        </div>
+      </article>
+
+      <section class="related-notes">
+  <h3>Related Notes</h3>
+  <div class="related-notes-grid">
+    <a href="cdn.html" class="related-note-card">
+      <div class="related-title">CDN</div>
+      <div class="related-category">Network</div>
+    </a>
+    <a href="gateway.html" class="related-note-card">
+      <div class="related-title">网关</div>
+      <div class="related-category">Network</div>
+    </a>
+  </div>
+</section>
+
+      <div class="post-nav">
+  <a href="子网.html">
+    <div class="post-nav-label"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg> Previous</div>
+    <div class="post-nav-title">子网</div>
+  </a>
+  <span></span>
+</div>
+
+
+      <div style="padding-bottom:40px;">
+        <a href="/" class="back-link">Back to Home</a>
+      </div>
+    </div>
+
+    <!-- TOC sidebar (right) -->
+    <aside class="toc-sidebar" id="toc-sidebar">
+      <div class="toc-title">On This Page</div>
+      <ul class="toc-list" id="toc-list"></ul>
+    </aside>
+  </main>
+
+  <!-- Back to top -->
+  <button class="back-to-top" id="back-to-top" aria-label="Back to top">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="18 15 12 9 6 15"/></svg>
+  </button>
+
+  <footer>
+    <p>Designed &amp; Built by <a href="https://github.com/ChenSchenG">ChenSchenG</a></p>
+  </footer>
+
+  <script src="../js/main.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+  <script>
+    hljs.highlightAll();
+
+    // --- Generate TOC from headings ---
+    (function(){
+      var body = document.querySelector(".article-body");
+      var tocList = document.getElementById("toc-list");
+      if(!body || !tocList) return;
+      var headings = body.querySelectorAll("h1, h2, h3");
+      if(headings.length < 2){ document.getElementById("toc-sidebar").style.display="none"; return; }
+      headings.forEach(function(h, i){
+        if(!h.id) h.id = "heading-" + i;
+        var li = document.createElement("li");
+        var tag = h.tagName.toLowerCase();
+        li.className = "toc-" + tag;
+        var a = document.createElement("a");
+        a.href = "#" + h.id;
+        a.textContent = h.textContent;
+        li.appendChild(a);
+        tocList.appendChild(li);
+      });
+
+      // Scroll-spy: highlight active TOC item
+      var tocLinks = tocList.querySelectorAll("a");
+      var observer = new IntersectionObserver(function(entries){
+        entries.forEach(function(entry){
+          if(entry.isIntersecting){
+            tocLinks.forEach(function(l){ l.classList.remove("active"); });
+            var active = tocList.querySelector('a[href="#' + entry.target.id + '"]');
+            if(active) active.classList.add("active");
+          }
+        });
+      }, { rootMargin: "-80px 0px -70% 0px", threshold: 0 });
+      headings.forEach(function(h){ observer.observe(h); });
+    })();
+
+    // --- Code copy buttons ---
+    document.querySelectorAll(".article-body pre").forEach(function(pre){
+      var btn = document.createElement("button");
+      btn.className = "code-copy-btn";
+      btn.textContent = "Copy";
+      btn.addEventListener("click", function(){
+        var code = pre.querySelector("code");
+        navigator.clipboard.writeText(code.textContent).then(function(){
+          btn.textContent = "Copied!"; btn.classList.add("copied");
+          setTimeout(function(){ btn.textContent = "Copy"; btn.classList.remove("copied"); }, 2000);
+        });
+      });
+      pre.appendChild(btn);
+    });
+
+    // --- Back to top ---
+    (function(){
+      var btn = document.getElementById("back-to-top");
+      if(!btn) return;
+      window.addEventListener("scroll", function(){
+        btn.classList.toggle("visible", window.scrollY > 400);
+      });
+      btn.addEventListener("click", function(){
+        window.scrollTo({ top: 0, behavior: "smooth" });
+      });
+    })();
+  </script>
+</body>
+</html>

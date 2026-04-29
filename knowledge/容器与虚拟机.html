@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>容器与虚拟机 — ChenSchenG</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⚡</text></svg>">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../css/style.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github.min.css">
+</head>
+<body>
+  <nav id="nav">
+    <div class="nav-logo"><a href="/">ChenSchenG</a></div>
+    <div class="nav-links-wrapper">
+      <ul class="nav-links">
+        <li><a href="/">Home</a></li>
+        <li><a href="/#graph">Graph</a></li>
+        <li><a href="/about.html">About</a></li>
+      </ul>
+    </div>
+    <button class="hamburger" id="hamburger" aria-label="Menu"><span class="hamburger-inner"></span></button>
+  </nav>
+  <div class="mobile-menu-overlay" id="mobile-overlay"></div>
+  <aside class="mobile-menu" id="mobile-menu">
+    <ul>
+      <li><a href="/">Home</a></li>
+      <li><a href="/#graph">Graph</a></li>
+      <li><a href="/about.html">About</a></li>
+    </ul>
+  </aside>
+
+  <main class="article-page">
+    <!-- Main content column -->
+    <div class="article-main">
+      <article>
+        <header class="article-header">
+          <div class="article-breadcrumb">
+            <a href="/">Home</a>
+            <span class="separator">/</span>
+            <span>Other</span>
+          </div>
+          <h1>容器与虚拟机</h1>
+          <div class="article-meta">
+            <span><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>Posted 2026-04-08</span>
+            <span><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 19a2 2 0 01-2 2H4a2 2 0 01-2-2V5a2 2 0 012-2h5l2 3h9a2 2 0 012 2z"/></svg>Other</span>
+            <span><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>9 min read</span>
+          </div>
+          <div class="article-tags">
+  <span class="tag">软件工程</span>
+  <span class="tag">概念</span>
+  <span class="tag">容器</span>
+  <span class="tag">Docker</span>
+  <span class="tag">虚拟机</span>
+  <span class="tag">Namespace</span>
+  <span class="tag">Cgroup</span>
+  <span class="tag">Kubernetes</span>
+</div>
+
+        </header>
+
+        <div class="article-body">
+          <h1>容器 vs 虚拟机</h1>
+<blockquote>
+<p><strong>一句话本质</strong><br>容器共享操作系统内核，用 Namespace 隔离视野 + Cgroup 限制资源，比虚拟机轻百倍快千倍，但隔离强度不如虚拟机。</p>
+</blockquote>
+<h2>第一幕：问题感知</h2>
+<p>你的公司做了一个电商系统，拆成了 20 个小服务：用户服务、订单服务、支付服务、推荐服务……</p>
+<p>按已学方法，每个服务一台虚拟机。20 个虚拟机。</p>
+<p>问题来了。</p>
+<p>每台虚拟机都要装一个完整操作系统。Ubuntu 最小安装也要 1-2GB 内存。20 个虚拟机，光操作系统就吃掉 <strong>20-40GB 内存</strong>——而你的服务代码本身可能每个只需要 50MB。</p>
+<p>启动一台虚拟机：开机自检、加载内核、启动系统服务……要 <strong>30 秒到 2 分钟</strong>。你的推荐服务突然流量暴涨，需要紧急扩容 5 台——等 5 台虚拟机全部启动完毕，高峰已经过去了。</p>
+<p>每次发布新版本，开发环境用 Mac，测试环境用 CentOS，生产环境用 Ubuntu——同一份代码，在三个环境表现不一样。&quot;在我机器上能跑&quot;成了最常听到的一句话。</p>
+<p><strong>有没有比虚拟机更轻的方式来隔离运行应用？</strong></p>
+<hr>
+<h2>第二幕：引导式构建</h2>
+<p>虚拟机的&quot;重&quot;，根子在哪？每台虚拟机里跑一个<strong>完整的操作系统内核</strong>。20 台虚拟机就是 20 份内核在干同样的活儿。</p>
+<p>但这 20 个服务其实都跑在 Linux 上。它们需要的内核功能是一样的。</p>
+<p>如果这 20 个服务<strong>共享同一个内核</strong>，只是各自&quot;看到&quot;不同的文件系统、不同的进程列表、不同的网络配置——是不是就不需要 20 个操作系统了？</p>
+<p>这就是 <strong>容器</strong>（Container）的核心思路：不再模拟一整台电脑，而是在同一个操作系统内核上，隔离出多个&quot;看起来像独立系统&quot;的运行环境。</p>
+<blockquote>
+<p>想一想：虚拟机靠 Hypervisor 骗操作系统&quot;你独占硬件&quot;。容器靠什么机制来骗应用&quot;你独占操作系统&quot;？</p>
+</blockquote>
+<p>靠内核自带的两个机制。</p>
+<p>第一个叫 <strong>Namespace</strong>（命名空间）。Linux 内核可以把系统资源&quot;分身&quot;——每个容器看到自己独立的进程列表、独立的文件系统、独立的网络栈、独立的主机名。容器 A 里的进程 ID 是 1，容器 B 里也有进程 ID 1——它们互相看不见。</p>
+<p>就像一栋办公楼，每个公司有自己的门禁、自己的电话分机号。你在公司 A 拨 101，接到的是 A 的人；公司 B 也有 101，接到的是 B 的人。但整栋楼的电力、空调——是共享的。</p>
+<blockquote>
+<p>想一想：如果容器只有 Namespace 隔离，容器 A 能不能把整台机器的 CPU 和内存全部吃光，导致容器 B 饿死？</p>
+</blockquote>
+<p>能。Namespace 只管&quot;看不看得见&quot;，不管&quot;能用多少&quot;。所以还需要第二个机制：<strong>Cgroup</strong>（Control Group，控制组）。</p>
+<p>Cgroup 是内核的资源限额机制：规定&quot;容器 A 最多用 2 核 CPU 和 1GB 内存&quot;，超出就限速或杀掉。就像每个公司有自己的电表，超额就断供。</p>
+<p>Namespace + Cgroup = 容器隔离的全部底层——一个管&quot;看不看得见&quot;，一个管&quot;能用多少&quot;。</p>
+<p>有了底层机制，还缺一样东西：怎么打包和分发？</p>
+<p><strong>Docker</strong> 引入了 <strong>镜像</strong>（Image）的概念——一个只读的打包文件，里面包含应用代码 + 所有依赖的库 + 运行配置。在 Mac 上构建，传到 CentOS 测试、Ubuntu 生产——运行行为完全一样。</p>
+<p>镜像用 <strong>Dockerfile</strong> 描述构建过程：</p>
+<pre><code class="language-dockerfile">FROM node:20-slim
+WORKDIR /app
+COPY package.json .
+RUN npm install
+COPY . .
+CMD [&quot;node&quot;, &quot;server.js&quot;]
+</code></pre>
+<p>构建：<code>docker build -t my-app .</code> -&gt; 得到镜像。<br>运行：<code>docker run my-app</code> -&gt; 从镜像启动容器。</p>
+<blockquote>
+<p>想一想：镜像和容器是什么关系？一个镜像可以启动多个容器吗？</p>
+</blockquote>
+<p>可以。镜像是模板（只读），容器是运行实例（可读写）。就像一个 Class 可以 new 多个 Instance。</p>
+<p>20 个容器启动只要几秒，内存占用从 GB 级降到 MB 级。但 20 个容器谁来管？哪个挂了要重启、流量大了要扩容——这就是 <strong>Kubernetes</strong>（K8s）出现的原因：容器编排平台，管理大量容器的生命周期和调度。</p>
+<blockquote>
+<p>想一想：容器共享内核，如果内核有漏洞，一个容器能不能逃逸影响其他容器？</p>
+</blockquote>
+<p>能。这叫<strong>容器逃逸</strong>，是容器的根本安全边界。虚拟机有独立内核，隔离更强。</p>
+<hr>
+<h2>第三幕：完整组装</h2>
+<p><strong>虚拟机 vs 容器：并排架构</strong></p>
+<pre><code>虚拟机模型:                          容器模型:
+
++--------+ +--------+ +--------+    +--------+ +--------+ +--------+
+| App A  | | App B  | | App C  |    | App A  | | App B  | | App C  |
++--------+ +--------+ +--------+    +--------+ +--------+ +--------+
+| Libs A | | Libs B | | Libs C |    | Libs A | | Libs B | | Libs C |
++--------+ +--------+ +--------+    +--------+-+--------+-+--------+
+| 内核 A | | 内核 B | | 内核 C |    |                              |
++--------+ +--------+ +--------+    |    共享的 Linux 内核           |
++------------------------------+    |  (Namespace + Cgroup)         |
+|        Hypervisor            |    +------------------------------+
++------------------------------+    |     Docker 引擎               |
+|        物理硬件               |    +------------------------------+
++------------------------------+    |     物理硬件 / 云服务器        |
+                                    +------------------------------+
+</code></pre>
+<p><strong>核心差异</strong></p>
+<table>
+<thead>
+<tr>
+<th>维度</th>
+<th>虚拟机</th>
+<th>容器</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>隔离机制</td>
+<td>Hypervisor + 独立内核</td>
+<td>Namespace + Cgroup，共享内核</td>
+</tr>
+<tr>
+<td>内存开销</td>
+<td>每个 GB 级</td>
+<td>每个 MB 级</td>
+</tr>
+<tr>
+<td>启动速度</td>
+<td>30秒~几分钟</td>
+<td>几百毫秒~几秒</td>
+</tr>
+<tr>
+<td>隔离强度</td>
+<td>强</td>
+<td>较弱（共享内核）</td>
+</tr>
+<tr>
+<td>适合场景</td>
+<td>强隔离/不同OS/长期运行</td>
+<td>微服务/快速扩缩容/CI/CD</td>
+</tr>
+</tbody></table>
+<hr>
+<h2>第四幕：验证与压力测试</h2>
+<h3>反事实：没有容器，只有虚拟机</h3>
+<p>20 个微服务 = 20 个操作系统 = 40GB+ 内存。扩容 5 台等 2-5 分钟。</p>
+<p>容器之后：20 个容器 = 1 个内核 = ~1GB。扩容 5 个 = 5 秒。</p>
+<h3>边界：容器不如虚拟机的场景</h3>
+<p><strong>强隔离需求</strong>：多租户环境用虚拟机，不用容器——内核漏洞影响所有容器。</p>
+<p><strong>不同 OS</strong>：Linux 容器只能跑在 Linux 内核上，不能混跑 Windows。</p>
+<p><strong>有状态服务</strong>：数据库等需稳定持久存储的用虚拟机更成熟。</p>
+<h3>连接</h3>
+<p><strong>容器和 pnpm 的 store 是同一个思想</strong>：<a href="/knowledge/pnpm.html">pnpm</a> 让多个项目共享同一份 lodash，容器让多个应用共享同一个内核——&quot;相同的部分只存一份，用隔离代替复制&quot;。</p>
+<p><strong>现实中的套娃</strong>：物理机 -&gt; Hypervisor -&gt; 虚拟机(ECS) -&gt; Docker -&gt; 容器。你在 <a href="/knowledge/vps%E4%B8%8E%E4%BA%91%E6%9C%8D%E5%8A%A1%E5%99%A8.html">VPS与云服务器</a> 上跑 Docker 就是这个结构。</p>
+<p><strong>容器和 Node.js</strong>：<a href="/knowledge/nodejs.html">Node.js</a> 应用是容器化的最佳候选——轻量、无状态、启动快。Dockerfile 里 <code>FROM node:20-slim</code> 就是在 Node.js 基础镜像上构建。</p>
+<h3>路线图重建</h3>
+<pre><code>[问题：20个微服务各装一个虚拟机，太重太慢]
+    |
+    v
+[根因：每个虚拟机都跑一个完整操作系统内核]
+    |
+    v
+[工具1：Namespace——隔离视野]
+    |
+    v
+[工具2：Cgroup——限制资源额度]
+    |
+    v
+[工具3：Docker镜像——打包保证到处一致]
+    |
+    v
+[工具4：Kubernetes——管理几百个容器]
+    |
+    v
+[完整方案：Namespace + Cgroup + Docker + K8s]
+    |
+    v
+[边界：隔离不如虚拟机，不能混跑不同OS]
+</code></pre>
+<h2>关联笔记</h2>
+<blockquote>
+<p><strong>相关原子概念</strong><br><a href="/knowledge/%E8%99%9A%E6%8B%9F%E5%8C%96.html">虚拟化</a> · <a href="/knowledge/vps%E4%B8%8E%E4%BA%91%E6%9C%8D%E5%8A%A1%E5%99%A8.html">VPS与云服务器</a> · <a href="/knowledge/nodejs.html">Node.js</a> · <a href="/knowledge/pnpm.html">pnpm</a></p>
+</blockquote>
+<p>容器是 <a href="/knowledge/%E8%99%9A%E6%8B%9F%E5%8C%96.html">虚拟化</a> 的轻量级演进。容器常运行在 <a href="/knowledge/vps%E4%B8%8E%E4%BA%91%E6%9C%8D%E5%8A%A1%E5%99%A8.html">VPS与云服务器</a> 之上（套娃结构）。<a href="/knowledge/nodejs.html">Node.js</a> 应用是容器化的最佳候选。容器共享内核的思想与 <a href="/knowledge/pnpm.html">pnpm</a> 的 store 共享同源。</p>
+
+        </div>
+      </article>
+
+      <section class="related-notes">
+  <h3>Related Notes</h3>
+  <div class="related-notes-grid">
+    <a href="虚拟化.html" class="related-note-card">
+      <div class="related-title">虚拟化</div>
+      <div class="related-category">Other</div>
+    </a>
+    <a href="vps与云服务器.html" class="related-note-card">
+      <div class="related-title">VPS与云服务器</div>
+      <div class="related-category">Other</div>
+    </a>
+    <a href="nodejs.html" class="related-note-card">
+      <div class="related-title">Node.js</div>
+      <div class="related-category">Other</div>
+    </a>
+    <a href="pnpm.html" class="related-note-card">
+      <div class="related-title">pnpm</div>
+      <div class="related-category">Other</div>
+    </a>
+  </div>
+</section>
+
+      <div class="post-nav">
+  <a href="vps与云服务器.html">
+    <div class="post-nav-label"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg> Previous</div>
+    <div class="post-nav-title">VPS与云服务器</div>
+  </a>
+  <a href="虚拟化.html">
+    <div class="post-nav-label">Next <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg></div>
+    <div class="post-nav-title">虚拟化</div>
+  </a>
+</div>
+
+
+      <div style="padding-bottom:40px;">
+        <a href="/" class="back-link">Back to Home</a>
+      </div>
+    </div>
+
+    <!-- TOC sidebar (right) -->
+    <aside class="toc-sidebar" id="toc-sidebar">
+      <div class="toc-title">On This Page</div>
+      <ul class="toc-list" id="toc-list"></ul>
+    </aside>
+  </main>
+
+  <!-- Back to top -->
+  <button class="back-to-top" id="back-to-top" aria-label="Back to top">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="18 15 12 9 6 15"/></svg>
+  </button>
+
+  <footer>
+    <p>Designed &amp; Built by <a href="https://github.com/ChenSchenG">ChenSchenG</a></p>
+  </footer>
+
+  <script src="../js/main.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+  <script>
+    hljs.highlightAll();
+
+    // --- Generate TOC from headings ---
+    (function(){
+      var body = document.querySelector(".article-body");
+      var tocList = document.getElementById("toc-list");
+      if(!body || !tocList) return;
+      var headings = body.querySelectorAll("h1, h2, h3");
+      if(headings.length < 2){ document.getElementById("toc-sidebar").style.display="none"; return; }
+      headings.forEach(function(h, i){
+        if(!h.id) h.id = "heading-" + i;
+        var li = document.createElement("li");
+        var tag = h.tagName.toLowerCase();
+        li.className = "toc-" + tag;
+        var a = document.createElement("a");
+        a.href = "#" + h.id;
+        a.textContent = h.textContent;
+        li.appendChild(a);
+        tocList.appendChild(li);
+      });
+
+      // Scroll-spy: highlight active TOC item
+      var tocLinks = tocList.querySelectorAll("a");
+      var observer = new IntersectionObserver(function(entries){
+        entries.forEach(function(entry){
+          if(entry.isIntersecting){
+            tocLinks.forEach(function(l){ l.classList.remove("active"); });
+            var active = tocList.querySelector('a[href="#' + entry.target.id + '"]');
+            if(active) active.classList.add("active");
+          }
+        });
+      }, { rootMargin: "-80px 0px -70% 0px", threshold: 0 });
+      headings.forEach(function(h){ observer.observe(h); });
+    })();
+
+    // --- Code copy buttons ---
+    document.querySelectorAll(".article-body pre").forEach(function(pre){
+      var btn = document.createElement("button");
+      btn.className = "code-copy-btn";
+      btn.textContent = "Copy";
+      btn.addEventListener("click", function(){
+        var code = pre.querySelector("code");
+        navigator.clipboard.writeText(code.textContent).then(function(){
+          btn.textContent = "Copied!"; btn.classList.add("copied");
+          setTimeout(function(){ btn.textContent = "Copy"; btn.classList.remove("copied"); }, 2000);
+        });
+      });
+      pre.appendChild(btn);
+    });
+
+    // --- Back to top ---
+    (function(){
+      var btn = document.getElementById("back-to-top");
+      if(!btn) return;
+      window.addEventListener("scroll", function(){
+        btn.classList.toggle("visible", window.scrollY > 400);
+      });
+      btn.addEventListener("click", function(){
+        window.scrollTo({ top: 0, behavior: "smooth" });
+      });
+    })();
+  </script>
+</body>
+</html>

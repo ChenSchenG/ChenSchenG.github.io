@@ -15,7 +15,24 @@
         "非阻塞IO",
         "异步编程"
       ],
-      "connections": 3
+      "connections": 4
+    },
+    {
+      "id": "oss",
+      "title": "OSS",
+      "category": "Other",
+      "slug": "oss",
+      "date": "2026-04-29",
+      "excerpt": "用扁平 Key-Value + HTTP 接口管理海量非结构化数据的分布式云存储方案。",
+      "tags": [
+        "云计算",
+        "概念",
+        "对象存储",
+        "OSS",
+        "S3",
+        "Bucket"
+      ],
+      "connections": 1
     },
     {
       "id": "sdk",
@@ -32,7 +49,24 @@
         "签名",
         "重试"
       ],
-      "connections": 6
+      "connections": 9
+    },
+    {
+      "id": "vps与云服务器",
+      "title": "VPS与云服务器",
+      "category": "Other",
+      "slug": "vps与云服务器",
+      "date": "2026-04-08",
+      "excerpt": "VPS 是用虚拟化切出来的租赁虚拟机；云服务器在此基础上加了弹性伸缩、按量付费和云生态集成。ECS/CVM/EC2 只是不同厂商的命名。",
+      "tags": [
+        "软件工程",
+        "概念",
+        "VPS",
+        "云服务器",
+        "ECS",
+        "CVM"
+      ],
+      "connections": 7
     },
     {
       "id": "npm",
@@ -66,6 +100,40 @@
         "Node.js",
         "硬链接"
       ],
+      "connections": 4
+    },
+    {
+      "id": "容器与虚拟机",
+      "title": "容器与虚拟机",
+      "category": "Other",
+      "slug": "容器与虚拟机",
+      "date": "2026-04-08",
+      "excerpt": "容器共享操作系统内核，用 Namespace 隔离视野 + Cgroup 限制资源，比虚拟机轻百倍快千倍，但隔离强度不如虚拟机。",
+      "tags": [
+        "软件工程",
+        "概念",
+        "容器",
+        "Docker",
+        "虚拟机",
+        "Namespace"
+      ],
+      "connections": 4
+    },
+    {
+      "id": "虚拟化",
+      "title": "虚拟化",
+      "category": "Other",
+      "slug": "虚拟化",
+      "date": "2026-04-08",
+      "excerpt": "Hypervisor 坐在硬件和操作系统之间，把一台物理机的资源隔离切分成多台虚拟机，每台以为自己独占整台电脑。",
+      "tags": [
+        "软件工程",
+        "概念",
+        "虚拟化",
+        "Hypervisor",
+        "虚拟机",
+        "Type1"
+      ],
       "connections": 3
     },
     {
@@ -86,6 +154,16 @@
       "connections": 0
     },
     {
+      "id": "哈希搜索结果报告",
+      "title": "哈希搜索结果报告",
+      "category": "Other",
+      "slug": "哈希搜索结果报告",
+      "date": "",
+      "excerpt": "- 路径：`/Users/chensicheng/Desktop/csc_knowledge_repository`",
+      "tags": [],
+      "connections": 0
+    },
+    {
       "id": "aksk",
       "title": "AKSK",
       "category": "Security",
@@ -100,7 +178,7 @@
         "SecretKey",
         "HMAC"
       ],
-      "connections": 6
+      "connections": 10
     },
     {
       "id": "oauth-2-0",
@@ -117,7 +195,7 @@
         "AccessToken",
         "RefreshToken"
       ],
-      "connections": 4
+      "connections": 6
     },
     {
       "id": "oidc",
@@ -134,7 +212,7 @@
         "OAuth 2.0",
         "JWT"
       ],
-      "connections": 6
+      "connections": 8
     },
     {
       "id": "sts",
@@ -151,7 +229,41 @@
         "SessionToken",
         "AssumeRole"
       ],
-      "connections": 5
+      "connections": 6
+    },
+    {
+      "id": "csrf",
+      "title": "CSRF",
+      "category": "Security",
+      "slug": "csrf",
+      "date": "2026-04-08",
+      "excerpt": "CSRF 借浏览器自动带 Cookie 的机制，让攻击者的页面以你的身份向目标网站发请求。防御靠 CSRF Token + SameSite Cookie。",
+      "tags": [
+        "密码学与安全",
+        "概念",
+        "CSRF",
+        "跨站请求伪造",
+        "攻击手法",
+        "Cookie"
+      ],
+      "connections": 8
+    },
+    {
+      "id": "ddos",
+      "title": "DDoS",
+      "category": "Security",
+      "slug": "ddos",
+      "date": "2026-04-09",
+      "excerpt": "DDoS 用海量分布式请求耗尽服务器资源，防御靠 CDN 稀释 + SYN Cookie + WAF 行为分析的纵深体系。",
+      "tags": [
+        "密码学与安全",
+        "概念",
+        "DDoS",
+        "分布式拒绝服务",
+        "攻击手法",
+        "僵尸网络"
+      ],
+      "connections": 6
     },
     {
       "id": "jwt",
@@ -168,7 +280,41 @@
         "Payload",
         "Signature"
       ],
-      "connections": 3
+      "connections": 8
+    },
+    {
+      "id": "sql注入",
+      "title": "SQL注入",
+      "category": "Security",
+      "slug": "sql注入",
+      "date": "2026-04-08",
+      "excerpt": "SQL 注入是用户输入篡改了 SQL 语义：数据和指令混在一条字符串里，攻击者闭合引号改写逻辑。防御靠参数化查询。",
+      "tags": [
+        "密码学与安全",
+        "概念",
+        "SQL注入",
+        "攻击手法",
+        "参数化查询",
+        "盲注"
+      ],
+      "connections": 6
+    },
+    {
+      "id": "src",
+      "title": "SRC",
+      "category": "Security",
+      "slug": "src",
+      "date": "2026-04-10",
+      "excerpt": "SRC 是企业与白帽子之间的正式通道，靠奖励+评级+披露规则让漏洞安全流转到修复者手中。",
+      "tags": [
+        "密码学与安全",
+        "概念",
+        "SRC",
+        "安全应急响应中心",
+        "漏洞奖励",
+        "Bug Bounty"
+      ],
+      "connections": 5
     },
     {
       "id": "ssrf",
@@ -184,6 +330,57 @@
         "服务端请求伪造",
         "内网探测",
         "元数据接口"
+      ],
+      "connections": 10
+    },
+    {
+      "id": "xss",
+      "title": "XSS",
+      "category": "Security",
+      "slug": "xss",
+      "date": "2026-04-09",
+      "excerpt": "XSS 是用户输入被浏览器当作代码执行，靠输出转义+CSP+HttpOnly 三层纵深防御。",
+      "tags": [
+        "密码学与安全",
+        "概念",
+        "XSS",
+        "跨站脚本",
+        "攻击手法",
+        "Cookie窃取"
+      ],
+      "connections": 9
+    },
+    {
+      "id": "哈希",
+      "title": "哈希",
+      "category": "Security",
+      "slug": "哈希",
+      "date": "2026-04-13",
+      "excerpt": "哈希把任意数据压成固定长度指纹，靠雪崩+单向+抗碰撞保证不可伪造、不可逆推。",
+      "tags": [
+        "密码学与安全",
+        "概念",
+        "哈希",
+        "Hash",
+        "SHA-256",
+        "单向函数"
+      ],
+      "connections": 5
+    },
+    {
+      "id": "sha-256",
+      "title": "SHA-256",
+      "category": "Security",
+      "slug": "sha-256",
+      "date": "2026-04-22",
+      "excerpt": "切块接力 + 64 轮非线性扩散 + 前馈，把任意输入搅成 256 比特不可逆指纹。",
+      "tags": [
+        "密码学与安全",
+        "算法",
+        "SHA-256",
+        "哈希",
+        "Merkle-Damgard",
+        "压缩函数"
       ],
       "connections": 3
     },
@@ -205,6 +402,74 @@
       "connections": 0
     },
     {
+      "id": "cdn",
+      "title": "CDN",
+      "category": "Network",
+      "slug": "cdn",
+      "date": "2026-04-08",
+      "excerpt": "CDN 在全球部署边缘节点缓存内容，通过智能 DNS 将用户调度到最近节点，用缓存和回源机制平衡速度与新鲜度。",
+      "tags": [
+        "计算机网络",
+        "概念",
+        "CDN",
+        "内容分发",
+        "边缘节点",
+        "缓存"
+      ],
+      "connections": 8
+    },
+    {
+      "id": "cookie",
+      "title": "Cookie",
+      "category": "Network",
+      "slug": "cookie",
+      "date": "2026-04-20",
+      "excerpt": "服务器发给浏览器、浏览器每次请求自动回传的\"认人纸条\"，补偿 HTTP 的健忘。",
+      "tags": [
+        "计算机网络",
+        "概念",
+        "Cookie",
+        "Session",
+        "HTTP",
+        "状态管理"
+      ],
+      "connections": 5
+    },
+    {
+      "id": "子网",
+      "title": "子网",
+      "category": "Network",
+      "slug": "子网",
+      "date": "2026-04-29",
+      "excerpt": "子网通过操纵子网掩码（借位）将一个大网络划分为多个小网络，实现广播隔离和安全分区。",
+      "tags": [
+        "计算机网络",
+        "概念",
+        "子网",
+        "subnet",
+        "IP地址",
+        "子网掩码"
+      ],
+      "connections": 3
+    },
+    {
+      "id": "正向代理与反向代理",
+      "title": "正向代理与反向代理",
+      "category": "Network",
+      "slug": "正向代理与反向代理",
+      "date": "2026-04-29",
+      "excerpt": "正向代理站客户端一侧隐藏客户端，反向代理站服务端一侧隐藏服务器。",
+      "tags": [
+        "计算机网络",
+        "概念",
+        "正向代理",
+        "反向代理",
+        "负载均衡",
+        "缓存"
+      ],
+      "connections": 2
+    },
+    {
       "id": "port",
       "title": "端口",
       "category": "Network",
@@ -219,7 +484,7 @@
         "四元组",
         "TCP"
       ],
-      "connections": 1
+      "connections": 2
     },
     {
       "id": "gateway",
@@ -236,7 +501,7 @@
         "NAT",
         "子网掩码"
       ],
-      "connections": 1
+      "connections": 3
     }
   ],
   "edges": [
@@ -253,6 +518,10 @@
       "target": "sdk"
     },
     {
+      "source": "oss",
+      "target": "cdn"
+    },
+    {
       "source": "sdk",
       "target": "aksk"
     },
@@ -265,6 +534,34 @@
       "target": "oidc"
     },
     {
+      "source": "vps与云服务器",
+      "target": "虚拟化"
+    },
+    {
+      "source": "vps与云服务器",
+      "target": "容器与虚拟机"
+    },
+    {
+      "source": "vps与云服务器",
+      "target": "sts"
+    },
+    {
+      "source": "vps与云服务器",
+      "target": "aksk"
+    },
+    {
+      "source": "vps与云服务器",
+      "target": "cdn"
+    },
+    {
+      "source": "vps与云服务器",
+      "target": "ssrf"
+    },
+    {
+      "source": "vps与云服务器",
+      "target": "sdk"
+    },
+    {
       "source": "npm",
       "target": "pnpm"
     },
@@ -274,6 +571,22 @@
     },
     {
       "source": "pnpm",
+      "target": "sdk"
+    },
+    {
+      "source": "容器与虚拟机",
+      "target": "虚拟化"
+    },
+    {
+      "source": "容器与虚拟机",
+      "target": "nodejs"
+    },
+    {
+      "source": "容器与虚拟机",
+      "target": "pnpm"
+    },
+    {
+      "source": "虚拟化",
       "target": "sdk"
     },
     {
@@ -305,12 +618,80 @@
       "target": "aksk"
     },
     {
+      "source": "csrf",
+      "target": "xss"
+    },
+    {
+      "source": "csrf",
+      "target": "sql注入"
+    },
+    {
+      "source": "csrf",
+      "target": "ssrf"
+    },
+    {
+      "source": "csrf",
+      "target": "jwt"
+    },
+    {
+      "source": "csrf",
+      "target": "oauth-2-0"
+    },
+    {
+      "source": "ddos",
+      "target": "xss"
+    },
+    {
+      "source": "ddos",
+      "target": "sql注入"
+    },
+    {
+      "source": "ddos",
+      "target": "csrf"
+    },
+    {
+      "source": "ddos",
+      "target": "ssrf"
+    },
+    {
+      "source": "ddos",
+      "target": "cdn"
+    },
+    {
       "source": "jwt",
       "target": "aksk"
     },
     {
       "source": "jwt",
       "target": "oauth-2-0"
+    },
+    {
+      "source": "sql注入",
+      "target": "xss"
+    },
+    {
+      "source": "sql注入",
+      "target": "ssrf"
+    },
+    {
+      "source": "src",
+      "target": "xss"
+    },
+    {
+      "source": "src",
+      "target": "sql注入"
+    },
+    {
+      "source": "src",
+      "target": "csrf"
+    },
+    {
+      "source": "src",
+      "target": "ssrf"
+    },
+    {
+      "source": "src",
+      "target": "ddos"
     },
     {
       "source": "ssrf",
@@ -323,6 +704,98 @@
     {
       "source": "ssrf",
       "target": "oidc"
+    },
+    {
+      "source": "xss",
+      "target": "ssrf"
+    },
+    {
+      "source": "xss",
+      "target": "jwt"
+    },
+    {
+      "source": "xss",
+      "target": "oidc"
+    },
+    {
+      "source": "哈希",
+      "target": "jwt"
+    },
+    {
+      "source": "哈希",
+      "target": "aksk"
+    },
+    {
+      "source": "哈希",
+      "target": "xss"
+    },
+    {
+      "source": "哈希",
+      "target": "sql注入"
+    },
+    {
+      "source": "sha-256",
+      "target": "哈希"
+    },
+    {
+      "source": "sha-256",
+      "target": "jwt"
+    },
+    {
+      "source": "sha-256",
+      "target": "aksk"
+    },
+    {
+      "source": "cdn",
+      "target": "ssrf"
+    },
+    {
+      "source": "cdn",
+      "target": "sdk"
+    },
+    {
+      "source": "cdn",
+      "target": "aksk"
+    },
+    {
+      "source": "cookie",
+      "target": "csrf"
+    },
+    {
+      "source": "cookie",
+      "target": "xss"
+    },
+    {
+      "source": "cookie",
+      "target": "jwt"
+    },
+    {
+      "source": "cookie",
+      "target": "oidc"
+    },
+    {
+      "source": "cookie",
+      "target": "oauth-2-0"
+    },
+    {
+      "source": "子网",
+      "target": "gateway"
+    },
+    {
+      "source": "子网",
+      "target": "port"
+    },
+    {
+      "source": "子网",
+      "target": "cdn"
+    },
+    {
+      "source": "正向代理与反向代理",
+      "target": "cdn"
+    },
+    {
+      "source": "正向代理与反向代理",
+      "target": "gateway"
     },
     {
       "source": "port",

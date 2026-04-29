@@ -1,0 +1,399 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>子网 — ChenSchenG</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⚡</text></svg>">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../css/style.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github.min.css">
+</head>
+<body>
+  <nav id="nav">
+    <div class="nav-logo"><a href="/">ChenSchenG</a></div>
+    <div class="nav-links-wrapper">
+      <ul class="nav-links">
+        <li><a href="/">Home</a></li>
+        <li><a href="/#graph">Graph</a></li>
+        <li><a href="/about.html">About</a></li>
+      </ul>
+    </div>
+    <button class="hamburger" id="hamburger" aria-label="Menu"><span class="hamburger-inner"></span></button>
+  </nav>
+  <div class="mobile-menu-overlay" id="mobile-overlay"></div>
+  <aside class="mobile-menu" id="mobile-menu">
+    <ul>
+      <li><a href="/">Home</a></li>
+      <li><a href="/#graph">Graph</a></li>
+      <li><a href="/about.html">About</a></li>
+    </ul>
+  </aside>
+
+  <main class="article-page">
+    <!-- Main content column -->
+    <div class="article-main">
+      <article>
+        <header class="article-header">
+          <div class="article-breadcrumb">
+            <a href="/">Home</a>
+            <span class="separator">/</span>
+            <span>Network</span>
+          </div>
+          <h1>子网</h1>
+          <div class="article-meta">
+            <span><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>Posted 2026-04-29</span>
+            <span><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 19a2 2 0 01-2 2H4a2 2 0 01-2-2V5a2 2 0 012-2h5l2 3h9a2 2 0 012 2z"/></svg>Network</span>
+            <span><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>12 min read</span>
+          </div>
+          <div class="article-tags">
+  <span class="tag">计算机网络</span>
+  <span class="tag">概念</span>
+  <span class="tag">子网</span>
+  <span class="tag">subnet</span>
+  <span class="tag">IP地址</span>
+  <span class="tag">子网掩码</span>
+  <span class="tag">CIDR</span>
+  <span class="tag">广播域</span>
+</div>
+
+        </header>
+
+        <div class="article-body">
+          <h1>子网（Subnet）</h1>
+<blockquote>
+<p><strong>一句话本质</strong><br>子网通过操纵子网掩码（借位）将一个大网络划分为多个小网络，实现广播隔离和安全分区。</p>
+</blockquote>
+<h2>第一幕：问题感知</h2>
+<p>你在一家小公司上班，办公室 20 个人，共用一个网络。你发一条消息给同事老王，消息顺利到达，一切正常。</p>
+<p>公司壮大了。200 人，2000 人，20000 台设备——全挂在同一个网络上。</p>
+<p>现在问题来了：你发给老王的消息，网络会把它<strong>喊</strong>给所有 20000 台设备。每台设备都要停下手头的事，拆开看一眼：&quot;这是给我的吗？不是。扔掉。&quot; 然后继续干活。</p>
+<p>20000 台设备，每秒钟都在互相喊话。每台设备都在不停地拆别人的信。网络淹没在噪音里，越来越慢。</p>
+<p>更麻烦的是——财务部的工资数据、研发部的核心代码、前台的访客 WiFi，全在一个锅里。谁都能听到谁的喊话。</p>
+<p>你大概会想到：隔开。把大网络分成几个小区域，就像把一个巨大的敞厅隔成一间间办公室——财务一间、研发一间、前台一间。喊话只在自己房间里传播。</p>
+<p>但网络不是物理空间，没有砖墙。所有电脑共享同一根网线（或同一个交换机）。</p>
+<p><strong>怎么在一张平坦的网络上，画出看不见的墙？</strong></p>
+<h2>第二幕：引导式构建</h2>
+<p>要画墙，先得知道&quot;地址&quot;长什么样——不然你都不知道在哪里画。</p>
+<p>每台联网设备都有一个 <strong>IP 地址</strong>（Internet Protocol address），比如 <code>192.168.1.37</code>。四个数字，用点隔开，每个数字范围 0–255。</p>
+<p>这个地址不是随便取的。它其实藏着两层信息：<strong>你住哪条街</strong>和<strong>你是这条街的几号门牌</strong>。</p>
+<p>&quot;街道&quot;部分叫<strong>网络前缀</strong>（network portion），&quot;门牌&quot;部分叫<strong>主机地址</strong>（host portion）。同一条街上的设备可以直接通信，不同街的要通过路由器中转。</p>
+<blockquote>
+<p>想一想：如果 <code>192.168.1.37</code> 和 <code>192.168.1.200</code> 在同一条&quot;街&quot;上，那&quot;街道&quot;是哪部分，&quot;门牌&quot;又是哪部分？</p>
+</blockquote>
+<hr>
+<p>问题来了：光看 <code>192.168.1.37</code> 这串数字，你分不出哪里是街道、哪里是门牌。<code>192</code> 是街道吗？<code>192.168</code> 是？还是 <code>192.168.1</code>？</p>
+<p>必须有一个东西告诉计算机：<strong>从哪里切一刀</strong>。</p>
+<p>这个东西叫<strong>子网掩码</strong>（Subnet Mask）。它的格式和 IP 地址一样，也是四个数字，比如 <code>255.255.255.0</code>。</p>
+<p>掩码的规则极其简单：<strong>255 对应的位置是街道，0 对应的位置是门牌。</strong></p>
+<p>拿 <code>255.255.255.0</code> 来说——前三段是 255，最后一段是 0。意思是：IP 地址的前三段（<code>192.168.1</code>）是街道，最后一段（<code>.37</code>）是门牌。</p>
+<blockquote>
+<p>想一想：如果掩码是 <code>255.255.0.0</code>，那 <code>172.16.5.99</code> 的&quot;街道&quot;是什么，&quot;门牌&quot;是什么？</p>
+</blockquote>
+<hr>
+<p>到这里，你知道了怎么读地址。但第一幕的问题还没解决——<strong>怎么把一条大街拆成几条小巷？</strong></p>
+<p>回到那个 20000 人的公司。假设公司拿到一个网络：<code>192.168.1.x</code>，掩码 <code>255.255.255.0</code>。最后一段 0–255 共 256 个地址，所有设备挤在一条街上。</p>
+<p>我们想把这条街拆成 4 条小巷，分给 4 个部门。</p>
+<p>关键洞察：<strong>掩码里的 255 不是铁板一块。</strong> 我们可以把它&quot;往右推&quot;——把原本属于门牌的位置，借一部分过来当街道。</p>
+<p>要理解&quot;借&quot;，需要看一层更底层的东西。<code>255</code> 在计算机里是 8 个 1：<code>11111111</code>。<code>0</code> 是 8 个 0：<code>00000000</code>。所以 <code>255.255.255.0</code> 用二进制写就是：</p>
+<pre><code>11111111.11111111.11111111.00000000
+|&lt;------- 街道（24位）-------&gt;|&lt;门牌(8位)&gt;|
+</code></pre>
+<p>24 个 1，8 个 0。1 的部分 = 街道，0 的部分 = 门牌。</p>
+<p>现在，我们从门牌区<strong>借 2 位</strong>给街道：</p>
+<pre><code>11111111.11111111.11111111.11000000
+|&lt;------- 街道（26位）-----------&gt;|&lt;门牌(6位)&gt;|
+</code></pre>
+<p>26 个 1，6 个 0。街道变长了，门牌变短了。</p>
+<blockquote>
+<p>想一想：借了 2 位之后，门牌区还剩 6 位。6 位二进制最多表示多少个不同的数？（提示：$2^6 = ?$）</p>
+</blockquote>
+<hr>
+<p>$2^6 = 64$。每条小巷最多 64 个地址。</p>
+<p>那一共几条小巷？借的 2 位可以表示 $2^2 = 4$ 种组合（<code>00</code>, <code>01</code>, <code>10</code>, <code>11</code>），正好 4 条。</p>
+<table>
+<thead>
+<tr>
+<th>借的 2 位</th>
+<th>小巷编号</th>
+<th>地址范围</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>00</code></td>
+<td>小巷 0</td>
+<td><code>192.168.1.0</code> – <code>192.168.1.63</code></td>
+</tr>
+<tr>
+<td><code>01</code></td>
+<td>小巷 1</td>
+<td><code>192.168.1.64</code> – <code>192.168.1.127</code></td>
+</tr>
+<tr>
+<td><code>10</code></td>
+<td>小巷 2</td>
+<td><code>192.168.1.128</code> – <code>192.168.1.191</code></td>
+</tr>
+<tr>
+<td><code>11</code></td>
+<td>小巷 3</td>
+<td><code>192.168.1.192</code> – <code>192.168.1.255</code></td>
+</tr>
+</tbody></table>
+<p>原来一条 256 人的大街，变成了 4 条各 64 人的小巷。每条小巷就是一个<strong>子网</strong>（Subnet）。</p>
+<p>这就是&quot;子网&quot;这个名字的由来——<strong>从一个网络中划分出来的子网络</strong>。</p>
+<blockquote>
+<p>想一想：如果我们借 3 位而不是 2 位，会得到几条小巷？每条小巷多少个地址？</p>
+</blockquote>
+<hr>
+<p>还有一个记法上的便利。<code>255.255.255.192</code> 写起来太长，而它本质上就是&quot;前 26 位是 1&quot;。所以人们直接在 IP 地址后面加一个斜杠写法：</p>
+<p>$$192.168.1.0/26$$</p>
+<p><code>/26</code> 就是说&quot;前 26 位是街道&quot;。这种写法叫 <strong>CIDR 记法</strong>（Classless Inter-Domain Routing，无类别域间路由）。<code>/24</code> 对应 <code>255.255.255.0</code>，<code>/26</code> 对应 <code>255.255.255.192</code>，以此类推。</p>
+<hr>
+<p>最后一个细节：每条小巷 64 个地址，但<strong>不是 64 个都能分给设备</strong>。</p>
+<p>每条小巷有两个特殊地址被占用：第一个地址（全 0 门牌）是<strong>子网标识地址</strong>（Network Address）——它是这条小巷的&quot;路牌&quot;，路由器靠它识别整条小巷的存在，不分配给任何设备；最后一个地址（全 1 门牌）是<strong>广播地址</strong>（Broadcast Address）——它是小巷里的&quot;大喇叭&quot;，发到这个地址的消息会被转发给小巷里的所有设备（正是第一幕&quot;喊话&quot;的正规版本）。</p>
+<p>注意：这里的&quot;子网标识地址&quot;和前面说的&quot;网络前缀（街道部分）&quot;不是一回事——前者是一个完整的 IP 地址（如 <code>192.168.1.0</code>），后者是 IP 地址中用来标识街道归属的那几位。</p>
+<p>以小巷 0 为例：</p>
+<ul>
+<li><code>192.168.1.0</code> → 子网标识地址（不能分配）</li>
+<li><code>192.168.1.63</code> → 广播地址（不能分配）</li>
+<li><code>192.168.1.1</code> – <code>192.168.1.62</code> → 可用地址，共 <strong>62 台设备</strong></li>
+</ul>
+<p>公式：可用主机数 = $2^{主机位数} - 2$</p>
+<blockquote>
+<p>想一想：一个 <code>/28</code> 的子网，主机位有多少位？最多能接几台设备？</p>
+</blockquote>
+<h2>第三幕：完整组装</h2>
+<p>所有零件到齐了，拼成全景：</p>
+<pre><code>          一个 /24 网络（256 个地址）
+          192.168.1.0 ~ 192.168.1.255
+                      |
+            借 2 位 → /26 掩码
+                      |
+     +--------+--------+--------+--------+
+     |        |        |        |        |
+  子网 0    子网 1    子网 2    子网 3
+  .0-.63   .64-.127  .128-.191 .192-.255
+  62台可用  62台可用   62台可用   62台可用
+</code></pre>
+<p><strong>端到端示例</strong>：公司拿到网络 <code>10.0.0.0/24</code>，要分给 3 个部门，每个部门最多 50 台设备。</p>
+<p><strong>第一步：确定需要借几位。</strong></p>
+<ul>
+<li>3 个部门 → 至少 3 个子网 → 借 2 位得到 4 个子网（$2^2 = 4 \geq 3$，够了）</li>
+<li>每个子网：$2^6 - 2 = 62$ 台可用 → $62 \geq 50$，够了</li>
+<li>新掩码：$/26$，即 <code>255.255.255.192</code></li>
+</ul>
+<p><strong>第二步：算出每个子网的范围。</strong></p>
+<table>
+<thead>
+<tr>
+<th>子网</th>
+<th>子网标识地址</th>
+<th>可用范围</th>
+<th>广播地址</th>
+<th>分配给</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>0</td>
+<td><code>10.0.0.0</code></td>
+<td><code>.1</code> – <code>.62</code></td>
+<td><code>10.0.0.63</code></td>
+<td>财务部</td>
+</tr>
+<tr>
+<td>1</td>
+<td><code>10.0.0.64</code></td>
+<td><code>.65</code> – <code>.126</code></td>
+<td><code>10.0.0.127</code></td>
+<td>研发部</td>
+</tr>
+<tr>
+<td>2</td>
+<td><code>10.0.0.128</code></td>
+<td><code>.129</code> – <code>.190</code></td>
+<td><code>10.0.0.191</code></td>
+<td>前台</td>
+</tr>
+<tr>
+<td>3</td>
+<td><code>10.0.0.192</code></td>
+<td><code>.193</code> – <code>.254</code></td>
+<td><code>10.0.0.255</code></td>
+<td>备用</td>
+</tr>
+</tbody></table>
+<blockquote>
+<p>想一想：研发部的 <code>10.0.0.100</code> 发广播，能到达财务部的 <code>10.0.0.10</code> 吗？为什么？</p>
+</blockquote>
+<p><strong>第三步：验证隔离。</strong><br>财务部的 <code>10.0.0.10</code> 发广播 → 广播只到 <code>10.0.0.63</code>（子网 0 的广播地址）→ 路由器检查源地址和目标地址的网络位，发现两者不在同一子网，广播不会被转发出去 → 研发部的 <code>10.0.0.100</code> 收不到。墙生效了。</p>
+<p><strong>组装检查</strong>：</p>
+<ul>
+<li>✅ IP 地址结构 → 确定&quot;街道&quot;和&quot;门牌&quot;</li>
+<li>✅ 子网掩码 → 告诉计算机在哪里切</li>
+<li>✅ 借位 → 从门牌区借位给街道区，创造子网</li>
+<li>✅ CIDR → <code>/26</code> 简写</li>
+<li>✅ 子网标识地址 &amp; 广播地址 → 首尾两个特殊地址</li>
+<li>✅ 可用主机数 → $2^n - 2$</li>
+</ul>
+<h2>第四幕：验证与压力测试</h2>
+<p><strong>1. 反事实——如果去掉子网掩码？</strong><br>计算机看到 <code>192.168.1.37</code> 和 <code>192.168.1.200</code>，不知道它们是在同一个网络还是不同网络。无法判断&quot;直接发&quot;还是&quot;交给路由器&quot;。网络瘫痪。掩码是计算机<strong>唯一</strong>的切割依据。</p>
+<p><strong>2. 边界——能借到什么极端？</strong></p>
+<ul>
+<li>借到只剩 2 位主机 → $/30$，$2^2 - 2 = 2$ 台可用。这在实际中用于<strong>点对点链路</strong>（两个路由器之间的连线，只需要 2 个地址）。</li>
+<li>借到只剩 1 位 → $/31$，理论上 0 台可用。但 RFC 3021 特别允许点对点链路使用 /31，省下 2 个地址。</li>
+<li>借到只剩 0 位 → $/32$，一个地址指一台设备，常见于路由表和防火墙规则中。</li>
+</ul>
+<blockquote>
+<p>想一想：如果完全不借位（保持 /24），会怎样？——回到第一幕的大敞厅，所有人又挤在同一条街上喊话。</p>
+</blockquote>
+<p><strong>3. 连接——子网和 VLAN 是什么关系？</strong></p>
+<blockquote>
+<p><strong>延伸阅读</strong><br>子网是逻辑上的划分（在 IP 层画墙），VLAN 是物理/链路层的划分（在交换机上画墙）。实际网络中，通常<strong>一个 VLAN 对应一个子网</strong>——VLAN 负责隔离电信号，子网负责隔离 IP 通信。两者配合，墙才真正挡住。</p>
+</blockquote>
+<p><strong>4. 终极挑战——空白重建路线图：</strong></p>
+<pre><code>[一张大网所有人互相喊话，太吵太乱]
+        |
+[需要一种&quot;地址结构&quot;来区分归属]
+        |
+[IP 地址 = 街道 + 门牌]
+        |
+[缺一个东西告诉计算机哪里是街道哪里是门牌]
+        |
+[子网掩码：1 = 街道，0 = 门牌]
+        |
+[把门牌位借一部分给街道 → 一条大街变多条小巷]
+        |
+[每条小巷 = 一个子网，首尾地址保留]
+        |
+[完成：广播隔离，安全分区，地址有序]
+</code></pre>
+<p>只凭这张图，你能从第一幕的问题出发，一步步重新推导出子网划分的全部机制吗？</p>
+<h2>关联笔记</h2>
+<blockquote>
+<p><strong>相关笔记</strong><br><a href="/knowledge/gateway.html">网关</a> · <a href="/knowledge/port.html">端口</a> · <a href="/knowledge/cdn.html">CDN</a></p>
+</blockquote>
+
+        </div>
+      </article>
+
+      <section class="related-notes">
+  <h3>Related Notes</h3>
+  <div class="related-notes-grid">
+    <a href="gateway.html" class="related-note-card">
+      <div class="related-title">网关</div>
+      <div class="related-category">Network</div>
+    </a>
+    <a href="port.html" class="related-note-card">
+      <div class="related-title">端口</div>
+      <div class="related-category">Network</div>
+    </a>
+    <a href="cdn.html" class="related-note-card">
+      <div class="related-title">CDN</div>
+      <div class="related-category">Network</div>
+    </a>
+  </div>
+</section>
+
+      <div class="post-nav">
+  <a href="oss.html">
+    <div class="post-nav-label"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg> Previous</div>
+    <div class="post-nav-title">OSS</div>
+  </a>
+  <a href="正向代理与反向代理.html">
+    <div class="post-nav-label">Next <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg></div>
+    <div class="post-nav-title">正向代理与反向代理</div>
+  </a>
+</div>
+
+
+      <div style="padding-bottom:40px;">
+        <a href="/" class="back-link">Back to Home</a>
+      </div>
+    </div>
+
+    <!-- TOC sidebar (right) -->
+    <aside class="toc-sidebar" id="toc-sidebar">
+      <div class="toc-title">On This Page</div>
+      <ul class="toc-list" id="toc-list"></ul>
+    </aside>
+  </main>
+
+  <!-- Back to top -->
+  <button class="back-to-top" id="back-to-top" aria-label="Back to top">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="18 15 12 9 6 15"/></svg>
+  </button>
+
+  <footer>
+    <p>Designed &amp; Built by <a href="https://github.com/ChenSchenG">ChenSchenG</a></p>
+  </footer>
+
+  <script src="../js/main.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+  <script>
+    hljs.highlightAll();
+
+    // --- Generate TOC from headings ---
+    (function(){
+      var body = document.querySelector(".article-body");
+      var tocList = document.getElementById("toc-list");
+      if(!body || !tocList) return;
+      var headings = body.querySelectorAll("h1, h2, h3");
+      if(headings.length < 2){ document.getElementById("toc-sidebar").style.display="none"; return; }
+      headings.forEach(function(h, i){
+        if(!h.id) h.id = "heading-" + i;
+        var li = document.createElement("li");
+        var tag = h.tagName.toLowerCase();
+        li.className = "toc-" + tag;
+        var a = document.createElement("a");
+        a.href = "#" + h.id;
+        a.textContent = h.textContent;
+        li.appendChild(a);
+        tocList.appendChild(li);
+      });
+
+      // Scroll-spy: highlight active TOC item
+      var tocLinks = tocList.querySelectorAll("a");
+      var observer = new IntersectionObserver(function(entries){
+        entries.forEach(function(entry){
+          if(entry.isIntersecting){
+            tocLinks.forEach(function(l){ l.classList.remove("active"); });
+            var active = tocList.querySelector('a[href="#' + entry.target.id + '"]');
+            if(active) active.classList.add("active");
+          }
+        });
+      }, { rootMargin: "-80px 0px -70% 0px", threshold: 0 });
+      headings.forEach(function(h){ observer.observe(h); });
+    })();
+
+    // --- Code copy buttons ---
+    document.querySelectorAll(".article-body pre").forEach(function(pre){
+      var btn = document.createElement("button");
+      btn.className = "code-copy-btn";
+      btn.textContent = "Copy";
+      btn.addEventListener("click", function(){
+        var code = pre.querySelector("code");
+        navigator.clipboard.writeText(code.textContent).then(function(){
+          btn.textContent = "Copied!"; btn.classList.add("copied");
+          setTimeout(function(){ btn.textContent = "Copy"; btn.classList.remove("copied"); }, 2000);
+        });
+      });
+      pre.appendChild(btn);
+    });
+
+    // --- Back to top ---
+    (function(){
+      var btn = document.getElementById("back-to-top");
+      if(!btn) return;
+      window.addEventListener("scroll", function(){
+        btn.classList.toggle("visible", window.scrollY > 400);
+      });
+      btn.addEventListener("click", function(){
+        window.scrollTo({ top: 0, behavior: "smooth" });
+      });
+    })();
+  </script>
+</body>
+</html>

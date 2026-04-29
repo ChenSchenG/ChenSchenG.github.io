@@ -1,0 +1,357 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>哈希 — ChenSchenG</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⚡</text></svg>">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../css/style.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github.min.css">
+</head>
+<body>
+  <nav id="nav">
+    <div class="nav-logo"><a href="/">ChenSchenG</a></div>
+    <div class="nav-links-wrapper">
+      <ul class="nav-links">
+        <li><a href="/">Home</a></li>
+        <li><a href="/#graph">Graph</a></li>
+        <li><a href="/about.html">About</a></li>
+      </ul>
+    </div>
+    <button class="hamburger" id="hamburger" aria-label="Menu"><span class="hamburger-inner"></span></button>
+  </nav>
+  <div class="mobile-menu-overlay" id="mobile-overlay"></div>
+  <aside class="mobile-menu" id="mobile-menu">
+    <ul>
+      <li><a href="/">Home</a></li>
+      <li><a href="/#graph">Graph</a></li>
+      <li><a href="/about.html">About</a></li>
+    </ul>
+  </aside>
+
+  <main class="article-page">
+    <!-- Main content column -->
+    <div class="article-main">
+      <article>
+        <header class="article-header">
+          <div class="article-breadcrumb">
+            <a href="/">Home</a>
+            <span class="separator">/</span>
+            <span>Security</span>
+          </div>
+          <h1>哈希</h1>
+          <div class="article-meta">
+            <span><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>Posted 2026-04-13</span>
+            <span><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 19a2 2 0 01-2 2H4a2 2 0 01-2-2V5a2 2 0 012-2h5l2 3h9a2 2 0 012 2z"/></svg>Security</span>
+            <span><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>17 min read</span>
+          </div>
+          <div class="article-tags">
+  <span class="tag">密码学与安全</span>
+  <span class="tag">概念</span>
+  <span class="tag">哈希</span>
+  <span class="tag">Hash</span>
+  <span class="tag">SHA-256</span>
+  <span class="tag">单向函数</span>
+  <span class="tag">碰撞</span>
+  <span class="tag">雪崩效应</span>
+</div>
+
+        </header>
+
+        <div class="article-body">
+          <h1>哈希（Hash）</h1>
+<blockquote>
+<p><strong>一句话本质</strong><br>哈希把任意数据压成固定长度指纹，靠雪崩+单向+抗碰撞保证不可伪造、不可逆推。</p>
+</blockquote>
+<h2>第一幕：问题感知</h2>
+<p>你从网上下载了一个 Linux 系统的安装文件，4 GB。下载花了半小时。</p>
+<p>你准备把它刻录到 U 盘装机。但一个念头闪过：这个文件在传输过程中有没有出错？哪怕有一个字节损坏，装出来的系统可能就有问题。更让人不安的是：有没有人在你和服务器之间动了手脚，往文件里塞了恶意代码？</p>
+<p>你大概会想：跟服务器上的原始文件对比一下。但原始文件也是 4 GB。为了验证一个 4 GB 的文件，你得再传一次 4 GB 来比对？那这第二次传输谁来保证没出错？</p>
+<p>换个思路：不比对整个文件，而是比对一个<strong>简短的&quot;摘要&quot;</strong>。服务器把 4 GB 文件算出一个 64 个字符的摘要，公布在网页上。你下载完文件后，也算一遍摘要，两边一对——一样就说明文件没问题。</p>
+<p>但这个&quot;算摘要&quot;的方法得满足一些苛刻的要求：4 GB 的文件变成 64 个字符，大量信息被丢掉了。会不会有两个不同的文件算出同一个摘要？如果攻击者能构造一个带恶意代码的文件，恰好跟正版文件摘要相同，那这个验证就形同虚设。</p>
+<p><strong>怎么给数据做&quot;指纹&quot;？</strong></p>
+<h2>第二幕：引导式构建</h2>
+<p>先从最朴素的想法开始：把文件里所有字节加起来，得到一个数字，当作摘要。</p>
+<p>比如文件内容是 <code>[72, 101, 108, 108, 111]</code>（对应 ASCII 码的 &quot;Hello&quot;），全部相加得到 500。这个 500 就是&quot;摘要&quot;。</p>
+<p>这行得通吗？试一下——把 &quot;Hello&quot; 改成 &quot;Holle&quot;（交换了 e 和 o 的位置），字节变成 <code>[72, 111, 108, 108, 101]</code>，相加还是 500。摘要一样，但内容不同。只要字节总和不变，怎么换顺序都检测不出来。</p>
+<p>简单求和丢掉了<strong>顺序信息</strong>。我们需要一种方法，哪怕只动了一个字节、只换了一下位置，算出来的结果也完全不同。</p>
+<p>这种方法就是<strong>哈希函数（Hash Function）</strong>——把任意长度的输入，变换成<strong>固定长度</strong>的输出（叫<strong>哈希值 / 散列值 / 摘要，digest</strong>）。而且，它是&quot;混合搅拌&quot;式的变换，不是简单的算术运算。</p>
+<blockquote>
+<p><strong>想一想</strong><br>为什么输出必须是&quot;固定长度&quot;？如果哈希值的长度跟输入长度成正比，会发生什么？</p>
+</blockquote>
+<p>那就回到了原来的问题——验证一个 4 GB 文件就需要传一个跟它差不多大的哈希值，失去了&quot;用小摘要代替大文件&quot;的意义。固定长度是&quot;压缩&quot;的前提。</p>
+<hr>
+<p>&quot;混合搅拌&quot;到底怎么搅？我们不需要理解某个具体算法的每一步（那是密码学家的工作），但要理解搅拌的<strong>目标</strong>是什么。</p>
+<p>第一个目标：<strong>雪崩效应（Avalanche Effect）</strong>。输入哪怕只变一个比特，输出应该面目全非——大约一半的比特翻转。</p>
+<p>用真实的哈希函数 SHA-256 来感受一下：</p>
+<pre><code>&quot;Hello&quot;  -&gt; 185f8db3271...  (64个十六进制字符)
+&quot;hello&quot;  -&gt; 2cf24dba5fb...  (64个十六进制字符)
+</code></pre>
+<p>只是 H 变成了 h（一个字母大小写的差别），输出完全不同，看不出任何关联。这不是&quot;加了一点盐&quot;的感觉，而是&quot;整盘推倒重来&quot;。</p>
+<p>雪崩效应为什么重要？因为如果输入的微小变化只引起输出的微小变化，攻击者就能&quot;摸着输出调输入&quot;——观察输出变了哪几位，就知道输入大概变了什么。雪崩效应让这条路死掉了。</p>
+<blockquote>
+<p><strong>想一想</strong><br>雪崩效应意味着什么？如果你只知道哈希值，想倒推出原始输入，你有什么策略？</p>
+</blockquote>
+<p>几乎没有策略。输出不泄露任何关于输入结构的线索。唯一的办法是穷举——把所有可能的输入都算一遍哈希，看哪个匹配。这就引出了下一个性质。</p>
+<hr>
+<p>这就到了哈希函数最重要的性质：<strong>单向性（One-Way / Pre-image Resistance）</strong>。</p>
+<p>正向计算很快——4 GB 的文件，几秒钟就能算出 SHA-256 的哈希值。但反过来，给你一个哈希值，让你找到能产生它的原始输入，在计算上不可行。</p>
+<p>注意措辞：不是&quot;数学上绝对不可能&quot;，而是&quot;计算上不可行&quot;。理论上你可以穷举所有可能的输入来碰运气。但 SHA-256 的输出有 $2^{256}$ 种可能——这个数大到什么程度？宇宙中所有原子的数量大约是 $2^{266}$。你要搜索的空间跟整个宇宙的原子数量在同一个量级。</p>
+<p>单向性让哈希变成了<strong>指纹</strong>：看到指纹能验证&quot;是不是这个人&quot;，但不能从指纹反向造出一个人。</p>
+<blockquote>
+<p><strong>想一想</strong><br>文件下载的场景里，单向性重要吗？你只需要&quot;正向算一遍，比对结果&quot;——好像不需要它不可逆？什么场景下单向性才变得关键？</p>
+</blockquote>
+<p>密码存储。网站数据库不存你的明文密码，只存密码的哈希值。登录时把你输入的密码算一遍哈希，跟数据库里的比。即使数据库被偷了，攻击者拿到的也只是哈希值，无法倒推出原始密码。没有单向性，存哈希等于存明文。</p>
+<hr>
+<p>固定长度的输出意味着一个不可避免的数学事实：输入空间是无限的（任意长度的数据），输出空间是有限的（比如 SHA-256 只有 $2^{256}$ 种输出）。所以<strong>一定存在不同的输入产生相同的输出</strong>。这叫做<strong>碰撞（Collision）</strong>。</p>
+<p>碰撞的存在是数学必然。问题不是&quot;有没有碰撞&quot;，而是&quot;攻击者能不能找到碰撞&quot;。</p>
+<p><strong>抗碰撞性（Collision Resistance）</strong>：找到任意两个不同的输入，使它们的哈希值相同，在计算上不可行。</p>
+<p>回到文件下载的场景：攻击者想伪造一个恶意文件，让它跟正版文件的哈希值一样。如果哈希函数有强抗碰撞性，他做不到——不是不想，是算力不够。</p>
+<p>但抗碰撞性不是永恒的。2017 年，Google 的团队用巨大算力<strong>实际找到了</strong> SHA-1 算法的一次碰撞——两个不同的 PDF 文件，SHA-1 哈希值完全相同。SHA-1 从此被认为不安全，业界迁移到 SHA-256。</p>
+<blockquote>
+<p><strong>想一想</strong><br>既然碰撞在数学上必然存在，&quot;抗碰撞性&quot;到底在抵抗什么？</p>
+</blockquote>
+<p>抵抗的不是碰撞的存在，而是碰撞的<strong>可发现性</strong>。碰撞像大海里的两粒一模一样的沙子——它们存在，但你没有能力找到它们。一旦有人找到了高效的搜索方法，这个哈希函数就该退役了。</p>
+<hr>
+<p>到这里，我们有了一个完整的&quot;指纹工具&quot;：固定长度输出、雪崩效应、单向性、抗碰撞性。但还有一个实际问题需要解决。</p>
+<p>回到密码存储的场景。网站用哈希存密码，攻击者偷了数据库，拿到一堆哈希值。他不能倒推，但他可以走另一条路：提前把常见密码（&quot;123456&quot;、&quot;password&quot;、&quot;qwerty&quot;……）全部算一遍哈希，做成一张巨大的对照表。然后拿数据库里的哈希值去查表。这叫<strong>彩虹表攻击（Rainbow Table Attack）</strong>。</p>
+<p>&quot;123456&quot; 的 SHA-256 永远是同一个值。只要你用了这个密码，攻击者一查就知道。</p>
+<p>怎么破？在密码后面拼一段<strong>随机字符串</strong>，然后再算哈希。这段随机字符串叫做<strong>盐（Salt）</strong>。每个用户的盐不同，存在数据库里（明文存放，不需要保密）。</p>
+<p>同样是密码 &quot;123456&quot;，用户 A 的盐是 &quot;x7f2&quot;，哈希的是 &quot;123456x7f2&quot;；用户 B 的盐是 &quot;k9m1&quot;，哈希的是 &quot;123456k9m1&quot;。两个人密码相同，但哈希值完全不同。攻击者的彩虹表失效了——他的表里只有 &quot;123456&quot; 的哈希，没有 &quot;123456x7f2&quot; 的。</p>
+<blockquote>
+<p><strong>想一想</strong><br>盐是明文存在数据库里的，攻击者也能看到。那它为什么还有用？盐到底防的是什么？</p>
+</blockquote>
+<p>盐防的不是&quot;知不知道盐&quot;，而是&quot;能不能提前算&quot;。没有盐的时候，攻击者可以一次性构建一张全局彩虹表，适用于所有用户。有了盐，每个用户的盐不同，攻击者必须对每个用户<strong>单独</strong>穷举——工作量从&quot;算一次&quot;变成&quot;算 N 次&quot;。盐消灭的是<strong>批量破解的效率优势</strong>。</p>
+<hr>
+<p>盐解决了彩虹表的问题。但 SHA-256 本身<strong>算得太快了</strong>——一块现代 GPU 每秒能算几十亿次 SHA-256。即使加了盐，攻击者对每个用户单独穷举，速度仍然惊人。短密码几秒就能暴力破解。</p>
+<p>密码存储需要的不是&quot;快&quot;，而是&quot;慢&quot;。</p>
+<p>于是出现了专门为密码设计的哈希函数：<strong>bcrypt</strong>、<strong>scrypt</strong>、<strong>Argon2</strong>。它们故意设计得<strong>很慢</strong>——一次计算可能需要几百毫秒，而且可以调节&quot;慢多少&quot;。对用户来说，登录时等 0.3 秒无所谓。但对攻击者来说，每秒只能试几次，穷举几十亿个可能的密码就要等几百年。</p>
+<blockquote>
+<p><strong>想一想</strong><br>通用哈希（SHA-256）和密码哈希（bcrypt）的核心区别是什么？在什么场景该用哪个？</p>
+</blockquote>
+<p>通用哈希追求&quot;快&quot;——文件校验、数据结构、数字签名都需要高速。密码哈希追求&quot;慢&quot;——故意增加计算成本来抵抗暴力破解。文件校验用 SHA-256，密码存储用 bcrypt/Argon2。用错了方向会很危险：用 bcrypt 校验文件太慢，用 SHA-256 存密码太容易被破。</p>
+<h2>第三幕：完整组装</h2>
+<p><strong>全景图</strong>：</p>
+<pre><code>                      哈希函数全景
+
+  输入(任意长度)                  输出(固定长度)
+  ================               ================
+  &quot;Hello&quot;           --+
+  4GB 文件           -+--&gt;  哈希函数  --&gt; 64字符摘要
+  &quot;Hello&quot; + 1bit改动 --+         |
+                                 |
+                    +------------+------------+
+                    |                         |
+              核心性质                    应用场景
+              ========                  ========
+                    
+  [雪崩效应]  1bit变 -&gt; ~50%输出翻转    [文件校验]
+       |                                  下载后算哈希
+       v                                  比对官方摘要
+  [单向性]    正向快,逆向不可行              |
+       |                                  |
+       v                               [密码存储]
+  [抗碰撞性]  找不到两个输入               密码+盐 -&gt; 哈希
+              输出相同                    数据库只存哈希
+       |                                  |
+       v                               [数字签名]
+  [固定长度]  无限输入 -&gt; 有限输出         对哈希值签名
+                                        而非对原文签名
+
+              密码存储专用加固
+              ==================
+              
+  [加盐]     每用户随机盐,杀死彩虹表
+       |
+       v
+  [慢哈希]   bcrypt/scrypt/Argon2
+             故意慢,抵抗暴力穷举
+</code></pre>
+<p><strong>端到端示例</strong>：</p>
+<p>场景一：<strong>文件校验</strong>。</p>
+<p>Linux 官网发布 Ubuntu 安装镜像，同时公布：</p>
+<pre><code>SHA-256: a1b2c3d4e5f6...  (64个十六进制字符)
+</code></pre>
+<p>你下载完 4 GB 的镜像文件，在终端运行 <code>sha256sum ubuntu.iso</code>，几秒后得到一串 64 字符。跟官网比对——完全一致。文件没被篡改，可以放心安装。如果有任何一个字节不同，雪崩效应保证哈希值面目全非，你一眼就能看出来。</p>
+<p>场景二：<strong>密码存储</strong>。</p>
+<p>用户注册时输入密码 &quot;myP@ss99&quot;。服务器生成随机盐 &quot;a3f8&quot;，计算 <code>bcrypt(&quot;myP@ss99&quot; + &quot;a3f8&quot;, cost=12)</code>，得到哈希值 <code>$2b$12$...</code>，连同盐一起存入数据库。</p>
+<p>用户登录时输入密码，服务器从数据库取出盐 &quot;a3f8&quot;，用同样的方式计算 bcrypt，比对哈希值。一致则放行，不一致则拒绝。全程服务器从未接触过明文密码（接收后立即哈希、立即丢弃）。</p>
+<p>数据库被偷？攻击者看到的是哈希值和盐。盐让彩虹表失效；bcrypt 的 cost=12 意味着每次计算约 250 毫秒，暴力穷举一个 8 位复杂密码需要几千年。</p>
+<p>两个场景都走完了。文件校验用了固定长度 + 雪崩效应 + 抗碰撞性。密码存储在这些基础上额外用了单向性 + 盐 + 慢哈希。每个组件都在全流程中找到了位置。</p>
+<h2>第四幕：验证与压力测试</h2>
+<p><strong>反事实 1：如果没有雪崩效应？</strong><br>输入的微小变化只引起输出的微小变化。攻击者可以&quot;摸着输出调输入&quot;：改一个比特，看输出变了哪几位，逐步逼近目标。哈希变成了可逆的拼图，单向性名存实亡。</p>
+<p><strong>反事实 2：如果没有抗碰撞性？</strong><br>攻击者能构造出跟正版文件哈希值相同的恶意文件。文件校验完全失效——你以为验证过了，其实下载的是木马。SHA-1 的碰撞被实际找到后就是这个下场。</p>
+<p><strong>反事实 3：如果密码存储不加盐？</strong><br>所有用&quot;123456&quot;当密码的用户，数据库里的哈希值完全相同。攻击者一次彩虹表查询就能批量破解几万个账户。加盐后每个用户的哈希值不同，只能逐个穷举。</p>
+<p><strong>反事实 4：如果密码存储用 SHA-256 而非 bcrypt？</strong><br>SHA-256 太快。GPU 集群每秒几十亿次计算，8 位纯数字密码秒破。bcrypt 的 cost 参数故意让每次计算耗时几百毫秒，是&quot;用速度换安全&quot;的设计选择。</p>
+<p><strong>边界：哈希在什么条件下失效？</strong></p>
+<ul>
+<li>哈希算法的安全性会随时间<strong>衰减</strong>。计算能力增长、新的数学攻击方法被发现——MD5（1991）已完全不安全、SHA-1（1995）已被攻破、SHA-256（2001）目前安全但不是永远的。密码学是军备竞赛</li>
+<li>哈希不是加密。<strong>哈希不可逆</strong>，你不能从哈希值&quot;解密&quot;出原文。如果需要恢复原始数据，请用加密而非哈希</li>
+<li>哈希不能防止<strong>重放</strong>。攻击者截获了你发送的哈希值，原样重发一遍，接收方无法区分。防重放需要时间戳或随机数等额外机制</li>
+</ul>
+<p><strong>连接：哈希和 <a href="/knowledge/jwt.html">JWT</a> 的关系？</strong><br>JWT 的签名部分依赖哈希。JWT 用 HMAC-SHA256（一种带密钥的哈希）对 Header 和 Payload 做签名——接收方重新计算哈希并比对，确认 Token 没被篡改。哈希是 JWT 完整性验证的底层工具。</p>
+<p><strong>连接：哈希和 <a href="/knowledge/sql%E6%B3%A8%E5%85%A5.html">SQL注入</a>、<a href="/knowledge/xss.html">XSS</a> 的关系？</strong><br>如果密码用了正确的哈希存储（加盐 + 慢哈希），即使 SQL 注入导致数据库被拖库，攻击者拿到的也只是哈希值，无法直接获取明文密码。哈希是数据泄露后的<strong>最后一道减损防线</strong>。</p>
+<p><strong>终极挑战·空白重建</strong>：</p>
+<pre><code>[怎么给数据做&quot;指纹&quot;？]
+    |
+    v
+[简单求和丢了顺序 -- 需要&quot;搅拌&quot;式变换]
+    |
+    v
+[哈希函数：任意输入 -&gt; 固定长度输出]
+    |
+    v
+[雪崩效应：1bit变 -&gt; 输出面目全非，阻止&quot;摸着调&quot;]
+    |
+    v
+[单向性：正向快、逆向不可行 -- 指纹不能造出人]
+    |
+    v
+[抗碰撞性：找不到两个不同输入有相同输出]
+    |
+    v
+[密码存储：单向性保护明文 -- 但彩虹表可以查表破解]
+    |
+    v
+[加盐：每用户随机盐，杀死彩虹表的批量优势]
+    |
+    v
+[慢哈希：bcrypt/Argon2，故意慢，抵抗暴力穷举]
+    |
+    v
+[完整方案：通用哈希(文件校验) + 密码哈希(盐+慢)]
+</code></pre>
+<h2>关联笔记</h2>
+<blockquote>
+<p><strong>相关原子概念</strong><br><a href="/knowledge/jwt.html">JWT</a> · <a href="/knowledge/aksk.html">AKSK</a> · <a href="/knowledge/xss.html">XSS</a> · <a href="/knowledge/sql%E6%B3%A8%E5%85%A5.html">SQL注入</a></p>
+</blockquote>
+<p><a href="/knowledge/jwt.html">JWT</a> 的签名依赖 HMAC-SHA256——哈希是 JWT 完整性验证的底层工具。<a href="/knowledge/aksk.html">AKSK</a> 的 API 签名同样基于 HMAC-SHA256，用哈希保证请求不被篡改。如果密码用了正确的哈希存储，即使 <a href="/knowledge/sql%E6%B3%A8%E5%85%A5.html">SQL注入</a> 导致拖库，攻击者也只能拿到哈希值。<a href="/knowledge/xss.html">XSS</a> 的 CSP 策略中也使用哈希值来标记合法脚本。</p>
+
+        </div>
+      </article>
+
+      <section class="related-notes">
+  <h3>Related Notes</h3>
+  <div class="related-notes-grid">
+    <a href="jwt.html" class="related-note-card">
+      <div class="related-title">JWT</div>
+      <div class="related-category">Security</div>
+    </a>
+    <a href="aksk.html" class="related-note-card">
+      <div class="related-title">AKSK</div>
+      <div class="related-category">Security</div>
+    </a>
+    <a href="xss.html" class="related-note-card">
+      <div class="related-title">XSS</div>
+      <div class="related-category">Security</div>
+    </a>
+    <a href="sql注入.html" class="related-note-card">
+      <div class="related-title">SQL注入</div>
+      <div class="related-category">Security</div>
+    </a>
+  </div>
+</section>
+
+      <div class="post-nav">
+  <a href="src.html">
+    <div class="post-nav-label"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg> Previous</div>
+    <div class="post-nav-title">SRC</div>
+  </a>
+  <a href="cookie.html">
+    <div class="post-nav-label">Next <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg></div>
+    <div class="post-nav-title">Cookie</div>
+  </a>
+</div>
+
+
+      <div style="padding-bottom:40px;">
+        <a href="/" class="back-link">Back to Home</a>
+      </div>
+    </div>
+
+    <!-- TOC sidebar (right) -->
+    <aside class="toc-sidebar" id="toc-sidebar">
+      <div class="toc-title">On This Page</div>
+      <ul class="toc-list" id="toc-list"></ul>
+    </aside>
+  </main>
+
+  <!-- Back to top -->
+  <button class="back-to-top" id="back-to-top" aria-label="Back to top">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="18 15 12 9 6 15"/></svg>
+  </button>
+
+  <footer>
+    <p>Designed &amp; Built by <a href="https://github.com/ChenSchenG">ChenSchenG</a></p>
+  </footer>
+
+  <script src="../js/main.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+  <script>
+    hljs.highlightAll();
+
+    // --- Generate TOC from headings ---
+    (function(){
+      var body = document.querySelector(".article-body");
+      var tocList = document.getElementById("toc-list");
+      if(!body || !tocList) return;
+      var headings = body.querySelectorAll("h1, h2, h3");
+      if(headings.length < 2){ document.getElementById("toc-sidebar").style.display="none"; return; }
+      headings.forEach(function(h, i){
+        if(!h.id) h.id = "heading-" + i;
+        var li = document.createElement("li");
+        var tag = h.tagName.toLowerCase();
+        li.className = "toc-" + tag;
+        var a = document.createElement("a");
+        a.href = "#" + h.id;
+        a.textContent = h.textContent;
+        li.appendChild(a);
+        tocList.appendChild(li);
+      });
+
+      // Scroll-spy: highlight active TOC item
+      var tocLinks = tocList.querySelectorAll("a");
+      var observer = new IntersectionObserver(function(entries){
+        entries.forEach(function(entry){
+          if(entry.isIntersecting){
+            tocLinks.forEach(function(l){ l.classList.remove("active"); });
+            var active = tocList.querySelector('a[href="#' + entry.target.id + '"]');
+            if(active) active.classList.add("active");
+          }
+        });
+      }, { rootMargin: "-80px 0px -70% 0px", threshold: 0 });
+      headings.forEach(function(h){ observer.observe(h); });
+    })();
+
+    // --- Code copy buttons ---
+    document.querySelectorAll(".article-body pre").forEach(function(pre){
+      var btn = document.createElement("button");
+      btn.className = "code-copy-btn";
+      btn.textContent = "Copy";
+      btn.addEventListener("click", function(){
+        var code = pre.querySelector("code");
+        navigator.clipboard.writeText(code.textContent).then(function(){
+          btn.textContent = "Copied!"; btn.classList.add("copied");
+          setTimeout(function(){ btn.textContent = "Copy"; btn.classList.remove("copied"); }, 2000);
+        });
+      });
+      pre.appendChild(btn);
+    });
+
+    // --- Back to top ---
+    (function(){
+      var btn = document.getElementById("back-to-top");
+      if(!btn) return;
+      window.addEventListener("scroll", function(){
+        btn.classList.toggle("visible", window.scrollY > 400);
+      });
+      btn.addEventListener("click", function(){
+        window.scrollTo({ top: 0, behavior: "smooth" });
+      });
+    })();
+  </script>
+</body>
+</html>
